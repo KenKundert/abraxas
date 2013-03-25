@@ -153,10 +153,11 @@ programManpage = {
         your GPG pass phrase into your agent and it is retained while you walk 
         away from your computer, then someone could use this program to access 
         all of your passwords (with access to your accounts file, they would 
-        everything they needed to know to break into each of your accounts).  
-        Thus, it is important to both carefully consider your use of the GPG 
-        agent and it's password retention time. It is also important that you 
-        dutifully use screen locking when you walk away from your computer.
+        have everything they needed to know to break into each of your 
+        accounts).  Thus, it is important to both carefully consider your use of 
+        the GPG agent and it's password retention time. It is also important 
+        that you dutifully use screen locking when you walk away from your 
+        computer.
 
         How it Works
         ++++++++++++
