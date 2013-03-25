@@ -59,6 +59,7 @@ Then copy it into::
     cp gnupg.vim .vim/plugin
 
 Once installed, you should be able to get information as follows::
+
     $ man pw     (information on how to use pw from the command line)
     $ man 3 pw   (information on how to use the pw API)
     $ man 5 pw   (information about the configuration files)
