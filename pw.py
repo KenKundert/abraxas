@@ -638,6 +638,7 @@ class Accounts():
             #    display("Active window title matches the following accounts:", self.logger)
             #    display("    %s" % ('\n    '.join(matches)), self.logger)
             elif matches:
+                log("Window title matches the following accounts: '%s'." % "', '".join(matches), self.logger)
                 from dialog import accountSelectDialog
                 accounts = accountSelectDialog(sorted(matches))
                 try:
