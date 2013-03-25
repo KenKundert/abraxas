@@ -1,0 +1,98 @@
+# Account information
+#
+# Add information about each of your accounts to the accounts dictionary.
+#
+# You can use the character sets and exclude function to create alphabets
+# for you character-base passwords. You can use the dedent function to strip
+# leading whitespace from multi-line remarks.
+
+from textwrap import dedent
+
+# Character sets
+# Use these to construct alphabets by summing together the ones you want.
+lowercase = "abcdefghijklmnopqrstuvwxyz"
+uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+letters = lowercase + uppercase
+digits = "0123456789"
+alphanumeric = letters + digits
+hexdigits = "0123456789abcdef"
+punctuation = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
+whitespace = " \t"
+printable = alphanumeric + punctuation + whitespace
+
+# Exclude function
+# Use this to strip characters from a character set.
+def exclude(chars, exclusions):
+    return chars.translate(str.maketrans('', '', exclusions))
+
+# Example:
+# To create an alphabet with all characters except tabs use either:
+#     'alphabet': exclude(printable, '\t')
+# or:   
+#     'alphabet': alphanumeric + punctuation + ' '
+
+# Give the desired location of the file
+logfile = './test_settings/log'
+
+# Account Information
+# Add your account information here ...
+accounts = {
+    # Templates
+    # The first view are intended to be templates.
+    # Any account can be used as a template for another account.
+    # Those that are designated as templates (ID starts with +) cannot be
+    # used as an actual account and will not be listed in find and search
+    # results. Feel free to modify, delete, or add your own templates.
+    # You might want to choose short names with no spaces or glob characters
+    # for those templates you plan to use from the command line.
+    "=words": {  # typically used for linux pass phrases
+        'password-type': 'words',
+        'num-words': 4,
+        'autotype': "{password}{return}",
+    },
+    "=chars": {  # typically used for web passwords
+        'password-type': 'chars',
+        'num-chars': 12,
+        'alphabet': alphanumeric + punctuation,
+        'autotype': "{username}{tab}{password}{return}",
+    },
+    "=extreme": {  # used in situations where there are no limits
+        'password-type': 'chars',
+        'num-chars': 64,
+        'alphabet': exclude(printable, '\t'),
+    },
+
+    # Accounts
+    "crest": {
+        'username': "smiler",
+        'account': "1234-5678",
+        'email': "smiler@nowhere.com",
+        'url': "www.crest.com",
+        'security questions': [
+            "How many teeth do you have?",
+            "How many teeth are missing?",
+        ],
+        'remarks': """Remarks about crest""",
+        'version': "paste",
+        'window': 'crest.com*',
+        'autotype': "{username}{tab}{password}{return}",
+        'master': "current",
+	'password-type': 'words',
+	'num-words': 4,
+    },
+    "colgate": {
+    },
+    "sensodyne": {
+        'remarks': "Another smiler.",
+        'master': "current",
+	'password-type': 'chars',
+	'num-words': 12,
+	'alphabet': hexdigits,
+	'prefix': 'pre:',
+	'suffix': ':suf',
+    },
+    "toms": {
+        'master': "current",
+	'template': '=extreme',
+    }
+}
