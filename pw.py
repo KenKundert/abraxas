@@ -253,7 +253,12 @@ class Logging:
             self.logfile = None
         self.cache = []
         if argv:
-            self.log('Invoked as: %s' % ' '.join(argv))
+            try:
+                from datetime import datetime
+                now = datetime.now().strftime(" on %A, %d %B %Y at %I:%M:%S %p")
+            except:
+                now = ""
+            self.log("Invoked as '%s'%s." % (' '.join(argv), now))
         self.prog_name = prog_name
         if argv and not prog_name:
             self.prog_name = argv[0]
