@@ -826,8 +826,8 @@ class PasswordWriter():
         # Send output to stdout with the labels.
         def display_secret(label, secret):
             import cursor
-            text = ': '.join([cursor.color(label, 'magenta'), secret])
             if self.wait:
+                text = ': '.join([cursor.color(label, 'magenta'), secret])
                 try:
                     cursor.write(text);
                     sleep(self.wait)
@@ -835,7 +835,7 @@ class PasswordWriter():
                 except KeyboardInterrupt:
                     cursor.clear()
             else:
-                print(text)
+                print(secret)
 
         # Execute the script
         for action in self.script:
