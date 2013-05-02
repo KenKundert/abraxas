@@ -62,6 +62,11 @@ accounts_file_initial_contents = dedent('''\
 
     from textwrap import dedent
 
+    # Exclude function
+    # Use this to strip characters from a character set.
+    def exclude(chars, exclusions):
+        return chars.translate(str.maketrans('', '', exclusions))
+
     # Character sets
     # Use these to construct alphabets by summing together the ones you want.
     lowercase = "abcdefghijklmnopqrstuvwxyz"
@@ -73,21 +78,17 @@ accounts_file_initial_contents = dedent('''\
     punctuation = """!"#$%%&'()*+,-./:;<=>?@[\]^_`{|}~"""
     whitespace = " \\t"
     printable = alphanumeric + punctuation + whitespace
-    
-    # Exclude function
-    # Use this to strip characters from a character set.
-    def exclude(chars, exclusions):
-        return chars.translate(str.maketrans('', '', exclusions))
+    distinguishable = exclude(printable, 'IlO0\\t')
 
     # Example:
     # To create an alphabet with all characters except tabs use either:
     #     'alphabet': exclude(printable, '\\t')
-    # or:   
+    # or:
     #     'alphabet': alphanumeric + punctuation + ' '
 
     # Give the desired location of the file
     logfile = '%s'
-    
+
     # Account Information
     # Add your account information here ...
     accounts = {
@@ -1046,7 +1047,7 @@ class Password:
     # users.
     def create_initial_settings_files(self, gpg_id):
         """Create initial version of settings files for the user.
-        
+
            Arguments:
            Requires user's GPG ID as the only argument.
         """
