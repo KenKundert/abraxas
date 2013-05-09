@@ -667,6 +667,12 @@ configManpage = {
         into the webpage for your account. In this way, your answers will be 
         quite unpredictable, even to those that know you well.
 
+        The answers to the security questions will change if you change your 
+        security questions. Even the smallest change will result in a completely 
+        different answer. Once you have given the answers to your account 
+        provider you must not change the question at all unless you are willing 
+        to go through the trouble of updating the answers.
+
         remarks
         ~~~~~~~
         A string containing any relevant remarks about the account.

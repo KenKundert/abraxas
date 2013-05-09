@@ -9,9 +9,9 @@ setup(
   , description="password generator"
   , author="Kale Kundert & Ken Kundert"
   , author_email='kaleAndKen@theKunderts.net'
-#  , download_url='git://hacking.kxgames.net/pw'
+  , download_url='git@github.com:KenKundert/password.git'
   , scripts=['pw']
-  , py_modules=['pw', 'cursor', 'secrets', 'dialog']
+  , py_modules=['pw', 'cursor', 'secrets', 'dialog', 'fileutils']
   , data_files=[
         ('', ['words']),
         ('man/man1', ['pw.1']),

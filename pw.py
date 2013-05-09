@@ -13,7 +13,7 @@ from fileutils import (
     execute, pipe, ExecuteError
 )
 import secrets
-from textwrap import dedent, wrap, indent
+from textwrap import dedent, wrap
 from time import sleep
 import argparse
 import gnupg
@@ -62,6 +62,11 @@ accounts_file_initial_contents = dedent('''\
 
     from textwrap import dedent
 
+    # Exclude function
+    # Use this to strip characters from a character set.
+    def exclude(chars, exclusions):
+        return chars.translate(str.maketrans('', '', exclusions))
+
     # Character sets
     # Use these to construct alphabets by summing together the ones you want.
     lowercase = "abcdefghijklmnopqrstuvwxyz"
@@ -73,21 +78,17 @@ accounts_file_initial_contents = dedent('''\
     punctuation = """!"#$%%&'()*+,-./:;<=>?@[\]^_`{|}~"""
     whitespace = " \\t"
     printable = alphanumeric + punctuation + whitespace
-    
-    # Exclude function
-    # Use this to strip characters from a character set.
-    def exclude(chars, exclusions):
-        return chars.translate(str.maketrans('', '', exclusions))
+    distinguishable = exclude(printable, 'IlO0\\t')
 
     # Example:
     # To create an alphabet with all characters except tabs use either:
     #     'alphabet': exclude(printable, '\\t')
-    # or:   
+    # or:
     #     'alphabet': alphanumeric + punctuation + ' '
 
     # Give the desired location of the file
     logfile = '%s'
-    
+
     # Account Information
     # Add your account information here ...
     accounts = {
@@ -173,6 +174,12 @@ def exit(logger):
     log('Terminates normally', logger)
     sys.exit()
 
+# Indent a string {{{2
+# This should be provided by textwrap, but is not available from older versions
+def indent(text, prefix='    '):
+    return '\n'.join(
+        [prefix + line if line else line for line in text.split('\n')])
+
 # Command line class {{{1
 class CommandLine:
     def __init__(self, argv):
@@ -253,7 +260,12 @@ class Logging:
             self.logfile = None
         self.cache = []
         if argv:
-            self.log('Invoked as: %s' % ' '.join(argv))
+            try:
+                from datetime import datetime
+                now = datetime.now().strftime(" on %A, %d %B %Y at %I:%M:%S %p")
+            except:
+                now = ""
+            self.log("Invoked as '%s'%s." % (' '.join(argv), now))
         self.prog_name = prog_name
         if argv and not prog_name:
             self.prog_name = argv[0]
@@ -821,8 +833,8 @@ class PasswordWriter():
         # Send output to stdout with the labels.
         def display_secret(label, secret):
             import cursor
-            text = ': '.join([cursor.color(label, 'magenta'), secret])
             if self.wait:
+                text = ': '.join([cursor.color(label, 'magenta'), secret])
                 try:
                     cursor.write(text);
                     sleep(self.wait)
@@ -830,7 +842,7 @@ class PasswordWriter():
                 except KeyboardInterrupt:
                     cursor.clear()
             else:
-                print(text)
+                print(secret)
 
         # Execute the script
         for action in self.script:
@@ -1041,7 +1053,7 @@ class Password:
     # users.
     def create_initial_settings_files(self, gpg_id):
         """Create initial version of settings files for the user.
-        
+
            Arguments:
            Requires user's GPG ID as the only argument.
         """
@@ -1079,7 +1091,7 @@ class Password:
             return password
 
         mkdir(self.settings_dir)
-        if self.settings_dir == default_settings_dir:
+        if self.settings_dir == expand_path(default_settings_dir):
             default_password = generate_random_string()
         else:
             # if settings_dir is not the default_settings_dir, then this is most
