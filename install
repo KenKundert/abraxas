@@ -1,7 +1,7 @@
 #!/bin/csh -f
 # Installs ec
 # Be sure to add ~/.local/bin into your path.
-set supportedPythonVersions = (3.2 3.3)
+set supportedPythonVersions = (3.3)
 
 
 foreach vers ($supportedPythonVersions)
