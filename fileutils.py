@@ -26,14 +26,15 @@ def getDirs(pattern='*'):
     """
     return [each for each in getAll(pattern) if os.path.isdir(each)]
 
-def getFilesRecursively(path, acceptCriteria = None, rejectCriteria = None):
+def getFilesRecursively(path, acceptCriteria = None, rejectCriteria = None, exclude = None):
     """
     Returns a generator that iterates through all the files contained in a
     directory hierarchy.  Accept and reject criteria are glob strings, or lists
     of glob strings. For a file to be returned its name must not match any of
     the reject criteria if any are given, and it must match one of the accept
     criteria, if any are given.  If no criteria are given, all files are
-    returned.
+    returned. Exclude is a file or directory or a list of files or directories
+    to exclude. Each is specified relative from the current working directory.
     """
     if type(acceptCriteria) == str:
         acceptCriteria = [acceptCriteria]
@@ -57,13 +58,32 @@ def getFilesRecursively(path, acceptCriteria = None, rejectCriteria = None):
                         return False
             return True
 
+    def prepExcludes(exclude):
+        if not exclude:
+            return []
+        if type(exclude) == str:
+            exclude = [exclude]
+        excludes = []
+        for each in exclude:
+            excludes += [splitPath(each)]
+        return excludes
+
+    def skip(path, excludes):
+        for each in excludes:
+            if splitPath(path)[0:len(each)] == each:
+                return True
+        return False
+
     if isFile(path):
         if yieldFile(path):
             yield path
     else:
+        excludes = prepExcludes(exclude)
         for path, subdirs, files in os.walk(path):
             for file in files:
                 filename = makePath(path, file)
+                if skip(filename, excludes):
+                    continue
                 if yieldFile(filename):
                     yield filename
 
@@ -144,7 +164,7 @@ def splitPath(path):
     """
     Split the path at directory boundaries.
     """
-    return os.path.split(path)
+    return path.split('/')
 
 # Return normalized path
 def normPath(path):
@@ -258,6 +278,15 @@ def remove(path):
         if err.errno != errno.ENOENT:
             exit("%s: %s." % (err.filename, err.strerror))
 
+def makeLink(src, dest):
+    """
+    Create a symbolic link.
+    """
+    try:
+        os.symlink(src, dest)
+    except (IOError, OSError) as err:
+        exit("%s: %s." % (dest, err.strerror))
+
 def mkdir(path):
     """
     Create a directory if it does not exist. If it does, return without complaint.
@@ -272,6 +301,8 @@ def mkdir(path):
 class ExecuteError(Exception):
     def __init__(self, text):
         self.text = text
+    def __str__(self):
+        return self.text
 
 # Runs a shell command
 def execute(cmd, accept = None):
@@ -294,7 +325,9 @@ def execute(cmd, accept = None):
 def pipe(cmd, stdin = '', accept = None):
     """
     Execute a command and returns the exit status and stdout as a string.
-    Raise an ExecuteError if return status is not in accept.
+    Raise an ExecuteError if return status is not in accept unless accept is set
+    to True. Only a status of 0 will be accepted if None is passed as the value
+    of accept.
     """
     import subprocess
     if accept == None:
@@ -310,7 +343,7 @@ def pipe(cmd, stdin = '', accept = None):
     status = process.wait()
     process.stdout.close()
     process.stderr.close()
-    if status not in accept:
+    if accept is not True and status not in accept:
         raise ExecuteError(
             "%s: unexpected exit status (%d).\n%s" % (
                 (cmd if type(cmd) == str else ' '.join(cmd)), status, stderr

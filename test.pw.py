@@ -236,11 +236,9 @@ for index, case in enumerate(testCases):
 numTests = len(testCases)
 assert testsRun == numTests
 if printSummary:
-    if failures:
-        print(fail('FAIL:'), end=' ')
-    else:
-        print(succeed('PASS:'), end=' ')
-    print('%s tests run, %s failures detected.' % (testsRun, failures))
+    print('%s: %s tests run, %s failures detected.' % (
+        fail('FAIL') if failures else succeed('PASS'), testsRun, failures
+    ))
 
 writeSummary(testsRun, failures)
 sys.exit(testsRun != numTests)
