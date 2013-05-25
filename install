@@ -1,29 +1,38 @@
 #!/bin/csh -f
-# Installs ec
-# Be sure to add ~/.local/bin into your path.
-set supportedPythonVersions = (3.3)
+# Installs pw
+#
+# Requires Python3 be installed along with several python and linux packages.  
+# Here is how to get them:
+#    As root, run:
+#        # yum install python3
+#        # easy_install-3.3 python-gnupg
+#        # easy_install-3.3 argparse
+#        # yum install python3-setuptools (for installation)
+#        # yum install python3-docutils (for manpages)
+#        # yum install xdotool (autotype support)
+#        # yum install xsel (clipboard support)
+#        # yum install zenity (account selection when window title is not enough)  `
 
+# get the version number for python3
+set vers=`python3 -c 'import sys; print("3.%s" % (sys.version_info.minor))'`
+echo "### Installing to Python$vers."
+echo ""
 
-foreach vers ($supportedPythonVersions)
-    # remove build directories from a previous install to assure a clean install
-    rm -rf build dist pw.egg-info
-    echo ""
-    which python$vers >& /dev/null
-    if ($status == 0) then
-	echo "### Installing to Python$vers."
-	python$vers setup.py install --quiet --user
+# remove build directories from a previous install to assure a clean install
+rm -rf build dist pw.egg-info
 
-	# setuptools no longer installs man pages properly, so I must fix things up
-	foreach sect (1 3 5)
-	    mkdir -p ~/.local/man/man$sect
-	    rm -f ~/.local/man/man$sect/pw.$sect
-	    ln -s ~/.local/lib/python$vers/site-packages/pw-*.egg/man/man$sect/pw.$sect ~/.local/man/man$sect
-	end
-    else
-	echo "### Cannot install to Python$vers, it is not available."
-    endif
+# install pw
+python$vers setup.py install --quiet --user
+
+# setuptools no longer installs man pages properly, so I must fix things up
+foreach sect (1 3 5)
+    mkdir -p ~/.local/man/man$sect
+    rm -f ~/.local/man/man$sect/pw.$sect
+    ln -s ~/.local/lib/python$vers/site-packages/pw-*.egg/man/man$sect/pw.$sect ~/.local/man/man$sect
 end
 
 # remove build directories, because I like a clean directory
 rm -rf build dist pw.egg-info
 
+echo ""
+echo "### Be sure to add ~/.local/bin to your path."
