@@ -18,6 +18,7 @@ from time import sleep
 import argparse
 import gnupg
 import hashlib
+import traceback
 import re
 import os
 import sys
@@ -380,6 +381,9 @@ class MasterPassword():
                 exec(code, data)
         except IOError as err:
             error('%s: %s.' % (err.filename, err.strerror), self.logger)
+        except SyntaxError as err:
+            traceback.print_exc(0)
+            sys.exit()
         for ID in data.get('passwords', {}):
             if type(ID) != str:
                 error('%s: master password ID must be a string.' % ID, self.logger)
@@ -551,6 +555,9 @@ class Accounts():
                 exec(code, accounts_data)
         except IOError as err:
             error('%s: %s.' % (err.filename, err.strerror), self.logger)
+        except SyntaxError as err:
+            traceback.print_exc(0)
+            sys.exit()
         self.data = accounts_data
         try:
             return accounts_data['accounts']
