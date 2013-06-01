@@ -41,6 +41,7 @@ PW requires the following packages to fully function::
     # yum install xdotool (autotype support)
     # yum install xsel (clipboard support)
     # yum install zenity (account selection when window title is not enough)
+    # yum install PyYAML (password archive)
 
 To install, edit the install file and make sure your version of python is listed
 in supportedPythonVersions. Then::

@@ -5,10 +5,10 @@ from docutils.core import publish_string
 from docutils.writers import manpage
 from textwrap import dedent
 import re
-from pw import search_fields
+from pw import SEARCH_FIELDS
 
-date = "2013-02-12"
-version = "1.0.0"
+date = "2013-05-31"
+version = "1.1.1"
 
 # Program Manpage {{{1
 programManpage = {
@@ -45,7 +45,7 @@ programManpage = {
         his or her accounts.  Amongst that information would be information that 
         controls how the passwords are generated. This file is not encrypted. 
         Another file is created that contains one or more master passwords. This 
-        file is gpg encrypted.
+        file is GPG encrypted.
 
         The intent is for these files not include the passwords for your 
         accounts.  Rather, the passwords are recomputed when needed from the 
@@ -58,12 +58,11 @@ programManpage = {
         useful in several common situations.  Two or more people can share 
         a master password and then create consistent passwords without having to 
         communicate and store the passwords. Thus, you might have a master 
-        password for your personal needs, and then another for each person you 
-        collaborate with.
-        Second, it allows you to transition to a new master password without 
-        having to update all of your existing passwords.  Simply create all new 
-        passwords using the new master password.  The existing passwords can be 
-        updated on an as-needed basis.
+        password for your personal needs, and another for each person you 
+        collaborate with.  Second, it allows you to transition to a new master 
+        password without having to update all of your existing passwords.  
+        Simply create all new passwords using the new master password.  The 
+        existing passwords can be updated on an as-needed basis.
 
         To generate a password for an account that exists in your accounts file, 
         you would use::
@@ -74,7 +73,7 @@ programManpage = {
         gmail password you might use::
 
             $ pw gmail
-            password: preview secretary eschew cobra
+            PASSWORD: preview secretary eschew cobra
 
         The password generator is also capable of generating answers to the 
         security questions that are the bane of most websites these days. Simply 
@@ -90,10 +89,10 @@ programManpage = {
         right command line options to have it print out the username, account 
         number, url, etc.::
 
-            $ pw -A gmail
-            username: derrickAsh
-            email: derrick.ash@yahoo.com
-            url: https://accounts.google.com
+            $ pw -i gmail
+            USERNAME: derrickAsh
+            EMAIL: derrick.ash@yahoo.com
+            URL: https://accounts.google.com
 
         The output can be produced in three different ways.
 
@@ -108,7 +107,7 @@ programManpage = {
         clipboard is cleared after a minute.
 
         Finally, the password generator can output the information by mimicking 
-        the keyboard and sending it to active window. This is very powerful if 
+        the keyboard and 'typing' it to active window.  This is very powerful if 
         you configure your window manager to run **pw** because it makes it 
         possible to login to websites and such with a single keystroke.
 
@@ -165,13 +164,14 @@ programManpage = {
         out as the simple stringing together of a few things. The password for 
         an account starts off as the combination of the account name, the 
         version, and the master password. For security questions, the question 
-        itself is added.  This combined string is then hashed into a very long 
-        number.  Even the smallest change in any of the components used to 
-        create it results in a very different hash. The hash is then mapped into 
-        pass phrases or passwords with your choice of words or characters.  As 
-        long the master password is kept secure, this approach is very safe.  
-        Even knowing the algorithm and having access to the source code of the 
-        **pw** program would not allow someone to predict your passwords.
+        itself is added as well.  This combined string is then hashed into 
+        a very long number.  Even the smallest change in any of the components 
+        used to create it results in a very different hash. The hash is then 
+        mapped into pass phrases or passwords with your choice of words or 
+        characters.  As long the master password is kept secure, this approach 
+        is very safe.  Even knowing the algorithm and having access to the 
+        source code of the **pw** program would not allow someone to predict 
+        your passwords.
 
         Getting Started
         +++++++++++++++
@@ -180,12 +180,12 @@ programManpage = {
         you run gpg-agent. Then you must create your accounts and master 
         password file.  To do so, run::
 
-            pw -i <gpg-id>
+            pw -I <gpg-id>
 
         For example, if your GPG identity is linked to derrickAsh@gmail.com, 
         then use:: 
 
-            pw -i derrickAsh@gmail.com
+            pw -I derrickAsh@gmail.com
 
         The creates two files if they do not already exist, 
         ~/.config/pw/master.gpg and ~/.config/pw/accounts. Of the two, the 
@@ -199,7 +199,7 @@ programManpage = {
 
         Then if desired, you can edit the accounts file and add an account. See 
         'man 5 pw' for information about all of the fields that **pw** uses. For 
-        example, to add you gmail and bank accounts, you would add something 
+        example, to add your gmail and bank accounts, you would add something 
         like the following to your accounts file::
 
             accounts = {{
@@ -214,13 +214,13 @@ programManpage = {
                 }},
                 "gmail": {{
                     'template': "=words",
+                    'master': 'derrick',
                     'username': "derrickAsh",
                     'email': "derrick.ash@yahoo.com",
                     'url': "https://accounts.google.com",
                     'security questions': [
                         "name of elementary school",
                     ],
-                    'master': 'derrick',
                     'window': [
                         'Google Accounts*',
                         'Gmail*',
@@ -233,17 +233,18 @@ programManpage = {
 
         OPTIONS
         =======
-        -p, --password          Output the password (default if nothing else is 
-                                specified).
-        -n, --username          Output the username.
-        -a, --account-number    Output the account number.
-        -e, --email             Output the email associated with this account.
-        -u, --url               Output the website address.
         -q <N>, --question <N>  Output the answer to security question *N*.
-        -r, --remarks           Output remarks.
-        -A, --all               Output everything above except the secrets (the 
-                                password and the answers to the security 
-                                questions).
+        -P, --password          Output the password (default if nothing else is 
+                                specified).
+        -N, --username          Output the username.
+        -A, --account-number    Output the account number.
+        -E, --email             Output the email associated with this account.
+        -U, --url               Output the website address.
+        -R, --remarks           Output remarks.
+        -i, --info              Output all account information except the 
+                                secrets (the password and the answers to the 
+                                security questions).
+        -a, --all               Same as --info except also output the password.
 
         -c, --clipboard         Write output to clipboard rather than stdout.
         -t, --autotype          Mimic a keyboard to send output to the active 
@@ -260,15 +261,20 @@ programManpage = {
 
         -d <template>, --default-template <template>
                                 Template to use if account is not found.
-        -l, --list-templates    List available templates (only pure templates 
-                                are listed, not accounts, even though accounts 
-                                can be used as templates)
+        -l, --list              List available master passwords and templates 
+                                (only pure templates are listed, not accounts, 
+                                even though accounts can be used as templates)
 
         -w <secs>, --wait <secs>
                                 Wait this log before clearing the secret (use 
                                 0 to disable clearing).
 
-        -i <GPG-ID>, --init <GPG-ID>
+        --archive               Archive all the secrets to 
+                                ~/.config/pw/archive.gpg.
+        --changed               Indentiy all the secrets that have changed since 
+                                last archived.
+
+        -I <GPG-ID>, --init <GPG-ID>
                                 Initialize the master password and accounts 
                                 files in ~/.config/pw (but only if they do not 
                                 already exist).
@@ -280,7 +286,7 @@ programManpage = {
         ===========
 
         A log file is created in ~/.config/pw/log (the location of this file can 
-        be specified in the *logfile* variable in the accounts file).
+        be specified in the *log_file* variable in the accounts file).
 
         SEE ALSO
         ========
@@ -433,10 +439,10 @@ configManpage = {
         ++++++++++++++++++++
         The master password file is named '~/.config/pw/master.gpg'. It is 
         encrypted with the GPG ID that you specified when you ran 'pw --init'.
-        It is a Python file that contains five variables. To be able to edit 
-        conveniently it is recommended that you add the gnupg plugin to vim 
-        (download it from 
-        ``http://www.vim.org/scripts/script.php?script_id=3645`` and copy it 
+        It is a Python file that contains a collecton of variables. To be able
+        to edit it conveniently it is recommended that you add the gnupg plugin
+        to vim (download it from
+        ``http://www.vim.org/scripts/script.php?script_id=3645`` and copy it
         into ~/.vim/plugin).
 
         dict_hash
@@ -455,7 +461,7 @@ configManpage = {
         it generates are the same. If not, you should not use the updated 
         version of the program. If they are the same, you should update the 
         *secrets_hash*. Do this by moving the existing *master.gpg* file out of 
-        the way, generating a new one with *pw -i*, copying the new 
+        the way, generating a new one with *pw --init*, copying the new 
         *secrets_hash* to the original file, and then moving it back to its 
         original location of *~/.config/pw/master.gpg*.
 
@@ -465,8 +471,8 @@ configManpage = {
         a pair of the password ID and then password itself. For example::
 
             passwords = {{
-                'derrick': """hush puppie""",
-                'derrick debbie': """lounge lizard""",
+                'derrick': "hush puppie",
+                'derrick debbie': "lounge lizard",
             }}
 
         Generally you will never have to type these passwords again, so there is 
@@ -476,7 +482,7 @@ configManpage = {
         could use **pw** to generate new master passwords::
 
             $ pw -d =extreme derrick
-            password: [Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|
+            PASSWORD: [Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|
 
         You can then use that string as the master password. Notice that this 
         string contains quote characters, meaning that you will have to embed it 
@@ -493,7 +499,7 @@ configManpage = {
         but long pass phase is much preferred::
 
             $ pw -d =master "derrick debbie"
-            password: impulse nostril double irony conflate rookie posting blind
+            PASSWORD: impulse nostril double irony conflate rookie posting blind
 
         Then your passwords entry becomes::
 
@@ -577,13 +583,27 @@ configManpage = {
         create an alphabet by removing characters from the preexisting ones.  
         You can add characters simply summing them.
 
-        The accounts file is a Python file that must contain two variables.
+        The accounts file is a Python file that contain variables that are used
+        by the password program.
 
-        logfile
-        ~~~~~~~
+        log_file
+        ~~~~~~~~
 
-        Specifies the location of the location of the log file. If not given, it 
-        defaults to '~/.config/pw/log'.
+        Specifies the location of the log file. If not given, it 
+        defaults to '~/.config/pw/log'. An absolute path should be used to
+        specify the file.
+
+        archive_file
+        ~~~~~~~~~~~~
+
+        Specifies the location of the archive file. If not given, it defaults to
+        '~/.config/pw/archive.gpg'.  An absolute path should be used to specify
+        the file. The file should end with a .gpg extension.
+
+        gpg_id
+        ~~~~~~
+
+        The GPG ID of the user (it is used to encrypt the archive file).
 
         accounts
         ~~~~~~~~
@@ -619,15 +639,23 @@ configManpage = {
                 ...
             }}
 
-        In this example '=words' is specified as the template for 'gmail'. Thus 
-        any field specified in '=words' that is not specified in 'gmail' is 
-        inherited by 'gmail'. Any field specified in 'gmail' overrides the field 
-        with the same name from '=words' when using 'gmail'. This process of 
-        inheritance can chain through any number of templates or accounts. For 
-        example, you can create another account, say 'gmail-work' that uses 
-        'gmail' as a template but overrides the 'username'.
+        In this example '=words' is specified as the template for 'gmail' (it is
+        a purely optional convention to add a leading = to account names that
+        are intended to be used only as templates). Thus any field specified in
+        '=words' that is not specified in 'gmail' is inherited by 'gmail'. Any
+        field specified in 'gmail' overrides the field with the same name from
+        '=words' when using 'gmail'. This process of inheritance can chain
+        through any number of templates or accounts. For example, you can create
+        another account, say 'gmail-work' that uses 'gmail' as a template but
+        overrides the 'username'.
 
-        Each dictionary in accounts may contain a number of fields that are 
+        The ID associated with an account is used in the process of generating
+        the secrets for the account. For this reason you should choose IDs that
+        are unambiguous and unlikely to change. The resulting IDs may be long
+        and hard to type. You can use the *aliases* entry to specify shorter
+        names that can be used as an alternative to the primary account ID.
+
+        Each dictionary in *accounts* may contain a number of fields that are 
         described next. When first created the accounts dictionary comes with 
         some useful templates and an example account entry that is commented 
         out. Feel free to modify the templates and delete the example account.
@@ -647,6 +675,10 @@ configManpage = {
         url
         ~~~
         A string containing the web address of the account.
+
+        remarks
+        ~~~~~~~
+        A string containing any relevant remarks about the account.
 
         security questions
         ~~~~~~~~~~~~~~~~~~
@@ -672,10 +704,6 @@ configManpage = {
         different answer. Once you have given the answers to your account 
         provider you must not change the question at all unless you are willing 
         to go through the trouble of updating the answers.
-
-        remarks
-        ~~~~~~~
-        A string containing any relevant remarks about the account.
 
         window
         ~~~~~~
@@ -721,13 +749,30 @@ configManpage = {
         The default autotype script is 
         "{{username}}{{tab}}{{password}}{{return}}"
 
+        aliases
+        ~~~~~~~
+        List of names that can be used as aliases for this account.  This 
+        feature is often used to specify a shorter and easier to type name for 
+        the account. 
+
+        The secrets are generated based on the primary account name (the key for
+        dictionary that describes the account). As such, that name should be
+        chosen so that it is unambiguous and you will never be tempted to change
+        it.  That often results in a name that is too long to type easily.  This
+        entry allows you to specify one or more names that can be used as
+        aliases for the primary account name.  For example, you might want to
+        choose a name like "gmail-derrickAsh" as the primary name of your gmail
+        account and "gmail" as an alias. This would allow you to later create
+        another gmail account and make it your primary gmail account simply by
+        moving the "gmail" alias the new account.
+
         template
         ~~~~~~~~
         A string containing the ID of the template for this account (explained 
         above).
 
         master
-        ~~~~~~~~
+        ~~~~~~
         A string containing the ID of the master password for this account.
         It is highly recommended that each account explicitly declare its master 
         password (perhaps through a template). That way existing passwords do 
@@ -785,6 +830,7 @@ configManpage = {
         Here is a representative master password file (~/.config/pw/master.gpg)::
 
             dict_hash = "d9aa1c08e08d6cacdf82819eeb5832429eadb95a"
+            secrets_hash = "db7ce3fc4a9392187d0a8df7c80b0cdfd7b1bc22"
             passwords = {{
                 'derrick': "e9a7a4246a6a95f179cd4579e6f9cb69",
                 'derrick debbie': "60b56e021118ca2a261f405e15ac0165",
@@ -878,8 +924,7 @@ configManpage = {
                 "consumer-reports": {{
                     'template': "=chars",
                     'master': 'derrick debbie',
-                    "60b56e021118ca2a261f405e15ac0165",
-                    'username': "derrickAndDave",
+                    'username': "derrickAndDebbie",
                     'url': "https://ec.consumerreports.org/ec/myaccount/login.htm",
                     'window': 'My account login*',
                 }},
@@ -897,7 +942,7 @@ def write(genRST=False):
         rst = dedent(each['contents'][1:-1]).format(
             date=date
           , version=version
-          , search_fields=', '.join(search_fields)
+          , search_fields=', '.join(SEARCH_FIELDS)
         )
 
         # generate reStructuredText file (only used for debugging)

@@ -28,7 +28,7 @@ class Case():
 
     def __str__(self):
         return '%s<%s>' % (self.__class__.__name__, ', '.join(
-            ['%s=%s' % item for item in self.__dict__.iteritems()]
+            ['%s=%s' % item for item in self.__dict__.items()]
         ))
     __repr__ = __str__
 
@@ -43,15 +43,13 @@ def create_bogus_file(filename):
 # Test cases {{{1
 testCases = [
     # Run Password with a bogus settings directory
-    Case(stimulus="pw = Password('/dev/null')"),
-    Case(
-        stimulus="pw.read_accounts()",
-        expected="/dev/null/accounts: Not a directory.",
-        expectError=True),
+    Case(stimulus="pw = Password('/dev/null')",
+        expected="/dev/null/master.gpg: Not a directory.",
+        expectError=True,
+        isCommand=True),
 
     # Run Password with a nonexistant settings directory
-    Case(stimulus="pw = Password('./generated_settings')"),
-    Case(stimulus="pw.create_initial_settings_files('ken@designers-guide.com')"),
+    Case(stimulus="pw = Password('./generated_settings', 'ken@designers-guide.com')"),
     Case(stimulus="pw.read_accounts()"),
     Case(
         stimulus="' '.join(sorted(pw.all_templates()))",
@@ -79,21 +77,16 @@ testCases = [
     Case(
         stimulus="pw.generate_password()",
         expected='''R}-|v6IL9OQIp)U07t1OQ$jz"1qX$VLOqkSac!|b&mlc:rlD|fhKO|(O9%&oI#]J'''),
-
-    # Damage the master password file
-    Case(stimulus="create_bogus_file('./generated_settings/master.gpg')"),
-    Case(stimulus="pw = Password('./generated_settings')"),
-    Case(stimulus="pw.read_accounts()"),
+    Case(stimulus="pw.get_account('fuzzbucket')"),
     Case(
-        stimulus="pw.get_account('test')",
-        expected=dedent("""\
-        generated_settings/master.gpg: unable to decrypt.
-        gpg: no valid OpenPGP data found.
-        [GNUPG:] NODATA 1
-        [GNUPG:] NODATA 2
-        gpg: decrypt_message failed: eof
-        """),
+        stimulus="pw.generate_password()",
+        expected="llama libretto stump analgesic"),
+    Case(
+        stimulus="pw.print_changed_secrets()",
+        expected="generated_settings/archive.gpg: No such file or directory.",
         expectError=True),
+    Case(stimulus="pw.archive_secrets()"),
+    Case(stimulus="pw.print_changed_secrets()"),
 
     # Damage the accounts file
     Case(stimulus="create_bogus_file('./generated_settings/accounts')"),
@@ -102,6 +95,19 @@ testCases = [
         stimulus="pw.read_accounts()",
         expected="generated_settings/accounts: defective accounts file, 'accounts' not found.",
         expectError=True),
+
+    # Damage the master password file
+    Case(stimulus="create_bogus_file('./generated_settings/master.gpg')"),
+    Case(stimulus="pw = Password('./generated_settings')",
+        expected=dedent("""\
+            generated_settings/master.gpg: unable to decrypt.
+            gpg: no valid OpenPGP data found.
+            [GNUPG:] NODATA 1
+            [GNUPG:] NODATA 2
+            gpg: decrypt_message failed: eof
+        """),
+        expectError=True,
+        isCommand=True),
 
     # Run Password with the test settings directory
     Case(stimulus="pw = Password('./test_settings')"),
@@ -191,18 +197,22 @@ for index, case in enumerate(testCases):
     stimulus = case.stimulus
     expected = case.expected
     expectError = case.expectError
+    isCommand = case.isCommand
+    if expectError:
+        assert(expected)
 
     if printTests:
         print(status('Trying %d:' % index), stimulus)
 
     # If expected is not provided, then this is not a test. Rather, it is a
     # function that must be called before the remaining tests can be run.
-    if not expected:
+    if isCommand or not expected:
         try:
             exec(stimulus)
         except PasswordError as err:
-            sys.exit(
-                "Error found when executing '%s': %s" % (stimulus, err.message))
+            if not expectError or expected != err.message:
+                sys.exit(
+                    "Error found when executing '%s': %s" % (stimulus, err.message))
         continue
 
     try:

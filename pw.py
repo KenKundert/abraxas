@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Generates passwords and pass phrases based on stored account information.
+"""Generates passwords and pass phrases based on stored account information."""
 
 # Imports {{{1
 from fileutils import (
@@ -22,23 +22,26 @@ import traceback
 import re
 import os
 import sys
+import yaml
 
 # Globals {{{1
-default_settings_dir = '~/.config/pw'
-master_password_filename = 'master.gpg'
-accounts_filename = 'accounts'
-dictionary_filename = 'words'
-default_template = "=words"
-default_autotype = "{username}{tab}{password}{return}"
-search_fields = ['username', 'account', 'email', 'url', 'remarks']
+DEFAULT_SETTINGS_DIR = '~/.config/pw'
+MASTER_PASSWORD_FILENAME = 'master.gpg'
+ACCOUNTS_FILENAME = 'accounts'
+DICTIONARY_FILENAME = 'words'
+LOG_FILENAME = 'log'
+ARCHIVE_FILENAME = 'archive.gpg'
+DEFAULT_TEMPLATE = "=words"
+DEFAULT_AUTOTYPE = "{username}{tab}{password}{return}"
+SEARCH_FIELDS = ['username', 'account', 'email', 'url', 'remarks']
 # Use absolute paths for xdotool and xsel so that nobody can replace them and
 # see the secrets.
-xdotool = '/usr/bin/xdotool'
-xsel = '/usr/bin/xsel'
-secrets_sha1 = "db7ce3fc4a9392187d0a8df7c80b0cdfd7b1bc22"
+XDOTOOL = '/usr/bin/xdotool'
+XSEL = '/usr/bin/xsel'
+SECRETS_SHA1 = "db7ce3fc4a9392187d0a8df7c80b0cdfd7b1bc22"
 
 # Initial master password file {{{2
-master_password_file_initial_contents = dedent('''\
+MASTER_PASSWORD_FILE_INITIAL_CONTENTS = dedent('''\
     dict_hash = "%s" # DO NOT CHANGE THIS LINE
     secrets_hash = "%s" # DO NOT CHANGE THIS LINE
 
@@ -52,14 +55,14 @@ master_password_file_initial_contents = dedent('''\
 ''')
 
 # Initial accounts file {{{2
-accounts_file_initial_contents = dedent('''\
+ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
     # Account information
     #
     # Add information about each of your accounts to the accounts dictionary.
     #
     # You can use the character sets and exclude function to create alphabets
-    # for you character-base passwords. You can use the dedent function to strip
-    # leading whitespace from multi-line remarks.
+    # for you character-base passwords. You can use the dedent function to
+    # strip leading whitespace from multi-line remarks.
 
     from textwrap import dedent
 
@@ -76,10 +79,10 @@ accounts_file_initial_contents = dedent('''\
     digits = "0123456789"
     alphanumeric = letters + digits
     hexdigits = "0123456789abcdef"
-    punctuation = """!"#$%%&'()*+,-./:;<=>?@[\]^_`{|}~"""
+    punctuation = """!"#$%%&'()*+,-./:;<=>?@[\\]^_`{|}~"""
     whitespace = " \\t"
     printable = alphanumeric + punctuation + whitespace
-    distinguishable = exclude(printable, 'IlO0\\t')
+    distinguishable = exclude(alphanumeric, 'Il1O0\\t')
 
     # Example:
     # To create an alphabet with all characters except tabs use either:
@@ -87,8 +90,15 @@ accounts_file_initial_contents = dedent('''\
     # or:
     #     'alphabet': alphanumeric + punctuation + ' '
 
-    # Give the desired location of the file
-    logfile = '%s'
+    # The desired location of the log file (use an absolute path)
+    log_file = '%s'
+
+    # The desired location of the archive file
+    # (use an absolute path, end file in .gpg)
+    archive_file = '%s'
+
+    # The GPG ID of the user (used to encrypt archive.gpg file)
+    gpg_id = '%s'
 
     # Account Information
     # Add your account information here ...
@@ -99,8 +109,8 @@ accounts_file_initial_contents = dedent('''\
         # Those that are designated as templates (ID starts with +) cannot be
         # used as an actual account and will not be listed in find and search
         # results. Feel free to modify, delete, or add your own templates.
-        # You might want to choose short names with no spaces or glob characters
-        # for those templates you plan to use from the command line.
+        # You might want to choose short names with no spaces or glob
+        # characters for those templates you plan to use from the command line.
         "=words": {  # typically used for linux pass phrases
             'password-type': 'words',
             'num-words': 4,
@@ -152,6 +162,7 @@ accounts_file_initial_contents = dedent('''\
     }
 ''')
 
+
 # Utilities {{{1
 # Log a message (send it to the log file) {{{2
 def log(message, logger):
@@ -160,20 +171,24 @@ def log(message, logger):
     except:
         pass
 
+
 # Display a message {{{2
 def display(message, logger):
     log(message, logger)
     print(message)
+
 
 # Report an error {{{2
 def error(message, logger):
     log(message, logger)
     raise PasswordError(message)
 
+
 # Exit cleanly {{{2
-def exit(logger):
-    log('Terminates normally', logger)
+def terminate(logger):
+    log('Terminates normally.', logger)
     sys.exit()
+
 
 # Indent a string {{{2
 # This should be provided by textwrap, but is not available from older versions
@@ -181,80 +196,113 @@ def indent(text, prefix='    '):
     return '\n'.join(
         [prefix + line if line else line for line in text.split('\n')])
 
-# Command line class {{{1
+
+# CommandLine class {{{1
 class CommandLine:
     def __init__(self, argv):
         self.prog_name = get_tail(argv[0])
-        cmd_line = argparse.ArgumentParser(add_help=False,
-            description="Generate strong and unique password.")
-        arguments = cmd_line.add_argument_group('Arguments')
-        arguments.add_argument('account', nargs='?', default='',
+        parser = argparse.ArgumentParser(
+            add_help=False, description="Generate strong and unique password.")
+        arguments = parser.add_argument_group('Arguments')
+        arguments.add_argument(
+            'account', nargs='?', default='',
             help="Generate password specific to this account.")
-        options = cmd_line.add_argument_group('Options')
-        options.add_argument('-p', '--password', action='store_true',
-            help="Output the password (default if nothing else is requested).")
-        options.add_argument('-n', '--username', action='store_true',
-            help="Output the username.")
-        options.add_argument('-a', '--account-number', action='store_true',
-            help="Output the account number.")
-        options.add_argument('-e', '--email', action='store_true',
-            help="Output the email.")
-        options.add_argument('-u', '--url', action='store_true',
-            help="Output the URL.")
-        options.add_argument('-q', '--question', type=int, metavar='<N>',
+        options = parser.add_argument_group('Options')
+        options.add_argument(
+            '-q', '--question', type=int, metavar='<N>',
             default=None, help="Output security question N.")
-        options.add_argument('-r', '--remarks', action='store_true',
+        options.add_argument(
+            '-P', '--password', action='store_true',
+            help="Output the password (default if nothing else is requested).")
+        options.add_argument(
+            '-N', '--username', action='store_true',
+            help="Output the username.")
+        options.add_argument(
+            '-A', '--account-number', action='store_true',
+            help="Output the account number.")
+        options.add_argument(
+            '-E', '--email', action='store_true', help="Output the email.")
+        options.add_argument(
+            '-U', '--url', action='store_true', help="Output the URL.")
+        options.add_argument(
+            '-R', '--remarks', action='store_true',
             help="Output remarks.")
-        options.add_argument('-A', '--all', action='store_true',
-            help="Output everything.")
-        group = cmd_line.add_mutually_exclusive_group()
-        group.add_argument('-c', '--clipboard', action='store_true',
+        options.add_argument(
+            '-i', '--info', action='store_true',
+            help="Output everything, except the password.")
+        options.add_argument(
+            '-a', '--all', action='store_true',
+            help="Output everything, including the password.")
+        group = parser.add_mutually_exclusive_group()
+        group.add_argument(
+            '-c', '--clipboard', action='store_true',
             help="Write output to clipboard rather than stdout.")
-        group.add_argument('-t', '--autotype', action='store_true',
+        group.add_argument(
+            '-t', '--autotype', action='store_true',
             help=(' '.join([
-                "Mimic keyboard to send output to the active window rather than",
-                "stdout. In this case any command line arguments that specify",
-                "what to output are ignored and the autotype entry scripts",
-                "the output."])))
-        options.add_argument('-f', '--find', type=str, metavar='<str>',
+                "Mimic keyboard to send output to the active window rather",
+                "than stdout. In this case any command line arguments that",
+                "specify what to output are ignored and the autotype entry",
+                "scripts the output."])))
+        options.add_argument(
+            '-f', '--find', type=str, metavar='<str>',
             help="List any account that contains the given string in its ID.")
-        options.add_argument('-s', '--search', type=str, metavar='<str>',
+        options.add_argument(
+            '-s', '--search', type=str, metavar='<str>',
             help=(' '.join([
                 "List any account that contains the given string in",
-                "%s, or its ID." % ', '.join(search_fields)])))
-        options.add_argument('-d', '--default-template',
+                "%s, or its ID." % ', '.join(SEARCH_FIELDS)])))
+        options.add_argument(
+            '-d', '--default-template',
             type=str, metavar='<template>', default=None,
             help="Template to use if account is not found.")
-        options.add_argument('-l', '--list-templates', action='store_true',
+        options.add_argument(
+            '-l', '--list', action='store_true',
             help=(' '.join([
-                "List available templates (only pure templates are listed, not",
-                "accounts, even though accounts can be used as templates)."])))
-        options.add_argument('-w', '--wait', type=float, default=60, metavar='<secs>',
-            help="Wait this long before clearing the secret (use 0 to disable).")
-        options.add_argument('-i', '--init', type=str, metavar='<GPG ID>',
+                "List available master passwords and templates (only pure",
+                "templates are listed, not accounts, even though accounts",
+                "can be used as templates)."])))
+        options.add_argument(
+            '-w', '--wait', type=float, default=60, metavar='<secs>',
+            help=(' '.join([
+                "Wait this long before clearing the secret",
+                "(use 0 to disable)."])))
+        options.add_argument(
+            '--archive', action='store_true',
+            help=("Archive all the secrets to %s." % make_path(
+                DEFAULT_SETTINGS_DIR, ARCHIVE_FILENAME)))
+        options.add_argument(
+            '--changed', action='store_true',
+            help=(
+                "Identify all secrets that have changed since last archived."))
+        options.add_argument(
+            '-I', '--init', type=str, metavar='<GPG ID>',
             help=(' '.join([
                 "Initialize the master password and account files in",
-                default_settings_dir,
+                DEFAULT_SETTINGS_DIR,
                 "(but only if they do not already exist)."])))
-        options.add_argument('-h', '--help',  action='store_true',
+        options.add_argument(
+            '-h', '--help',  action='store_true',
             help="Show this help message and exit.")
 
-        cmd_line_args = cmd_line.parse_args()
+        args = parser.parse_args()
 
         # If requested, print help message and exit
-        if cmd_line_args.help:
-            cmd_line.print_help()
+        if args.help:
+            parser.print_help()
             sys.exit()
 
         # Save all the command line arguments as attributes of self
-        self.__dict__.update(cmd_line_args.__dict__)
+        self.__dict__.update(args.__dict__)
 
-    def prog_name(self):
+    def name_as_invoked(self):
         return self.prog_name
+
+
 # Logging class {{{1
 # Log messages to a file
 class Logging:
-    def __init__(self, logfile = None, argv = None, prog_name = None):
+    def __init__(self, logfile=None, argv=None, prog_name=None):
         if logfile:
             self.logfile = self.set_logfile(logfile)
         else:
@@ -263,7 +311,8 @@ class Logging:
         if argv:
             try:
                 from datetime import datetime
-                now = datetime.now().strftime(" on %A, %d %B %Y at %I:%M:%S %p")
+                now = datetime.now().strftime(
+                    " on %A, %d %B %Y at %I:%M:%S %p")
             except:
                 now = ""
             self.log("Invoked as '%s'%s." % (' '.join(argv), now))
@@ -273,10 +322,14 @@ class Logging:
 
     # Open the logfile.
     def set_logfile(self, logfile):
-        try:
-            self.logfile = open(expand_path(logfile), 'w')
-        except IOError as err:
-            self.display('%s: %s.' % (err.filename, err.strerror))
+        self.logfile = None
+        if logfile:
+            try:
+                filename = expand_path(logfile)
+                self.logfile = open(filename, 'w')
+                os.chmod(filename, 0o600)
+            except IOError as err:
+                self.display('%s: %s.' % (err.filename, err.strerror))
 
         # Now that logfile is open, write any messages that were cached
         self.log('\n'.join(self.cache))
@@ -307,6 +360,7 @@ class Logging:
     def __exit__(self, type, value, traceback):
         self._terminate()
 
+
 # Dictionary class {{{1
 # The dictionary is a large list of words used to create pass phrases. It is
 # contained in a file either in the settings or install directory.
@@ -314,15 +368,15 @@ class Dictionary():
     def __init__(self, filename, settings_dir, logger):
         path = self._find_dictionary(filename, settings_dir)
         self.path = path
-        contents = self._read_dictionary(path)
+        contents = self._read_dictionary()
         self.hash = hashlib.sha1(contents.encode('utf-8')).hexdigest()
         self.words = contents.split()
         self.logger = logger
 
     # Find dictionary {{{2
     # Finds the file that contains the dictionary of words used to construct
-    # pass phrases. Initially looks in the settings directory, if not there look
-    # in install directory.
+    # pass phrases. Initially looks in the settings directory, if not there
+    # look in install directory.
     def _find_dictionary(self, filename, settings_dir):
         path = make_path(settings_dir, filename)
         if not exists(path):
@@ -334,7 +388,7 @@ class Dictionary():
         return path
 
     # Read dictionary {{{2
-    def _read_dictionary(self, path):
+    def _read_dictionary(self):
         try:
             with open(self.path) as f:
                 return f.read()
@@ -351,20 +405,22 @@ class Dictionary():
     def get_words(self):
         return self.words
 
+
 # Master password class {{{1
 # Responsible for reading and managing the data from the master password file.
 class MasterPassword():
     # Constructor {{{2
-    def __init__(self, path, dictionary, gpg, account, logger):
+    def __init__(self, path, dictionary, gpg, logger):
         self.path = path
         self.dictionary = dictionary
         self.gpg = gpg
         self.logger = logger
         self.data = self._read_master_password_file()
-        self.passphrase = secrets.Passphrase(lambda text: display(text, logger))
-        self.password = secrets.Password(lambda text: display(text, logger))
+        self.passphrase = secrets.Passphrase(
+            lambda text: display(text, logger))
+        self.password = secrets.Password(
+            lambda text: display(text, logger))
         self._validate_assumptions()
-        self._set_master_password(account)
 
     # Read master password file {{{2
     def _read_master_password_file(self):
@@ -386,7 +442,9 @@ class MasterPassword():
             sys.exit()
         for ID in data.get('passwords', {}):
             if type(ID) != str:
-                error('%s: master password ID must be a string.' % ID, self.logger)
+                error(
+                    '%s: master password ID must be a string.' % ID,
+                    self.logger)
         return data
 
     # Validate program assumptions {{{2
@@ -424,7 +482,7 @@ class MasterPassword():
     # Get the master password associated with this account.
     # If there is none, use the default.
     # If there is no default, ask the user for a password.
-    def _set_master_password(self, account):
+    def set_master_password(self, account):
         passwords = self._get_field('passwords')
         default_password = self._get_field('default_password')
 
@@ -437,7 +495,9 @@ class MasterPassword():
             try:
                 self.master_password = passwords[password_id]
             except KeyError:
-                error('%s: master password not found.' % password_id, self.logger)
+                error(
+                    '%s: master password not found.' % password_id,
+                    self.logger)
         else:
             import getpass
             try:
@@ -446,6 +506,10 @@ class MasterPassword():
                     display("Warning: Master password is empty.", self.logger)
             except KeyboardInterrupt:
                 sys.exit()
+
+    def password_names(self):
+        # return a list that contains the name of the master passwords
+        return self._get_field('passwords').keys()
 
     # Generate the password for the specified account {{{2
     def generate_password(self, account):
@@ -463,26 +527,31 @@ class MasterPassword():
         elif password_type == 'chars':
             return self.password.generate(self.master_password, account)
         else:
-            error("%s: unknown password type (expected 'words' or 'chars').", self.logger)
+            error(
+                "%s: unknown password type (expected 'words' or 'chars').",
+                self.logger)
 
     # Generate an answer to a security question {{{2
     # Only use pass phrases as answers to security questions, not passwords.
-    def generate_answer(self, account, question_number):
-        security_questions = account.get_security_questions()
-        try:
-            question = security_questions[question_number]
-        except IndexError:
-            error('There is no security question #%s.' % question_number, self.logger)
-            return None
+    def generate_answer(self, account, question):
+        if type(question) == int:
+            security_questions = account.get_security_questions()
+            try:
+                question = security_questions[question]
+            except IndexError:
+                error(
+                    'There is no security question #%s.' % question,
+                    self.logger)
         answer = self.passphrase.generate(
             self.master_password, account, self.dictionary, question)
         return (question, answer)
+
 
 # Accounts class {{{1
 # Responsible for reading and managing the data from the accounts file.
 class Accounts():
     # Constructor {{{2
-    def __init__(self, path, logger, default_template = None):
+    def __init__(self, path, logger, default_template=None):
         self.path = path
         self.logger = logger
         self.data = None
@@ -490,47 +559,79 @@ class Accounts():
         if default_template:
             self.default_template = self.accounts.get(default_template, {})
             if not self.default_template:
-                error("%s: default template not found." % default_template, self.logger)
+                error(
+                    "%s: default template not found." % default_template,
+                    self.logger)
         else:
             self.default_template = {}
 
-        # Validate and repair the accounts
+        # Validate and repair each account, then process any aliases
         string_fields = [
             'account', 'alphabet', 'autotype' 'email', 'master', 'prefix',
             'remarks', 'suffix' 'template', 'type', 'url', 'username',
             'version',
         ]
         integer_fields = ['num-chars', 'num-words']
-        list_fields = ['security questions']
+        list_fields = ['security questions', 'aliases']
         list_or_string_fields = ['window']
+        self.aliases = {}
         for ID in self.all_accounts(skip_templates=False):
             if type(ID) != str:
                 error('%s: account ID must be a string.' % ID, self.logger)
             data = self.accounts[ID]
+
+            # check the types of the data in the various fields
             for each in string_fields:
                 if type(data.get(each, '')) != str:
-                    display(' '.join([
-                        "Invalid value for '%s' in %s account (%s).",
-                        "Expected string. Ignoring" % (each, ID, data[each])]), logger)
+                    display(
+                        ' '.join([
+                            "Invalid value for '%s' in %s account (%s)." % (
+                                each, ID, data[each]),
+                            "Expected string, ignoring."]),
+                        logger)
                     del data[each]
             for each in integer_fields:
                 if type(data.get(each, 0)) != int:
-                    display(' '.join([
-                        "Invalid value for '%s' in %s account (%s).",
-                        "Expected integer. Ignoring" % (each, ID, data[each])]), logger)
+                    display(
+                        ' '.join([
+                            "Invalid value for '%s' in %s account (%s)." % (
+                                each, ID, data[each]),
+                            "Expected integer, ignoring."]),
+                        logger)
                     del data[each]
             for each in list_fields:
                 if type(data.get(each, [])) != list:
-                    display(' '.join([
-                        "Invalid value for '%s' in %s account (%s).",
-                        "Expected list. Ignoring" % (each, ID, data[each])]), logger)
+                    display(
+                        ' '.join([
+                            "Invalid value for '%s' in %s account (%s)." % (
+                                each, ID, data[each]),
+                            "Expected list, ignoring."]),
+                        logger)
                     del data[each]
             for each in list_or_string_fields:
-                if type(data.get(each, [])) != list and type(data.get(each, '')) != str:
-                    display(' '.join([
-                        "Invalid value for '%s' in %s account (%s).",
-                        "Expected string or list. Ignoring" % (each, ID, data[each])]), logger)
+                if (
+                    type(data.get(each, [])) != list and
+                    type(data.get(each, '')) != str
+                ):
+                    display(
+                        ' '.join([
+                            "Invalid value for '%s' in %s account (%s)." % (
+                                each, ID, data[each]),
+                            "Expected string or list, ignoring."]),
+                        logger)
                     del data[each]
+
+            # add ID to the aliases and then add the actual aliases
+            self.aliases[ID] = ID
+            for each in data.get('aliases', []):
+                if each in self.aliases:
+                    display(
+                        ' '.join(
+                            "Alias %s in account %s" % (each, ID),
+                            "duplicates a previous entry, ignoring."),
+                        self.logger)
+                else:
+                    self.aliases[each] = ID
 
     # Get a dictionary of all the fields for each account {{{2
     def all_accounts(self, skip_templates=True):
@@ -562,11 +663,30 @@ class Accounts():
         try:
             return accounts_data['accounts']
         except KeyError:
-            error("%s: defective accounts file, 'accounts' not found." % path, self.logger)
+            error(
+                "%s: defective accounts file, 'accounts' not found." % path,
+                self.logger)
 
-    # Get logfile {{{2
-    def get_logfile(self):
-        return self.data.get('logfile', None)
+    # Get log file {{{2
+    def get_log_file(self):
+        return self.data.get(
+            'log_file',
+            make_path(DEFAULT_SETTINGS_DIR, LOG_FILENAME))
+
+    # Get archive file {{{2
+    def get_archive_file(self):
+        return self.data.get(
+            'archive_file',
+            make_path(DEFAULT_SETTINGS_DIR, ARCHIVE_FILENAME))
+
+    # Get gpg it {{{2
+    def get_gpg_id(self):
+        try:
+            return self.data['gpg_id']
+        except KeyError:
+            error(
+                "'gpg_id' missing from %s (see 'man 5 pw')." % self.path,
+                self.logger)
 
     # List templates {{{2
     # Templates are accounts whose ID starts with =.
@@ -601,7 +721,7 @@ class Accounts():
             return self.data.get('security questions', [])
 
         def get_autotype(self):
-            return self.data.get('autotype', default_autotype)
+            return self.data.get('autotype', DEFAULT_AUTOTYPE)
 
         def get_password_type(self):
             return self.data.get('password-type', 'words')
@@ -624,14 +744,18 @@ class Accounts():
     # Get account {{{2
     def get_account(self, account_id, level=0):
         if level > 20:
-            error("%s: too many levels of templates, loop suspected." % account_id, self.logger)
+            error(
+                "%s: too many levels of templates, loop suspected." % (
+                    account_id),
+                self.logger)
 
         def find_account_id():
             # Account ID was not given by the user.
             # Try to determine it from title of active window.
             # First get the title from the active window.
             try:
-                status, title = pipe('%s getactivewindow getwindowname' % xdotool)
+                status, title = pipe(
+                    '%s getactivewindow getwindowname' % XDOTOOL)
             except ExecuteError as err:
                 error(err.text, self.logger)
             title = title.strip()
@@ -651,17 +775,26 @@ class Accounts():
 
             # Only a single match is allowed.
             if len(matches) == 1:
-                log("'%s' account selected due to window title." % matches[0], self.logger)
+                log(
+                    "'%s' account selected due to window title." % matches[0],
+                    self.logger)
                 return matches[0]
             #elif matches:
-            #    display("Active window title matches the following accounts:", self.logger)
+            #    display(
+            #        "Active window title matches the following accounts:",
+            #        self.logger)
             #    display("    %s" % ('\n    '.join(matches)), self.logger)
             elif matches:
-                log("Window title matches the following accounts: '%s'." % "', '".join(matches), self.logger)
+                log(
+                    "Window title matches the following accounts: '%s'." % (
+                        "' '".join(matches)),
+                    self.logger)
                 from dialog import accountSelectDialog
                 accounts = accountSelectDialog(sorted(matches))
                 try:
-                    log("User selected '%s' account." % accounts[0], self.logger)
+                    log(
+                        "User selected '%s' account." % accounts[0],
+                        self.logger)
                     return accounts[0]
                 except TypeError:
                     pass
@@ -672,11 +805,14 @@ class Accounts():
             # User did not specify account ID on the command line.
             account_id = find_account_id()
         try:
+            account_id = self.aliases[account_id]
             account = self.accounts[account_id]
         except KeyError:
             account = self.default_template
             if not account:
-                display("Warning: account '%s' not found." % account_id, self.logger)
+                display(
+                    "Warning: account '%s' not found." % account_id,
+                    self.logger)
 
         # Get information from template
         template = account.get('template', None)
@@ -703,24 +839,25 @@ class Accounts():
         for ID in self.all_accounts():
             data = self.accounts[ID]
             matches = bool(pattern.search(ID))
-            for each in search_fields:
+            for each in SEARCH_FIELDS:
                 if pattern.search(data.get(each, '')):
                     matches = True
                     break
             if matches:
                 yield ID
 
+
 # PasswordWriter class {{{1
 # Used to get account information to the user.
 class PasswordWriter():
-    # PasswordWriter is responsible for sending output to the user. It has three
-    # backends, one that writes to standard out, one that writes to the
+    # PasswordWriter is responsible for sending output to the user. It has
+    # three backends, one that writes to standard out, one that writes to the
     # clipboard, and one that autotypes. To accommodate the three backends the
     # output is gathered up and converted into a script. That script is
     # interpreted by the appropriate backend to produce the output. the script
     # is a sequence of commands each with an argument. Internally the script is
-    # saved as a list of tuples. The first value in the tuple is the name of the 
-    # command. Several commands are supported.
+    # saved as a list of tuples. The first value in the tuple is the name of
+    # the command. Several commands are supported.
     #    write_verbatim() --> ('verb', <str>)
     #        Outputs the argument verbatim.
     #    write_account_entry() --> ('interp', <label>)
@@ -742,7 +879,7 @@ class PasswordWriter():
     #        wait.
 
     # Constructor {{{2
-    def __init__(self, output, password, wait = 60, logger = None):
+    def __init__(self, output, password, wait=60, logger=None):
         """
         output is either 'c' for clipboard, 't' for autotype, and 's' for
         stdout.
@@ -778,9 +915,9 @@ class PasswordWriter():
         self.script += [('sleep', delay)]
 
     # Parse autotype script {{{2
-    # User has requested autotype. Look up and parse the autotype script. 
+    # User has requested autotype. Look up and parse the autotype script.
     def write_autotype(self):
-        regex=re.compile('({\w+})')
+        regex = re.compile(r'({\w+})')
         for term in regex.split(self.password.account.get_autotype()):
             if term and term[0] == '{' and term[-1] == '}':
                 cmd = term[1:-1].lower()
@@ -843,7 +980,7 @@ class PasswordWriter():
             if self.wait:
                 text = ': '.join([cursor.color(label, 'magenta'), secret])
                 try:
-                    cursor.write(text);
+                    cursor.write(text)
                     sleep(self.wait)
                     cursor.clear()
                 except KeyboardInterrupt:
@@ -857,7 +994,9 @@ class PasswordWriter():
                 value = self.password.account.get_field(action[1])
                 if value:
                     if '\n' in value:
-                        print(action[1].upper() + ':\n' + indent(value.strip(), '    '))
+                        print(
+                            action[1].upper() + ':\n' + indent(
+                                value.strip(), '    '))
                     else:
                         print(action[1].upper() + ':', value.rstrip())
             elif action[0] == 'password':
@@ -866,14 +1005,16 @@ class PasswordWriter():
                     self.password.generate_password()
                 )
             elif action[0] == 'question':
-                questions = self.password.account.get_field('security questions')
+                questions = self.password.account.get_field(
+                    'security questions')
                 if questions:
-                    if action[1] == None:
+                    if action[1] is None:
                         for index, question in enumerate(questions):
                             print('QUESTION %d: %s' % (index, question))
                     else:
                         try:
-                            print('QUESTION %d: %s' % (action[1], questions[action[1]]))
+                            print('QUESTION %d: %s' % (
+                                action[1], questions[action[1]]))
                         except IndexError:
                             print('QUESTION %d: <not available>' % action[1])
             elif action[0] == 'answer':
@@ -900,13 +1041,15 @@ class PasswordWriter():
             elif action[0] == 'password':
                 lines += [self.password.generate_password()]
             elif action[0] == 'question':
-                questions = self.password.account.get_field('security questions')
-                if action[1] == None:
+                questions = self.password.account.get_field(
+                    'security questions')
+                if action[1] is None:
                     for index, question in enumerate(questions):
                         lines += ['question %d: %s' % (index, question)]
                 else:
                     try:
-                        lines += ['question %d: %s' % (action[1], questions[action[1]])]
+                        lines += ['question %d: %s' % (
+                            action[1], questions[action[1]])]
                     except IndexError:
                         lines += ['question %d: <not available>' % action[1]]
             elif action[0] == 'answer':
@@ -915,7 +1058,7 @@ class PasswordWriter():
                     lines += [answer]
             else:
                 raise NotImplementedError
-        text='\n'.join(lines)
+        text = '\n'.join(lines)
         log('Writing to clipboard.', self.logger)
 
         # Use 'xsel' to put the information on the clipboard.
@@ -924,7 +1067,7 @@ class PasswordWriter():
         # to access the clipboard directly using GTK but I cannot get the code
         # to work.
         try:
-            pipe('%s -b -i' % xsel, text)
+            pipe('%s -b -i' % XSEL, text)
         except ExecuteError as err:
             error(err.message, self.logger)
         try:
@@ -932,24 +1075,22 @@ class PasswordWriter():
         except KeyboardInterrupt:
             pass
         try:
-            execute("%s -b -c" % xsel)
+            execute("%s -b -c" % XSEL)
         except ExecuteError as err:
             error(err.message, self.logger)
 
         # Use Gobject Introspection (GTK) to put the information on the
         # clipboard (for some reason I cannot get this to work).
-        """
-        try:
-            from gi.repository import Gtk, Gdk
-
-            clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-            clipboard.set_text(text, len(text))
-            clipboard.store()
-            sleep(self.wait)
-            clipboard.clear()
-        except ImportError:
-            error('Clipboard is not supported.')
-        """
+        #try:
+        #    from gi.repository import Gtk, Gdk
+        #
+        #    clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        #    clipboard.set_text(text, len(text))
+        #    clipboard.store()
+        #    sleep(self.wait)
+        #    clipboard.clear()
+        #except ImportError:
+        #    error('Clipboard is not supported.')
 
     # Process output to autotype {{{3
     def _process_output_to_autotype(self):
@@ -957,18 +1098,21 @@ class PasswordWriter():
 
         def autotype(text):
             # Use 'xdotool' to mimic the keyboard.
-            # For reasons I do not understand, sending a newline to xdotool does
-            # not always result in a newline coming out. So separate out the
-            # newlines and send them using as an explicit 'key' stroke.
-            regex=re.compile(r'(\n)')
+            # For reasons I do not understand, sending a newline to xdotool
+            # does not always result in a newline coming out. So separate out
+            # the newlines and send them using as an explicit 'key' stroke.
+            regex = re.compile(r'(\n)')
             segments = regex.split(text)
             try:
                 for segment in segments:
                     if segment == '\n':
-                        execute('%s key Return' % xdotool)
+                        execute('%s key Return' % XDOTOOL)
                     elif segment != '':
-                        # send text to xdotool thru stdin so it cannot be seen with ps
-                        pipe('%s -' % xdotool, 'getactivewindow type "%s"' % segment)
+                        # send text to xdotool through stdin so it cannot be
+                        # seen with ps
+                        pipe(
+                            '%s -' % XDOTOOL,
+                            'getactivewindow type "%s"' % segment)
             except ExecuteError as err:
                 error(err.message, self.logger)
 
@@ -997,13 +1141,15 @@ class PasswordWriter():
                 text += [self.password.generate_password()]
                 scrubbed += ['<<password>>']
             elif action[0] == 'question':
-                questions = self.password.account.get_field('security questions')
-                if action[1] == None:
+                questions = self.password.account.get_field(
+                    'security questions')
+                if action[1] is None:
                     for index, question in enumerate(questions):
                         value = 'question %d: %s' % (index, question)
                 else:
                     try:
-                        value = 'question %d: %s' % (action[1], questions[action[1]])
+                        value = 'question %d: %s' % (
+                            action[1], questions[action[1]])
                     except IndexError:
                         value = 'question %d: <not available>' % action[1]
                 text += [value]
@@ -1018,15 +1164,19 @@ class PasswordWriter():
         log('Autotyping "%s".' % ''.join(scrubbed), self.logger)
         autotype(''.join(text))
 
+
 # Password class {{{1
 class Password:
     """Password Generator"""
     # Constructor {{{2
-    def __init__(self, settings_dir = None, logger = None):
+    def __init__(self, settings_dir=None, init=None, logger=None):
         """Arguments:
            settings_dir
                Path to the settings directory. Generally only specified when
                testing.
+           init
+               GPG ID. When present, the settings directory is assumed not to
+               exist and so is created using the specified ID.
            logger: Object that provides display(msg), log(msg), and error(msg)
                methods:
                    display() is called when a message is to be sent to the user
@@ -1035,7 +1185,7 @@ class Password:
         """
 
         if not settings_dir:
-            settings_dir = default_settings_dir
+            settings_dir = DEFAULT_SETTINGS_DIR
         self.settings_dir = expand_path(settings_dir)
         if not logger:
             logger = Logging()
@@ -1043,45 +1193,55 @@ class Password:
 
         # Get the dictionary
         self.dictionary = Dictionary(
-                dictionary_filename, self.settings_dir, logger)
+            DICTIONARY_FILENAME, self.settings_dir, logger)
 
         # Activate GPG
         self.gpg = gnupg.GPG()
 
+        # Process master password file
         self.master_password_path = make_path(
-                self.settings_dir, master_password_filename)
+            self.settings_dir, MASTER_PASSWORD_FILENAME)
         self.accounts_path = make_path(
-                self.settings_dir, accounts_filename)
+            self.settings_dir, ACCOUNTS_FILENAME)
+        if init:
+            self._create_initial_settings_files(gpg_id=init)
+        self.master_password = MasterPassword(
+            self.master_password_path, self.dictionary, self.gpg, self.logger)
 
     # Create initial settings files {{{2
     # Will create initial versions of the master password file and the accounts
     # file, but only if they do not already exist. The master password file is
     # encrypted with the GPG ID given on the command line, which should be the
     # users.
-    def create_initial_settings_files(self, gpg_id):
+    def _create_initial_settings_files(self, gpg_id):
         """Create initial version of settings files for the user.
 
            Arguments:
            Requires user's GPG ID as the only argument.
         """
 
-        def createFile(filename, contents, encrypt=False):
+        def create_file(filename, contents, encrypt=False):
             if encrypt:
-                encrypted = self.gpg.encrypt(contents, gpg_id,
-                        always_trust=True, armor=True)
+                encrypted = self.gpg.encrypt(
+                    contents, gpg_id, always_trust=True, armor=True
+                )
                 if not encrypted.ok:
-                    error("%s: unable to encrypt.\n" % (filename) + encrypted.stderr, self.logger)
+                    error(
+                        "%s: unable to encrypt.\n%s" % (
+                            filename, encrypted.stderr),
+                        self.logger)
                 contents = str(encrypted)
             if is_file(filename):
-                display("%s: already exists" % filename, self.logger)
+                display("%s: already exists." % filename, self.logger)
             else:
                 try:
                     with open(filename, 'w') as file:
                         file.write(contents)
                     os.chmod(filename, 0o600)
-                    display("%s: created" % filename, self.logger)
+                    display("%s: created." % filename, self.logger)
                 except IOError as err:
-                    error('%s: %s.' % (err.filename, err.strerror), self.logger)
+                    error(
+                        '%s: %s.' % (err.filename, err.strerror), self.logger)
 
         # Generate a random long string to act as the default password
         def generate_random_string():
@@ -1091,32 +1251,36 @@ class Password:
 
             digest = os.urandom(64)
             import string
-            alphabet = string.ascii_letters + string.digits + string.punctuation
+            alphabet = (
+                string.ascii_letters + string.digits + string.punctuation)
             password = ''
             for index in partition(digest):
                 password += alphabet[index % len(alphabet)]
             return password
 
         mkdir(self.settings_dir)
-        if self.settings_dir == expand_path(default_settings_dir):
+        if self.settings_dir == expand_path(DEFAULT_SETTINGS_DIR):
             default_password = generate_random_string()
         else:
-            # if settings_dir is not the default_settings_dir, then this is most
-            # probably a test, in which case we do not want to use a random
-            # password as it would cause the test results to vary.
+            # if settings_dir is not the DEFAULT_SETTINGS_DIR, then this is
+            # most probably a test, in which case we do not want to use a
+            # random password as it would cause the test results to vary.
             default_password = '<< test pass phrase -- do not use >>'
-        createFile(
+        create_file(
             self.master_password_path,
-            master_password_file_initial_contents % (
-                self.dictionary.hash, secrets_sha1, default_password
+            MASTER_PASSWORD_FILE_INITIAL_CONTENTS % (
+                self.dictionary.hash, SECRETS_SHA1, default_password
             ), encrypt=True
         )
-        createFile(
+        create_file(
             self.accounts_path,
-            accounts_file_initial_contents % make_path(self.settings_dir, 'log'))
+            ACCOUNTS_FILE_INITIAL_CONTENTS % (
+                make_path(self.settings_dir, LOG_FILENAME),
+                make_path(self.settings_dir, ARCHIVE_FILENAME),
+                gpg_id))
 
     # Open the accounts file {{{2
-    def read_accounts(self, default_template = default_template):
+    def read_accounts(self, default_template=DEFAULT_TEMPLATE):
         """Read accounts file.
 
            Required before secrets can be generated or accounts can be queried.
@@ -1130,23 +1294,156 @@ class Password:
         self.all_accounts = accounts.all_accounts
         self.find_accounts = accounts.find_accounts
         self.search_accounts = accounts.search_accounts
-        self.logger.set_logfile(accounts.get_logfile())
+        self.logger.set_logfile(accounts.get_log_file())
 
     # Get account {{{2
     def get_account(self, account_id):
+        """Activate and return an account."""
         account = self.accounts.get_account(account_id)
         self.account = account
-        log('Using account: %s.' % account.get_id(), self.logger)
-        self.master_password = MasterPassword(
-                self.master_password_path, self.dictionary, self.gpg,
-                account, self.logger)
+        log('Using account: %s' % account.get_id(), self.logger)
+        self.master_password.set_master_password(account)
         return account
 
-    def generate_password(self):
-        return self.master_password.generate_password(self.account)
+    # Generate password or answer {{{2
+    def generate_password(self, account=None):
+        """Produce a password or passphrase and give it to the user."""
+        return self.master_password.generate_password(
+            account if account else self.account)
 
-    def generate_answer(self, question_number):
-        return self.master_password.generate_answer(self.account, question_number)
+    def generate_answer(self, question_number, account=None):
+        """Produce an answer and give it to the user."""
+        return self.master_password.generate_answer(
+            account if account else self.account, question_number)
+
+    # Print changed secrets {{{2
+    def print_changed_secrets(self):
+        """Identify updated secrets
+
+           Inform the user of any secrets that have changes since they have
+           been archived.
+        """
+        gpg = gnupg.GPG()
+        filename = expand_path(self.accounts.get_archive_file())
+        try:
+            with open(filename) as f:
+                encrypted_secrets = f.read()
+        except IOError as err:
+            error('%s: %s.' % (err.filename, err.strerror), self.logger)
+
+        unencrypted_secrets = str(gpg.decrypt(encrypted_secrets))
+        archived_secrets = yaml.load(unencrypted_secrets)
+
+        # Look for changes in the accounts
+        archived_ids = set(archived_secrets.keys())
+        current_ids = set(list(self.all_accounts()))
+        new_ids = current_ids - archived_ids
+        deleted_ids = archived_ids - current_ids
+        if new_ids:
+            display(
+                "NEW ACCOUNTS:\n    %s" % '\n    '.join(new_ids),
+                self.logger)
+        else:
+            log("    No new accounts.", self.logger)
+        if new_ids:
+            display(
+                "DELETED ACCOUNTS:\n    %s" % '\n    '.join(deleted_ids),
+                self.logger)
+        else:
+            log("    No deleted accounts.", self.logger)
+
+        # Loop through the accounts, and compare the secrets
+        for account_id in self.all_accounts():
+            questions = []
+            account = self.get_account(account_id)
+            password = self.generate_password(account)
+            for i in account.get_security_questions():
+                questions += [list(self.generate_answer(i, account))]
+            if account_id in archived_secrets:
+                # check that password is unchanged
+                if password != archived_secrets[account_id]['password']:
+                    display("PASSWORD DIFFERS: %s" % account_id, self.logger)
+                else:
+                    log("    Password matches.", self.logger)
+
+                # check that number of questions is unchanged
+                archived_questions = archived_secrets[account_id]['questions']
+                if len(questions) != len(archived_questions):
+                    display(
+                        ' '.join([
+                            "NUMBER OF SECURITY QUESTIONS CHANGED:",
+                            "%s (was %d, is now %d)" % (
+                                account_id,
+                                len(archived_questions), len(questions))]),
+                        self.logger)
+                else:
+                    log(
+                        "    Number of questions match (%d)." % (
+                            len(questions)),
+                        self.logger)
+
+                    # check that questions and answers are unchanged
+                    pairs = zip(archived_questions, questions)
+                    for i, (archived, new) in enumerate(pairs):
+                        if archived[0] != new[0]:
+                            display(
+                                "QUESTION %d DIFFERS: %s (%s -> %s)." % (
+                                    i, account_id, archived[0], new[0]),
+                                self.logger)
+                        else:
+                            log(
+                                "    Question %d matches (%s)." % (i, new[0]),
+                                self.logger)
+                        if archived[1] != new[1]:
+                            display(
+                                "ANSWER TO QUESTION %d DIFFERS: %s (%s)." % (
+                                i, account_id, new[0]), self.logger)
+                        else:
+                            log(
+                                "    Answer %d matches (%s)." % (i, new[0]),
+                                self.logger)
+
+    # Archive secrets {{{2
+    def archive_secrets(self):
+        """Archive secrets
+
+           Save all secrets to the archive file.
+        """
+        gpg = gnupg.GPG()
+        # Loop through accounts saving passwords and questions
+        all_secrets = {}
+        for account_id in self.all_accounts():
+            questions = []
+            account = self.get_account(account_id)
+            password = self.generate_password(account)
+            log("    Saving password.", self.logger)
+            for question in account.get_security_questions():
+                # convert the result to a list rather than leaving it a tuple
+                # because tuples are formatted oddly in yaml
+                questions += [list(self.generate_answer(question, account))]
+                log(
+                    "    Saving question (%s) and its answer." % question,
+                    self.logger)
+            all_secrets[account_id] = {
+                'password': password,
+                'questions': questions
+            }
+
+        # Convert results to yaml archive
+        unencrypted_secrets = yaml.dump(all_secrets)
+
+        # Encrypt and save yaml archive
+        gpg = gnupg.GPG()
+        gpg_id = self.accounts.get_gpg_id()
+        encrypted_secrets = gpg.encrypt(unencrypted_secrets, gpg_id)
+        filename = expand_path(self.accounts.get_archive_file())
+        try:
+            with open(filename, 'w') as f:
+                f.write(str(encrypted_secrets))
+            os.chmod(filename, 0o600)
+        except IOError as err:
+            error('%s: %s.' % (err.filename, err.strerror), self.logger)
+
 
 # PasswordError class {{{1
 class PasswordError(Exception):
@@ -1157,65 +1454,82 @@ class PasswordError(Exception):
 if __name__ == "__main__":
     cmd_line = CommandLine(sys.argv)
     try:
-        with Logging(argv=sys.argv) as logger:
-            password = Password(logger=logger)
-
-            # If requested, generate initial versions of the settings file and
-            # exit
+        with Logging(argv=sys.argv) as logging:
+            password = Password(logger=logging, init=cmd_line.init)
             if cmd_line.init:
-                password.create_initial_settings_files(cmd_line.init)
-                sys.exit()
+                terminate(logging)
 
             # Open the accounts file
             password.read_accounts(cmd_line.default_template)
 
             # If requested, list the available templates and then exit
-            if cmd_line.list_templates:
-                print("templates:\n   " + '\n   '.join(sorted(password.all_templates())))
-                sys.exit()
+            if cmd_line.list:
+                display(
+                    "MASTER PASSWORDS:\n   " + '\n   '.join(
+                        sorted(password.master_password.password_names())),
+                    logging)
+                display(
+                    "\nTEMPLATES:\n   " + '\n   '.join(
+                        sorted(password.all_templates())),
+                    logging)
+                terminate(logging)
 
             # If requested, search the account database and exit after printing
             # results
             if cmd_line.find:
-                print(cmd_line.find, end=':\n   ')
-                print('\n   '.join(password.find_accounts(cmd_line.find)))
-                sys.exit()
+                display(
+                    cmd_line.find + ':\n   ' +
+                    '\n   '.join(password.find_accounts(cmd_line.find)),
+                    logging)
+                terminate(logging)
 
             if cmd_line.search:
-                print(cmd_line.search, end=':\n   ')
-                print('\n   '.join(password.search_accounts(cmd_line.search)))
-                sys.exit()
+                display(
+                    cmd_line.search + ':\n   ' +
+                    '\n   '.join(password.search_accounts(cmd_line.search)),
+                    logging)
+                terminate(logging)
 
-            # Get the requested account
-            account = password.get_account(cmd_line.account)
+            if cmd_line.changed:
+                password.print_changed_secrets()
+                terminate(logging)
+            if cmd_line.archive:
+                password.archive_secrets()
+                terminate(logging)
+
+            # Select the requested account
+            password.get_account(cmd_line.account)
 
             # Create the secrets writer
-            style = 'c' if cmd_line.clipboard else 't' if cmd_line.autotype else 's'
-            writer = PasswordWriter(style, password, cmd_line.wait, logger)
+            style = 'c' if cmd_line.clipboard else (
+                't' if cmd_line.autotype else 's')
+            writer = PasswordWriter(style, password, cmd_line.wait, logging)
 
             # Process the users output requests
             if cmd_line.autotype:
                 writer.write_autotype()
             else:
-                if cmd_line.username or cmd_line.all:
+                if cmd_line.username or cmd_line.info or cmd_line.all:
                     writer.write_account_entry('username')
-                if cmd_line.account_number or cmd_line.all:
+                if cmd_line.account_number or cmd_line.info or cmd_line.all:
                     writer.write_account_entry('account')
-                if cmd_line.email or cmd_line.all:
+                if cmd_line.email or cmd_line.info or cmd_line.all:
                     writer.write_account_entry('email')
-                if cmd_line.url or cmd_line.all:
+                if cmd_line.url or cmd_line.info or cmd_line.all:
                     writer.write_account_entry('url')
-                if cmd_line.remarks or cmd_line.all:
+                if cmd_line.remarks or cmd_line.info or cmd_line.all:
                     writer.write_account_entry('remarks')
-                if cmd_line.all:
+                if cmd_line.info or cmd_line.all:
                     writer.write_question()
-                if cmd_line.question != None:
+                if cmd_line.question is not None:
                     writer.write_answer(cmd_line.question)
-                if cmd_line.password or writer.is_empty():
+                if cmd_line.password or cmd_line.all or writer.is_empty():
                     writer.write_password()
 
             # Output everything that the user requested.
             writer.process_output()
+            terminate(logging)
     except PasswordError as err:
-        sys.exit('%s: %s' % (cmd_line.prog_name, err.message))
-    exit(logger)
+        sys.exit('%s: %s' % (cmd_line.name_as_invoked(), err.message))
+    except KeyboardInterrupt:
+        sys.exit('Killed by user')
