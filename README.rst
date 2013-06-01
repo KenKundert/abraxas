@@ -5,7 +5,7 @@ This password generator replaces a conventional password manager. The intent is
 not to store passwords, but rather to regenerate them as needed. This is done 
 with the aid of two files. The first is an accounts file that contains useful 
 information about each account along with the parameters that control how the 
-password is generated for each account (which style of password to generate, how 
+password is generated for that account (which style of password to generate, how 
 many characters or words to include, what alphabet to use, etc.) The second is 
 the master password file. When you go to use the password generator, you will 
 first need to unlock the master password file. You do so by providing its pass 

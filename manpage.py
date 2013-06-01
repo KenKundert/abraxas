@@ -158,6 +158,25 @@ programManpage = {
         that you dutifully use screen locking when you walk away from your 
         computer.
 
+        Archiving
+        +++++++++
+        You can generate an archive of the secrets for all of the known accounts 
+        with::
+
+            pw --archive
+
+        The resulting archive is encrypted and saved in your settings directory 
+        (~/.config/pw/archive.gpg). In addition, you can check your current list 
+        of secrets against those in the archive with:L
+
+            pw --changed
+
+        It is a good idea to do this after you have changed your master password 
+        or accounts files and after you have updated your version of PW. Doing 
+        so will alert you to any unexpected changes. It is also recommended that 
+        you always confirm you only see the changes you expect before updating 
+        the archive.
+
         How it Works
         ++++++++++++
         A secret such as a password or the answer to a security question starts 

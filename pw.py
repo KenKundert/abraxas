@@ -798,7 +798,7 @@ class Accounts():
                     return accounts[0]
                 except TypeError:
                     pass
-            error("Must specify desired account ID.", self.logger)
+            error("cannot determine desired account ID.", self.logger)
 
         # Validate account_id
         if not account_id:
