@@ -621,17 +621,23 @@ class Accounts():
                         logger)
                     del data[each]
 
-            # add ID to the aliases and then add the actual aliases
-            self.aliases[ID] = ID
-            for each in data.get('aliases', []):
-                if each in self.aliases:
-                    display(
-                        ' '.join(
-                            "Alias %s in account %s" % (each, ID),
-                            "duplicates a previous entry, ignoring."),
+            def addToAliases(ID, name):
+                if name in self.aliases:
+                    error(
+                        ' '.join([
+                            "Alias %s" % (name),
+                            "from account %s" % (
+                                ID if name != ID else self.aliases[name]),
+                            "duplicates an account name or previous entry,",
+                            "ignoring."]),
                         self.logger)
                 else:
-                    self.aliases[each] = ID
+                    self.aliases[name] = ID
+
+            # add ID to the aliases and then add the actual aliases
+            addToAliases(ID, ID)
+            for alias in data.get('aliases', []):
+                addToAliases(ID, alias)
 
     # Get a dictionary of all the fields for each account {{{2
     def all_accounts(self, skip_templates=True):

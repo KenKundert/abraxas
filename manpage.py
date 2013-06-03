@@ -7,8 +7,8 @@ from textwrap import dedent
 import re
 from pw import SEARCH_FIELDS
 
-date = "2013-05-31"
-version = "1.1.1"
+date = "2013-06-02"
+version = "1.1.2"
 
 # Program Manpage {{{1
 programManpage = {
