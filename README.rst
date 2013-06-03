@@ -34,14 +34,30 @@ himself and downloads the documents.
 PW requires the following packages to fully function::
 
     # yum install python3
+    # yum install python3-setuptools (for installation)
     # easy_install-3.3 python-gnupg
     # easy_install-3.3 argparse
-    # yum install python3-setuptools (for installation)
-    # yum install python3-docutils (for manpages)
+    # easy_install-3.3 docutils (for manpages)
     # yum install xdotool (autotype support)
     # yum install xsel (clipboard support)
     # yum install zenity (account selection when window title is not enough)
     # yum install PyYAML (password archive)
+
+Or, you can install Python from source. First get and install Python using::
+    $ cd ~/packages/python
+    $ wget http://www.python.org/download/releases/3.3.2/Python-3.3.2.tgz
+    $ tar zxf Python-3.3.2.tgz
+    $ cd Python-3.3.2
+    $ ./configure --prefix=$HOME/.local
+    $ make
+    $ make install
+
+Now get easy_install::
+    $ wget -O http://python-distribute.org/distribute_setup.py
+    $ python3.3 distribute_setup.py
+
+Then you can use easy_install to install python-gnupg, argparse, and docutils as 
+above.
 
 To install, edit the install file and make sure your version of python is listed
 in supportedPythonVersions. Then::
