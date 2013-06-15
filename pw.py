@@ -253,7 +253,7 @@ class CommandLine:
                 "List any account that contains the given string in",
                 "%s, or its ID." % ', '.join(SEARCH_FIELDS)])))
         options.add_argument(
-            '-d', '--default-template',
+            '-T', '--template',
             type=str, metavar='<template>', default=None,
             help="Template to use if account is not found.")
         options.add_argument(
@@ -551,19 +551,17 @@ class MasterPassword():
 # Responsible for reading and managing the data from the accounts file.
 class Accounts():
     # Constructor {{{2
-    def __init__(self, path, logger, default_template=None):
+    def __init__(self, path, logger, template=None):
         self.path = path
         self.logger = logger
         self.data = None
         self.accounts = self._read_accounts_file(path)
-        if default_template:
-            self.default_template = self.accounts.get(default_template, {})
-            if not self.default_template:
-                error(
-                    "%s: default template not found." % default_template,
-                    self.logger)
+        if template:
+            self.template = self.accounts.get(template, {})
+            if not self.template:
+                error("%s: template not found." % template, self.logger)
         else:
-            self.default_template = {}
+            self.template = {}
 
         # Validate and repair each account, then process any aliases
         string_fields = [
@@ -814,7 +812,7 @@ class Accounts():
             account_id = self.aliases[account_id]
             account = self.accounts[account_id]
         except KeyError:
-            account = self.default_template
+            account = self.template
             if not account:
                 display(
                     "Warning: account '%s' not found." % account_id,
@@ -1286,15 +1284,15 @@ class Password:
                 gpg_id))
 
     # Open the accounts file {{{2
-    def read_accounts(self, default_template=DEFAULT_TEMPLATE):
+    def read_accounts(self, template=DEFAULT_TEMPLATE):
         """Read accounts file.
 
            Required before secrets can be generated or accounts can be queried.
            Arguments:
-           default_template:
+           template:
                The template to be used if one is not found in the account.
         """
-        accounts = Accounts(self.accounts_path, self.logger, default_template)
+        accounts = Accounts(self.accounts_path, self.logger, template)
         self.accounts = accounts
         self.all_templates = accounts.all_templates
         self.all_accounts = accounts.all_accounts
@@ -1466,7 +1464,7 @@ if __name__ == "__main__":
                 terminate(logging)
 
             # Open the accounts file
-            password.read_accounts(cmd_line.default_template)
+            password.read_accounts(cmd_line.template)
 
             # If requested, list the available templates and then exit
             if cmd_line.list:

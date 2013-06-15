@@ -41,11 +41,32 @@ programManpage = {
         of passwords, character based (passwords) or word based (pass phrases). 
         To see the attractiveness of pass phrases, see http://xkcd.com/936/.
 
+        Unlike other password generators, this one produces a highly 
+        unpredictable password from a master password and the name of the 
+        account for which the password is to be used. The process is completely 
+        repeatable. If you give the same master password and account name, you 
+        will get the same password. As such, the passwords do not have to be 
+        saved; instead they are regenerated on the fly.
+
+        This password generator provides two significant advantages over 
+        conventional password managers.  First, it allows groups of people to 
+        share access to accounts without having to securely share each password.  
+        Instead, one member of the group creates a master password that is 
+        securely shared with the group once. From then on any member of the 
+        group can create a new account, share the name of the account, and all 
+        members will know the password needed to access the account. The second 
+        advantage is that it opens up the possibility of using high-quality 
+        passwords for stealth accounts, which are accounts where you remember 
+        the name of the account but do not store any information about even the 
+        existence of the account on your computer.  With **pw**, you only need 
+        to remember the name of the account and it will regenerate the password 
+        for you.
+
         To use it, one creates a file that contains information about each of 
-        his or her accounts.  Amongst that information would be information that 
-        controls how the passwords are generated. This file is not encrypted. 
-        Another file is created that contains one or more master passwords. This 
-        file is GPG encrypted.
+        his or her non-stealth accounts.  Amongst that information would be 
+        information that controls how the passwords are generated. This file is 
+        not encrypted.  Another file is created that contains one or more master 
+        passwords. This file is GPG encrypted.
 
         The intent is for these files not include the passwords for your 
         accounts.  Rather, the passwords are recomputed when needed from the 
@@ -53,16 +74,6 @@ programManpage = {
         share passwords with others without having to pass the passwords back 
         and forth.  It is only necessary to create a shared master password in 
         advance. Then new passwords can be created on the fly by either party.
-
-        This is one way in which the availability of multiple master password is 
-        useful in several common situations.  Two or more people can share 
-        a master password and then create consistent passwords without having to 
-        communicate and store the passwords. Thus, you might have a master 
-        password for your personal needs, and another for each person you 
-        collaborate with.  Second, it allows you to transition to a new master 
-        password without having to update all of your existing passwords.  
-        Simply create all new passwords using the new master password.  The 
-        existing passwords can be updated on an as-needed basis.
 
         To generate a password for an account that exists in your accounts file, 
         you would use::
@@ -142,7 +153,7 @@ programManpage = {
         generate a password (a collection of characters) instead of a pass 
         phrase (a collection of words) with::
 
-            pw -d =chars my-secret-account
+            pw -T =chars my-secret-account
 
         More on Security
         ++++++++++++++++
@@ -167,7 +178,7 @@ programManpage = {
 
         The resulting archive is encrypted and saved in your settings directory 
         (~/.config/pw/archive.gpg). In addition, you can check your current list 
-        of secrets against those in the archive with:L
+        of secrets against those in the archive with
 
             pw --changed
 
@@ -180,16 +191,15 @@ programManpage = {
         How it Works
         ++++++++++++
         A secret such as a password or the answer to a security question starts 
-        out as the simple stringing together of a few things. The password for 
-        an account starts off as the combination of the account name, the 
-        version, and the master password. For security questions, the question 
-        itself is added as well.  This combined string is then hashed into 
-        a very long number.  Even the smallest change in any of the components 
-        used to create it results in a very different hash. The hash is then 
-        mapped into pass phrases or passwords with your choice of words or 
-        characters.  As long the master password is kept secure, this approach 
-        is very safe.  Even knowing the algorithm and having access to the 
-        source code of the **pw** program would not allow someone to predict 
+        out as the simple stringing together of a few things: the account name, 
+        the version, and the master password.  For security questions, the 
+        question itself is added as well.  This combined string is then hashed 
+        into a very long number.  Even the smallest change in any of the 
+        components used to create it results in a very different hash.  The hash 
+        is then mapped into pass phrases or passwords with your choice of words 
+        or characters.  As long the master password is kept secure, this 
+        approach is very safe.  Even knowing the algorithm and having access to 
+        the source code of the **pw** program would not allow someone to predict 
         your passwords.
 
         Getting Started
@@ -278,7 +288,7 @@ programManpage = {
                                 List any account that contains the given string 
                                 in {search_fields}, or its ID.
 
-        -d <template>, --default-template <template>
+        -T <template>, --template <template>
                                 Template to use if account is not found.
         -l, --list              List available master passwords and templates 
                                 (only pure templates are listed, not accounts, 
@@ -363,14 +373,14 @@ apiManpage = {
                 'reference': True,
             }}
 
-            def run_cmd_with_password(cmd):
+            def run_cmd_with_password(cmd, pw_writer):
                 try:
                     if (fork()):
                         execute(cmd)
                     else:
                         sleep(1)
-                        writer.write_autotype()
-                        writer.process_output()
+                        pw_writer.write_autotype()
+                        pw_writer.process_output()
                         exit()
                 except PasswordError as err:
                     exit(err.message)
@@ -392,7 +402,7 @@ apiManpage = {
                 # Run sudo so that it requests the password and sets the 
                 # credentials. In this way the subsequent calls to sudo will not 
                 # request a password.
-                run_cmd_with_password('sudo true')
+                run_cmd_with_password('sudo true', writer)
 
                 # Get the Samba password
                 pw.get_account('dgc21')
@@ -404,7 +414,7 @@ apiManpage = {
                     status, stdout = pipe('mountpoint -q %s' % absdest, accept=(0,1))
                     if status:
                         print("Mounting %s to %s" % (src, absdest))
-                        run_cmd_with_password('sudo mount %s' % (absdest))
+                        run_cmd_with_password('sudo mount %s' % (absdest), writer)
                     else:
                         print("Skipping %s (already mounted)" % (dest))
             except KeyboardInterrupt:
@@ -500,7 +510,7 @@ configManpage = {
         you can go wild. For example, using your default master password you 
         could use **pw** to generate new master passwords::
 
-            $ pw -d =extreme derrick
+            $ pw -T =extreme derrick
             PASSWORD: [Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|
 
         You can then use that string as the master password. Notice that this 
@@ -517,7 +527,7 @@ configManpage = {
         phone.  In this case, using the =master template to generate a simple 
         but long pass phase is much preferred::
 
-            $ pw -d =master "derrick debbie"
+            $ pw -T =master "derrick debbie"
             PASSWORD: impulse nostril double irony conflate rookie posting blind
 
         Then your passwords entry becomes::
