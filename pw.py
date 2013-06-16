@@ -22,7 +22,6 @@ import traceback
 import re
 import os
 import sys
-import yaml
 
 # Globals {{{1
 DEFAULT_SETTINGS_DIR = '~/.config/pw'
@@ -203,34 +202,33 @@ class CommandLine:
         self.prog_name = get_tail(argv[0])
         parser = argparse.ArgumentParser(
             add_help=False, description="Generate strong and unique password.")
-        arguments = parser.add_argument_group('Arguments')
+        arguments = parser.add_argument_group('arguments')
         arguments.add_argument(
             'account', nargs='?', default='',
             help="Generate password specific to this account.")
-        options = parser.add_argument_group('Options')
-        options.add_argument(
+        parser.add_argument(
             '-q', '--question', type=int, metavar='<N>',
             default=None, help="Output security question N.")
-        options.add_argument(
+        parser.add_argument(
             '-P', '--password', action='store_true',
             help="Output the password (default if nothing else is requested).")
-        options.add_argument(
+        parser.add_argument(
             '-N', '--username', action='store_true',
             help="Output the username.")
-        options.add_argument(
+        parser.add_argument(
             '-A', '--account-number', action='store_true',
             help="Output the account number.")
-        options.add_argument(
+        parser.add_argument(
             '-E', '--email', action='store_true', help="Output the email.")
-        options.add_argument(
+        parser.add_argument(
             '-U', '--url', action='store_true', help="Output the URL.")
-        options.add_argument(
+        parser.add_argument(
             '-R', '--remarks', action='store_true',
             help="Output remarks.")
-        options.add_argument(
+        parser.add_argument(
             '-i', '--info', action='store_true',
             help="Output everything, except the password.")
-        options.add_argument(
+        parser.add_argument(
             '-a', '--all', action='store_true',
             help="Output everything, including the password.")
         group = parser.add_mutually_exclusive_group()
@@ -244,44 +242,44 @@ class CommandLine:
                 "than stdout. In this case any command line arguments that",
                 "specify what to output are ignored and the autotype entry",
                 "scripts the output."])))
-        options.add_argument(
+        parser.add_argument(
             '-f', '--find', type=str, metavar='<str>',
             help="List any account that contains the given string in its ID.")
-        options.add_argument(
+        parser.add_argument(
             '-s', '--search', type=str, metavar='<str>',
             help=(' '.join([
                 "List any account that contains the given string in",
                 "%s, or its ID." % ', '.join(SEARCH_FIELDS)])))
-        options.add_argument(
+        parser.add_argument(
             '-T', '--template',
             type=str, metavar='<template>', default=None,
             help="Template to use if account is not found.")
-        options.add_argument(
+        parser.add_argument(
             '-l', '--list', action='store_true',
             help=(' '.join([
                 "List available master passwords and templates (only pure",
                 "templates are listed, not accounts, even though accounts",
                 "can be used as templates)."])))
-        options.add_argument(
+        parser.add_argument(
             '-w', '--wait', type=float, default=60, metavar='<secs>',
             help=(' '.join([
                 "Wait this long before clearing the secret",
                 "(use 0 to disable)."])))
-        options.add_argument(
+        parser.add_argument(
             '--archive', action='store_true',
             help=("Archive all the secrets to %s." % make_path(
                 DEFAULT_SETTINGS_DIR, ARCHIVE_FILENAME)))
-        options.add_argument(
+        parser.add_argument(
             '--changed', action='store_true',
             help=(
                 "Identify all secrets that have changed since last archived."))
-        options.add_argument(
+        parser.add_argument(
             '-I', '--init', type=str, metavar='<GPG ID>',
             help=(' '.join([
                 "Initialize the master password and account files in",
                 DEFAULT_SETTINGS_DIR,
                 "(but only if they do not already exist)."])))
-        options.add_argument(
+        parser.add_argument(
             '-h', '--help',  action='store_true',
             help="Show this help message and exit.")
 
@@ -1327,6 +1325,11 @@ class Password:
            Inform the user of any secrets that have changes since they have
            been archived.
         """
+        try:
+            import yaml
+        except ImportError:
+            error('archive feature requires yaml, which is not available.')
+
         gpg = gnupg.GPG()
         filename = expand_path(self.accounts.get_archive_file())
         try:
@@ -1413,6 +1416,11 @@ class Password:
 
            Save all secrets to the archive file.
         """
+        try:
+            import yaml
+        except ImportError:
+            error('archive feature requires yaml, which is not available.')
+
         gpg = gnupg.GPG()
         # Loop through accounts saving passwords and questions
         all_secrets = {}
