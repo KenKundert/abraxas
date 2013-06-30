@@ -84,6 +84,8 @@ programManpage = {
         and forth.  It is only necessary to create a shared master password in 
         advance. Then new passwords can be created on the fly by either party.
 
+        Basic Use
+        +++++++++
         To generate a password for an account that exists in your accounts file, 
         you would use::
 
@@ -95,11 +97,13 @@ programManpage = {
             $ pw gmail
             PASSWORD: preview secretary eschew cobra
 
+        The $ represents the shell prompt, you do not type it.
+
         The password generator is also capable of generating answers to the 
-        security questions that are the bane of most websites these days. Simply 
-        add the questions to your accounts file and the password generator will 
-        produce an unpredictable yet consistent and easily communicated response 
-        for each question.  For example::
+        security questions that are the bane of most websites these days.  
+        Simply add the questions to your accounts file and the password 
+        generator will produce an unpredictable yet consistent and easily 
+        communicated response for each question.  For example::
 
             $ pw -q0 gmail
             name of elementary school: balaclava essence guildhall persimmon
@@ -112,8 +116,8 @@ programManpage = {
         so are more likely to know the information, like the answers to these 
         security questions, that allows them access to your account.  The motive 
         generally comes eventually. It is hard to live one's life without 
-        angering a friend or family member at some point, and sometimes they 
-        feel justified seeking revenge.
+        angering a friend or family member at some point, and then they feel 
+        justified in helping themselves to your accounts.
 
         The password generator outputs account information upon request.  It is 
         a command line program, so you just specify the right command line 
@@ -183,8 +187,8 @@ programManpage = {
             Warning: account 'my-secret-account' not found.
             PASSWORD: Rkybp9EFXLu4
 
-        More on Security
-        ++++++++++++++++
+        GPG Security
+        ++++++++++++
         The password generator inherits the security policies of GPG. It is 
         important to recognize that any weakness in your GPG security policy 
         could result in your passwords being exposed. For example, if you enter 
