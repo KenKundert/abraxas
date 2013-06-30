@@ -44,6 +44,7 @@ PW requires the following packages to fully function::
     # yum install python3-PyYAML (password archive)
 
 Or, you can install Python from source. First get and install Python using::
+
     $ cd ~/packages/python
     $ wget http://www.python.org/download/releases/3.3.2/Python-3.3.2.tgz
     $ tar zxf Python-3.3.2.tgz
@@ -53,6 +54,7 @@ Or, you can install Python from source. First get and install Python using::
     $ make install
 
 Now get easy_install::
+
     $ wget -O http://python-distribute.org/distribute_setup.py
     $ python3.3 distribute_setup.py
 
