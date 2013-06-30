@@ -48,12 +48,37 @@ testCases = [
         expectError=True,
         isCommand=True),
 
+    # Run Password with damaged accounts file
+    Case(stimulus="pw = Password('./generated_settings', 'ken@designers-guide.com')"),
+    Case(stimulus="create_bogus_file('./generated_settings/accounts')"),
+    Case(stimulus="pw = Password('./generated_settings')"),
+    Case(
+        stimulus="pw.read_accounts()",
+        expected=dedent("generated_settings/accounts: defective accounts file, 'accounts' not found."),
+        expectError=True),
+    Case(stimulus="remove('./generated_settings')"),
+
+    # Run Password with damaged master password file
+    Case(stimulus="pw = Password('./generated_settings', 'ken@designers-guide.com')"),
+    Case(stimulus="create_bogus_file('./generated_settings/master.gpg')"),
+    Case(stimulus="pw = Password('./generated_settings')",
+        expected=dedent("""\
+            generated_settings/master.gpg: unable to decrypt.
+            gpg: no valid OpenPGP data found.
+            [GNUPG:] NODATA 1
+            [GNUPG:] NODATA 2
+            gpg: decrypt_message failed: eof
+        """),
+        expectError=True,
+        isCommand=True),
+    Case(stimulus="remove('./generated_settings')"),
+
     # Run Password with a nonexistant settings directory
     Case(stimulus="pw = Password('./generated_settings', 'ken@designers-guide.com')"),
     Case(stimulus="pw.read_accounts()"),
     Case(
         stimulus="' '.join(sorted(pw.all_templates()))",
-        expected='=chars =extreme =master =words'),
+        expected='=anum =chars =extreme =master =words'),
     Case(stimulus="account = pw.get_account('test')"),
     Case(
         stimulus="account.get_id()",
@@ -87,27 +112,6 @@ testCases = [
         expectError=True),
     Case(stimulus="pw.archive_secrets()"),
     Case(stimulus="pw.print_changed_secrets()"),
-
-    # Damage the accounts file
-    Case(stimulus="create_bogus_file('./generated_settings/accounts')"),
-    Case(stimulus="pw = Password('./generated_settings')"),
-    Case(
-        stimulus="pw.read_accounts()",
-        expected="generated_settings/accounts: defective accounts file, 'accounts' not found.",
-        expectError=True),
-
-    # Damage the master password file
-    Case(stimulus="create_bogus_file('./generated_settings/master.gpg')"),
-    Case(stimulus="pw = Password('./generated_settings')",
-        expected=dedent("""\
-            generated_settings/master.gpg: unable to decrypt.
-            gpg: no valid OpenPGP data found.
-            [GNUPG:] NODATA 1
-            [GNUPG:] NODATA 2
-            gpg: decrypt_message failed: eof
-        """),
-        expectError=True,
-        isCommand=True),
 
     # Run Password with the test settings directory
     Case(stimulus="pw = Password('./test_settings')"),

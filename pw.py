@@ -6,6 +6,7 @@ from fileutils import (
     makePath as make_path,
     getTail as get_tail,
     getHead as get_head,
+    getExt as get_extension,
     isFile as is_file,
     expandPath as expand_path,
     fileIsReadable as file_is_readable,
@@ -27,14 +28,15 @@ import sys
 DEFAULT_SETTINGS_DIR = '~/.config/pw'
 MASTER_PASSWORD_FILENAME = 'master.gpg'
 ACCOUNTS_FILENAME = 'accounts'
+    # accounts file will be encrypted if you add .gpg or .asc extension
 DICTIONARY_FILENAME = 'words'
 LOG_FILENAME = 'log'
 ARCHIVE_FILENAME = 'archive.gpg'
 DEFAULT_TEMPLATE = "=words"
 DEFAULT_AUTOTYPE = "{username}{tab}{password}{return}"
 SEARCH_FIELDS = ['username', 'account', 'email', 'url', 'remarks']
-# Use absolute paths for xdotool and xsel so that nobody can replace them and
-# see the secrets.
+# Use absolute paths for xdotool and xsel
+# Makes it harder for someone to replace them so as to expose the secrets.
 XDOTOOL = '/usr/bin/xdotool'
 XSEL = '/usr/bin/xsel'
 SECRETS_SHA1 = "db7ce3fc4a9392187d0a8df7c80b0cdfd7b1bc22"
@@ -119,6 +121,12 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
             'password-type': 'chars',
             'num-chars': 12,
             'alphabet': alphanumeric + punctuation,
+            'autotype': "{username}{tab}{password}{return}",
+        },
+        "=anum": {  # typically used for web passwords (contains only easily distinguished alphanumeric characters)
+            'password-type': 'chars',
+            'num-chars': 12,
+            'alphabet': distinguishable,
             'autotype': "{username}{tab}{password}{return}",
         },
         "=master": {  # typically used to generate master passwords for pw
@@ -549,9 +557,18 @@ class MasterPassword():
 # Responsible for reading and managing the data from the accounts file.
 class Accounts():
     # Constructor {{{2
-    def __init__(self, path, logger, template=None):
+    def __init__(self, path, logger, gpg, template=None):
         self.path = path
+        if not exists(path):
+            # If file does not exist, look for encrypted versions
+            for ext in ['gpg', 'asc']:
+                new_path = '.'.join([path, ext])
+                if exists(new_path):
+                    self.path = new_path
+                    break
+
         self.logger = logger
+        self.gpg = gpg
         self.data = None
         self.accounts = self._read_accounts_file(path)
         if template:
@@ -653,9 +670,22 @@ class Accounts():
     def _read_accounts_file(self, path):
         accounts_data = {}
         try:
-            with open(self.path) as f:
-                code = compile(f.read(), path, 'exec')
-                exec(code, accounts_data)
+            if get_extension(self.path) in ['gpg', 'asc']:
+                # Accounts file is GPG encrypted, decrypt it before loading
+                with open(self.path, 'rb') as f:
+                    decrypted = self.gpg.decrypt_file(f)
+                    if not decrypted.ok:
+                        error("%s\n%s" % (
+                            "%s: unable to decrypt." % (self.path),
+                            decrypted.stderr
+                        ), self.logger)
+                    code = compile(decrypted.data, self.path, 'exec')
+                    exec(code, accounts_data)
+            else:
+                # Accounts file is not encrypted
+                with open(self.path) as f:
+                    code = compile(f.read(), path, 'exec')
+                    exec(code, accounts_data)
         except IOError as err:
             error('%s: %s.' % (err.filename, err.strerror), self.logger)
         except SyntaxError as err:
@@ -811,10 +841,9 @@ class Accounts():
             account = self.accounts[account_id]
         except KeyError:
             account = self.template
-            if not account:
-                display(
-                    "Warning: account '%s' not found." % account_id,
-                    self.logger)
+            display(
+                "Warning: account '%s' not found." % account_id,
+                self.logger)
 
         # Get information from template
         template = account.get('template', None)
@@ -1271,15 +1300,15 @@ class Password:
         create_file(
             self.master_password_path,
             MASTER_PASSWORD_FILE_INITIAL_CONTENTS % (
-                self.dictionary.hash, SECRETS_SHA1, default_password
-            ), encrypt=True
-        )
+                self.dictionary.hash, SECRETS_SHA1, default_password),
+            encrypt=True)
         create_file(
             self.accounts_path,
             ACCOUNTS_FILE_INITIAL_CONTENTS % (
                 make_path(self.settings_dir, LOG_FILENAME),
                 make_path(self.settings_dir, ARCHIVE_FILENAME),
-                gpg_id))
+                gpg_id),
+            encrypt=(get_extension(self.accounts_path) in ['gpg', 'asc']))
 
     # Open the accounts file {{{2
     def read_accounts(self, template=DEFAULT_TEMPLATE):
@@ -1290,7 +1319,8 @@ class Password:
            template:
                The template to be used if one is not found in the account.
         """
-        accounts = Accounts(self.accounts_path, self.logger, template)
+        accounts = Accounts(
+            self.accounts_path, self.logger, self.gpg, template)
         self.accounts = accounts
         self.all_templates = accounts.all_templates
         self.all_accounts = accounts.all_accounts
