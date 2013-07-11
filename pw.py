@@ -252,7 +252,9 @@ class CommandLine:
                 "scripts the output."])))
         parser.add_argument(
             '-f', '--find', type=str, metavar='<str>',
-            help="List any account that contains the given string in its ID.")
+            help=(' '.join([
+                "List any account that contains the given string",
+                "in its ID or aliases."])))
         parser.add_argument(
             '-s', '--search', type=str, metavar='<str>',
             help=(' '.join([
@@ -857,25 +859,43 @@ class Accounts():
 
         return Accounts.Account(account_id, data)
 
-    # Find accounts {{{2
+    # Find and Search accounts {{{2
+    @staticmethod
+    def _inID(pattern, ID):
+        return bool(pattern.search(ID))
+
+    @staticmethod
+    def _inAliases(pattern, acct):
+        for each in acct.get('aliases', ''):
+            if pattern.search(each):
+                return True
+        return False
+
+    @staticmethod
+    def _inSearchField(pattern, acct):
+        for each in SEARCH_FIELDS:
+            if pattern.search(acct.get(each, '')):
+                return True
+        return False
+
     def find_accounts(self, target):
         pattern = re.compile(target, re.I)
         for ID in self.all_accounts():
-            if pattern.search(ID):
-                yield ID
+            if (
+                    self._inID(pattern, ID) or
+                    self._inAliases(pattern, self.accounts[ID])):
+                yield ID, self.accounts[ID].get('aliases', [])
 
     # Search accounts {{{2
     def search_accounts(self, target):
         pattern = re.compile(target, re.I)
         for ID in self.all_accounts():
-            data = self.accounts[ID]
-            matches = bool(pattern.search(ID))
-            for each in SEARCH_FIELDS:
-                if pattern.search(data.get(each, '')):
-                    matches = True
-                    break
-            if matches:
-                yield ID
+            acct = self.accounts[ID]
+            if (
+                    self._inID(pattern, ID) or
+                    self._inAliases(pattern, acct) or
+                    self._inSearchField(pattern, acct)):
+                yield ID, self.accounts[ID].get('aliases', [])
 
 
 # PasswordWriter class {{{1
@@ -1519,17 +1539,17 @@ if __name__ == "__main__":
             # If requested, search the account database and exit after printing
             # results
             if cmd_line.find:
-                display(
-                    cmd_line.find + ':\n   ' +
-                    '\n   '.join(password.find_accounts(cmd_line.find)),
-                    logging)
+                display(cmd_line.find + ':', logging)
+                for acct, aliases in password.find_accounts(cmd_line.find):
+                    aliases = ' (%s)' % (', '.join(aliases)) if aliases else ''
+                    display('   %s%s' % (acct, aliases), logging)
                 terminate(logging)
 
             if cmd_line.search:
-                display(
-                    cmd_line.search + ':\n   ' +
-                    '\n   '.join(password.search_accounts(cmd_line.search)),
-                    logging)
+                display(cmd_line.search + ':', logging)
+                for acct, aliases in password.search_accounts(cmd_line.search):
+                    aliases = ' (%s)' % (', '.join(aliases)) if aliases else ''
+                    display('   %s%s' % (acct, aliases), logging)
                 terminate(logging)
 
             if cmd_line.changed:

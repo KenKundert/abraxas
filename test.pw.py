@@ -117,22 +117,19 @@ testCases = [
     Case(stimulus="pw = Password('./test_settings')"),
     Case(stimulus="pw.read_accounts()"),
     Case(
-        stimulus="' '.join(pw.find_accounts('col'))",
-        expected='colgate',
+        stimulus="';'.join(['%s(%s)' % (each[0], ','.join(each[1])) for each in sorted(pw.find_accounts('col'), key=lambda x: x[0])])",
+        expected='colgate(Colgate,Cg)',
     ),
     Case(
-        stimulus="' '.join(sorted(pw.search_accounts('smiler')))",
-        expected='crest sensodyne',
+        stimulus="';'.join(['%s(%s)' % (each[0], ','.join(each[1])) for each in sorted(pw.search_accounts('smiler'), key=lambda x: x[0])])",
+        expected='crest(Crest);sensodyne()',
     ),
     Case(
         stimulus="' '.join(sorted(pw.all_accounts()))",
         expected='colgate crest sensodyne toms'),
     Case(
-        stimulus="' '.join(sorted(pw.find_accounts('e')))",
-        expected='colgate crest sensodyne'),
-    Case(
-        stimulus="' '.join(sorted(pw.search_accounts('smiler')))",
-        expected='crest sensodyne'),
+        stimulus="';'.join(['%s(%s)' % (each[0], ','.join(each[1])) for each in sorted(pw.find_accounts('e'), key=lambda x: x[0])])",
+        expected='colgate(Colgate,Cg);crest(Crest);sensodyne()'),
     Case(stimulus="account = pw.get_account('crest')"),
     Case(
         stimulus="account.get_id()",

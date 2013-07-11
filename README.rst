@@ -75,7 +75,7 @@ plugin from::
 
 Then copy it into::
 
-    cp gnupg.vim .vim/plugin
+    cp gnupg.vim ~/.vim/plugin
 
 Once installed, you should be able to get information as follows::
 
