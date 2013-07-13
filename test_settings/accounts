@@ -8,6 +8,11 @@
 
 from textwrap import dedent
 
+# Exclude function
+# Use this to strip characters from a character set.
+def exclude(chars, exclusions):
+    return chars.translate(str.maketrans('', '', exclusions))
+
 # Character sets
 # Use these to construct alphabets by summing together the ones you want.
 lowercase = "abcdefghijklmnopqrstuvwxyz"
@@ -19,11 +24,7 @@ hexdigits = "0123456789abcdef"
 punctuation = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
 whitespace = " \t"
 printable = alphanumeric + punctuation + whitespace
-
-# Exclude function
-# Use this to strip characters from a character set.
-def exclude(chars, exclusions):
-    return chars.translate(str.maketrans('', '', exclusions))
+distinguishable = exclude(alphanumeric, 'IlO0\\t')
 
 # Example:
 # To create an alphabet with all characters except tabs use either:
@@ -33,6 +34,9 @@ def exclude(chars, exclusions):
 
 # Give the desired location of the file
 logfile = './test_settings/log'
+
+# The GPG ID of the user (used to encrypt archive.gpg file)
+# gpgID = '<your GPG ID in the form of an email address>'
 
 # Account Information
 # Add your account information here ...
@@ -65,6 +69,7 @@ accounts = {
     # Accounts
     "crest": {
         'username': "smiler",
+        'aliases': ['Crest'],
         'account': "1234-5678",
         'email': "smiler@nowhere.com",
         'url': "www.crest.com",
@@ -81,6 +86,7 @@ accounts = {
 	'num-words': 4,
     },
     "colgate": {
+        'aliases': ['Colgate', 'Cg'],
     },
     "sensodyne": {
         'remarks': "Another smiler.",

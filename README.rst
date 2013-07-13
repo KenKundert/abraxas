@@ -33,55 +33,114 @@ himself and downloads the documents.
 
 PW requires the following packages to fully function::
 
-    # yum install python3
-    # yum install python3-setuptools (for installation)
-    # easy_install-3.3 python-gnupg
-    # easy_install-3.3 argparse
-    # easy_install-3.3 docutils (for manpages)
-    # yum install xdotool (autotype support)
-    # yum install xsel (clipboard support)
-    # yum install zenity (account selection when window title is not enough)
-    # yum install python3-PyYAML (password archive)
+   # yum install python3
+   # yum install python3-setuptools (for installation)
+   # easy_install-3.3 python-gnupg
+   # easy_install-3.3 argparse
+   # easy_install-3.3 docutils (for manpages)
+   # easy_install-3.3 PyYAML (password archive)
+   # yum install xdotool (autotype support)
+   # yum install xsel (clipboard support)
+   # yum install zenity (account selection when window title is not enough)
 
 Or, you can install Python from source. First get and install Python using::
 
-    $ cd ~/packages/python
-    $ wget http://www.python.org/download/releases/3.3.2/Python-3.3.2.tgz
-    $ tar zxf Python-3.3.2.tgz
-    $ cd Python-3.3.2
-    $ ./configure --prefix=$HOME/.local
-    $ make
-    $ make install
+   $ cd ~/packages/python
+   $ wget http://www.python.org/download/releases/3.3.2/Python-3.3.2.tgz
+   $ tar zxf Python-3.3.2.tgz
+   $ cd Python-3.3.2
+   $ ./configure --prefix=$HOME/.local
+   $ make
+   $ make install
 
 Now get easy_install::
 
-    $ wget -O http://python-distribute.org/distribute_setup.py
-    $ python3.3 distribute_setup.py
+   $ wget -O http://python-distribute.org/distribute_setup.py
+   $ python3.3 distribute_setup.py
 
-Then you can use easy_install to install python-gnupg, argparse, and docutils as 
-above.
+Then you can use easy_install to install python-gnupg, argparse, docutils, and 
+PyYAML as above.
 
 To install, edit the install file and make sure your version of python is listed
 in supportedPythonVersions. Then::
 
-    $ ./install
+   $ ./install
 
 The program along with the man pages should end up in ~/.local.
 
 To be able to easily edit the master password file, download the gnupg vim
 plugin from::
 
-    http://www.vim.org/scripts/script.php?script_id=3645
+   http://www.vim.org/scripts/script.php?script_id=3645
 
 Then copy it into::
 
-    cp gnupg.vim ~/.vim/plugin
+   cp gnupg.vim ~/.vim/plugin
 
 Once installed, you should be able to get information as follows::
 
-    $ man pw     (information on how to use pw from the command line)
-    $ man 3 pw   (information on how to use the pw API)
-    $ man 5 pw   (information about the configuration files)
+   $ man pw     (information on how to use pw from the command line)
+   $ man 3 pw   (information on how to use the pw API)
+   $ man 5 pw   (information about the configuration files)
 
-| Enjoy,
-|    -Ken
+If you do not yet have a GPG key, you can get one using::
+
+   $ gpg --gen-key
+
+You should probably choose 4096 RSA keys. Now, edit ~/.gnupg/gpg-conf and the 
+line::
+
+   use-agent
+
+That way, if you have an agent running (and most login environments such as 
+Gnome or KDE will start an agent for you; if you do not have an agent running 
+you can generally have one started for you when you login by configuring your 
+Session settings) then you can just give your GPG key pass phrase once per login 
+session.
+
+To start using the password program, you need to do a one-time setup to create 
+your account directory (~/.config/pw)::
+
+   $ pw -I <GPG-Key>
+
+where ``<GPG-Key>`` would be replaced by the email you provided to GPG when you 
+created your key.
+
+You will need to edit ~/.config/pw/accounts to add your accounts (see ``man 
+5 pw`` for the details). For example, to add a gmail accounts, add the following 
+to ``accounts``::
+
+    "gmail-derrickAsh": {
+         'aliases': ['gmail', 'google'],
+         'template': "=words",
+         'username': "derrickAsh",
+         'window': [
+             'Gmail*',
+             'Google Accounts*',
+         ],
+         'autotype': "{username}{tab}{password}{return}",
+    },
+
+You can now test this account using::
+
+   $ pw gmail
+   PASSWORD: fallacy derby twinge clone
+
+You would then change your gmail password to the generated pass phrase.  
+Alternatively, you can simply enter your existing password into 
+``password_overrides`` in ``~/.config/pw/master.gpg`` until the next time you 
+get around to changing your password.
+
+Finally, you will want to chose a keystroke sequence and configure the window 
+manager to run the password generator when you trigger it with that keystroke.  
+Doing so will depend on your window manager. With Gnome, it requires that you 
+open your Keyboard Shortcuts preferences and a new shortcut. I recommend 
+``Alt-p`` as a reasonable keystroke sequence. Enter ``pw --autotype`` as the 
+command to run. Then, when you create your accounts, you should add the 
+appropriate window titles to the account entry so that the appropriate account 
+can be determined automatically from the window title. For example, with the 
+gmail account entered above, you can go to ``gmail.com``, select the username 
+field and then type ``Alt p`` to login.
+
+   | Enjoy,
+   |    -Ken
