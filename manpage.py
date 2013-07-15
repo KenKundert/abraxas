@@ -7,8 +7,8 @@ from textwrap import dedent
 import re
 from pw import SEARCH_FIELDS
 
-date = "2013-06-02"
-version = "1.1.2"
+date = "2013-07-15"
+version = "1.2"
 
 # Program Manpage {{{1
 programManpage = {
@@ -147,7 +147,7 @@ programManpage = {
 
         Security
         ++++++++
-        The accounts file is a simple ASCII file that contains somehwat 
+        The accounts file can be a simple ASCII file that contains somehwat 
         sensitive information.  From this file one could infer the existence of 
         an account and would have some identifying information such as the 
         username and account number, but the passwords themselves are not 
@@ -168,7 +168,7 @@ programManpage = {
         give the name of the account on the command line. For example::
 
             $ pw my-secret-account
-            Warning: account 'my-secret-account' not found.
+            warning: account 'my-secret-account' not found.
             PASSWORD: apologist imprint epigram return
 
         You would need to remember the name of the account precisely. If you 
@@ -184,7 +184,7 @@ programManpage = {
         phrase (a collection of words) with::
 
             /pw -T =anum my-secret-account
-            Warning: account 'my-secret-account' not found.
+            warning: account 'my-secret-account' not found.
             PASSWORD: Rkybp9EFXLu4
 
         GPG Security
@@ -281,7 +281,6 @@ programManpage = {
                 <skip over the templates at the start>
                 "chase": {{
                     'template': "=chars",
-                    'master': "derrick",
                     'username': "derrickash",
                     'account': "6478-4789874",
                     'email': "derrickAsh@gmail.com",
@@ -289,7 +288,6 @@ programManpage = {
                 }},
                 "gmail": {{
                     'template': "=words",
-                    'master': 'derrick',
                     'username': "derrickAsh",
                     'email': "derrick.ash@yahoo.com",
                     'url': "https://accounts.google.com",
@@ -540,15 +538,27 @@ configManpage = {
         *secrets_hash* to the original file, and then moving it back to its 
         original location of *~/.config/pw/master.gpg*.
 
+        accounts
+        ~~~~~~~~
+        This is the name of the accounts file. The name may be given with or 
+        without an encryption suffix (``.gpg`` or ``.asc``). If given with an 
+        encryption suffix, the file must be encrypted. If given without 
+        a suffix, the file may still be encrypted (in which case the file itself 
+        should have a encryption suffix) but need not be.
+
         passwords
         ~~~~~~~~~
         This is a dictionary that gives your master passwords. Each entry is 
         a pair of the password ID and then password itself. For example::
 
             passwords = {{
-                'derrick': "hush puppie",
-                'derrick debbie': "lounge lizard",
+                'default': """l8i6-v?>GCTQK"oz3yzZg5Ne=&,.!*Q$2ddEaZbESwnl<4*BRi1D887XQ!W4/&}}e""",
+                'shared with peter': "hush puppie",
+                'shared with debbie': "lounge lizard",
             }}
+
+        As shown, your account comes preloaded with a very long and very random 
+        default password.
 
         Generally you will never have to type these passwords again, so there is 
         little reason not to make them long and very random. There are no limits 
@@ -556,15 +566,17 @@ configManpage = {
         you can go wild. For example, using your default master password you 
         could use **pw** to generate new master passwords::
 
-            $ pw -T =extreme derrick
+            $ pw -T =extreme 'shared with peter'
             PASSWORD: [Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|
 
-        You can then use that string as the master password. Notice that this 
+        You can then use that string as a master password. Notice that this 
         string contains quote characters, meaning that you will have to embed it 
         in triple quotes to avoid trouble::
 
             passwords = {{
-                'derrick': """[Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|""",
+                'default': """l8i6-v?>GCTQK"oz3yzZg5Ne=&,.!*Q$2ddEaZbESwnl<4*BRi1D887XQ!W4/&}}e""",
+                'shared with peter': """[Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|""",
+                'shared with debbie': "lounge lizard",
             }}
 
         Of course it is not necessary to go to these extremes. Your password 
@@ -573,17 +585,18 @@ configManpage = {
         phone.  In this case, using the =master template to generate a simple 
         but long pass phase is much preferred::
 
-            $ pw -T =master "derrick debbie"
+            $ pw -T =master "shared with debbie"
             PASSWORD: impulse nostril double irony conflate rookie posting blind
 
         Then your passwords entry becomes::
 
             passwords = {{
-                'derrick': """[Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|""",
-                'derrick debbie': """impulse nostril double irony conflate rookie posting blind""",
+                'default': """l8i6-v?>GCTQK"oz3yzZg5Ne=&,.!*Q$2ddEaZbESwnl<4*BRi1D887XQ!W4/&}}e""",
+                'shared with peter': """[Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|""",
+                'shared with debbie': """impulse nostril double irony conflate rookie posting blind""",
             }}
 
-        This approach of using the default password to generate your master 
+        This approach of using the default password to generate new master 
         passwords, each of which has a very predictable name, can make it 
         possible for you to reconstruct your master password file if you happen 
         to lose it. To do so, you will need to keep a copy of the default 
@@ -591,36 +604,47 @@ configManpage = {
         deposit box, for example). Of course, you really should save both 
         the master password and accounts file in a safe place because they 
         contain additional information that is used to generate your passwords 
-        (account names, versions, security quesitons, etc.). You should be aware 
+        (account names, versions, security questions, etc.). You should be aware 
         that these tend to change with time and so your saved files can quickly 
-        go out of date.  However, if your follow a practice of using very  
+        go out of date.  However, if your follow a practice of using very 
         systematic naming strategies for master passwords, accounts, versions, 
         and the like, you can dramatically increase the chances of being able to 
         retrieve your passwords from an old master password and accounts file.
 
         You are free to name your master passwords in any manner that pleases 
-        you. One reasonable approach is to name them after the people that will 
-        use them. Thus in the example above, Derrick has one key he uses for his 
-        own accounts and another for accounts he shares with Debbie. When it 
-        comes time to outdate a master password, simply add '(deprecated 
-        <date>)' to the end of the master password name, where <date> is 
-        replaced with the date that the password was deprecated. When doing so,
-        be sure to also change the name used in the *accounts* file so that the
-        existing passwords do not change.
+        you. One reasonable approach is to name them after the people that use 
+        them. Thus in the example above, Derrick has one key he uses his default 
+        key for for his own accounts and two others for accounts he shares with 
+        Debbie and Peter. When it comes time to abandon a master password, 
+        simply add '(deprecated <date>)' to the end of the master password name, 
+        where <date> is replaced with the date that the password was deprecated.  
+        When doing so, be sure to also change the name used in the *accounts* 
+        file so that the existing passwords do not change. That way you do not 
+        have to update all of your passwords at once. Rather, you update the 
+        high value ones immediately and migrate the others as you get time.
 
         Using this approach your master password file might look like this::
 
             passwords = {{
-                'derrick': """[Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|""",
-                'derrick (deprecated 120301)': """2HG}},t`ci/+Vydj)z_Q*Go,a-f- qrc3YVChK`}}6QV5S_B*@>GwC0*5Bv9>kaTiL""",
-                'derrick debbie': """impulse nostril double irony conflate rookie posting blind""",
+                'default': """l8i6-v?>GCTQK"oz3yzZg5Ne=&,.!*Q$2ddEaZbESwnl<4*BRi1D887XQ!W4/&}}e""",
+                'shared with peter (deprecated 120301)': """[Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|""",
+                'shared with peter': """h#KLT@f0IN(srTs$CBqRvMowBfiCT26q\yox(]w!PSlj_|ZMuDZ|{{P0Jo4:aa4M"""
+                'shared with debbie': """impulse nostril double irony conflate rookie posting blind""",
             }}
+
+        Generally one uses the default password for the personal passwords, and
+        only creates new shared master passwords. In this case, one member of
+        the group uses their master password to generate a the shared password
+        for the group. And of course, you should strive to keep your master 
+        passwords completely secure. Never disclose a master password to anyone 
+        else unless you plan to share that particular master password with them 
+        to generate shared passwords.
 
         default_password
         ~~~~~~~~~~~~~~~~
         The ID of the default master password::
 
-            default_password = "derrick"
+            default_password = "default"
 
         This password will be used when an account does not explicitly specify 
         a master password. It is recommended you set the default master password 
@@ -729,7 +753,45 @@ configManpage = {
         the secrets for the account. For this reason you should choose IDs that
         are unambiguous and unlikely to change. The resulting IDs may be long
         and hard to type. You can use the *aliases* entry to specify shorter
-        names that can be used as an alternative to the primary account ID.
+        names that can be used as an alternative to the primary account ID. For
+        example, when creating your gmail account, it is a good idea to add your
+        username to the account ID, because in the future you might create
+        additional gmail accounts. So, *gmail-username* would be a good account
+        name. Then you should add a short name like *gmail* as an alias to the
+        one you use the most. If at some point you migrate to a new gmail
+        account for your day-to-day use, you can move the *gmail* alias to this
+        new account without changing the generated password.
+
+        additional_accounts
+        ~~~~~~~~~~~~~~~~~~~
+
+        A list of additional account files. This is helpful in cases where you 
+        want to have a separate file for accounts shared with someone else. In 
+        this way you can share the details of the shared accounts file without 
+        exposing your personal accounts. The additional account files may also 
+        be encrypted.  If they are truely shared, then you will want to encrypt 
+        them using multiple recipients.
+
+        An additional accounts file is also a Python file, and the only thing
+        that is used by *pw* in this file is a dictionary named *accounts*. It
+        is generally a good idea to start from a copy of the original accounts
+        file and simply delete unnecessary definitions (*log_file*,
+        *archive_file* and *gpg_id*) and the non-shared accounts. In this way,
+        you still can use the character sets that are defined at the top of the
+        file.
+
+        You can specify a single account using a string, and multiple accounts 
+        either in a string separated by white space or as a list.  Here is how 
+        to specify a single additional account::
+
+            additional_accounts = "business_accounts"
+
+        Here is one way you can specify multiple additional accounts::
+
+            additional_accounts = ["business_accounts", "charity_accounts"]
+
+        Accounts Fields
+        +++++++++++++++
 
         Each dictionary in *accounts* may contain a number of fields that are 
         described next. When first created the accounts dictionary comes with 
@@ -854,7 +916,7 @@ configManpage = {
         master
         ~~~~~~
         A string containing the ID of the master password for this account.
-        It is highly recommended that each account explicitly declare its master 
+        It is recommended that each account explicitly declare its master 
         password (perhaps through a template). That way existing passwords do 
         not change if you were to change your default master password.
 
@@ -912,8 +974,8 @@ configManpage = {
             dict_hash = "d9aa1c08e08d6cacdf82819eeb5832429eadb95a"
             secrets_hash = "db7ce3fc4a9392187d0a8df7c80b0cdfd7b1bc22"
             passwords = {{
-                'derrick': "e9a7a4246a6a95f179cd4579e6f9cb69",
-                'derrick debbie': "60b56e021118ca2a261f405e15ac0165",
+                'shared with peter': "e9a7a4246a6a95f179cd4579e6f9cb69",
+                'shared with debbie': "60b56e021118ca2a261f405e15ac0165",
                 'default': """[Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|""",
             }}
             default_password = 'default'
@@ -1007,8 +1069,8 @@ configManpage = {
                 }},
                 "consumer-reports": {{
                     'template': "=chars",
-                    'master': 'derrick debbie',
-                    'username': "derrickAndDebbie",
+                    'master': 'shared with debbie',
+                    'username': "DandD",
                     'url': "https://ec.consumerreports.org/ec/myaccount/login.htm",
                     'window': 'My account login*',
                 }},

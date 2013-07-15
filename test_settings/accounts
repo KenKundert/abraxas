@@ -85,9 +85,6 @@ accounts = {
 	'password-type': 'words',
 	'num-words': 4,
     },
-    "colgate": {
-        'aliases': ['Colgate', 'Cg'],
-    },
     "sensodyne": {
         'remarks': "Another smiler.",
         'master': "current",
@@ -97,8 +94,5 @@ accounts = {
 	'prefix': 'pre:',
 	'suffix': ':suf',
     },
-    "toms": {
-        'master': "current",
-	'template': '=extreme',
-    }
 }
+additional_accounts = ["more_accounts", "yet_more_accounts"]

@@ -46,6 +46,7 @@ MASTER_PASSWORD_FILE_INITIAL_CONTENTS = dedent('''\
     dict_hash = "%s" # DO NOT CHANGE THIS LINE
     secrets_hash = "%s" # DO NOT CHANGE THIS LINE
 
+    accounts_file = "%s"
     passwords = {
         'default': """<%s>""", # DO NOT CHANGE THIS LINE
     }
@@ -141,32 +142,33 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
 
         # Accounts
         # Place your accounts here.
-    #   "<account-id>": {
-    #       'username': "<username>",
-    #       'account': "<account-number>",
-    #       'email': "<email>",
-    #       'url': "<url>",
-    #       'security questions': [
-    #           "<question 0>",
-    #           "<question 1>",
-    #           ...
-    #       ],
-    #       'remarks': """<remarks>""",
-    #       'version': "<version>",
-    #       'window': [],       # a glob string or list of glob strings that
-    #                           # are used to match window titles to this
-    #                           # account
-    #       'autotype': "{username}{tab}{password}{return}",
-    #       'template': "<an account id>",
-    #       'master': "<a master password id>",
-    #       'password-type': 'words',    # choose between "words" and "chars"
-    #       'num-chars': <int>, # used for pass phrases and security questions
-    #       'num-words': <int>, # used for passwords
-    #       'alphabet': alphanumeric # construct from character sets
-    #       'prefix': '',
-    #       'suffix': '',
-    #   },
-    }
+        #   "<account-id>": {
+        #       'username': "<username>",
+        #       'account': "<account-number>",
+        #       'email': "<email>",
+        #       'url': "<url>",
+        #       'security questions': [
+        #           "<question 0>",
+        #           "<question 1>",
+        #           ...
+        #       ],
+        #       'remarks': """<remarks>""",
+        #       'version': "<version>",
+        #       'window': [],       # a glob string or list of glob strings that
+        #                           # are used to match window titles to this
+        #                           # account
+        #       'autotype': "{username}{tab}{password}{return}",
+        #       'template': "<an account id>",
+        #       'master': "<a master password id>",
+        #       'password-type': 'words',    # choose between "words" and "chars"
+        #       'num-chars': <int>, # used for pass phrases and security questions
+        #       'num-words': <int>, # used for passwords
+        #       'alphabet': alphanumeric # construct from character sets
+        #       'prefix': '',
+        #       'suffix': '',
+        #   },
+        }
+    additional_accounts = []
 ''')
 
 
@@ -372,7 +374,7 @@ class Logging:
 # Dictionary class {{{1
 # The dictionary is a large list of words used to create pass phrases. It is
 # contained in a file either in the settings or install directory.
-class Dictionary():
+class Dictionary:
     def __init__(self, filename, settings_dir, logger):
         path = self._find_dictionary(filename, settings_dir)
         self.path = path
@@ -405,7 +407,7 @@ class Dictionary():
 
     def validate(self, saved_hash):
         if saved_hash != self.hash:
-            display("Warning: '%s' has changed." % self.path, self.logger)
+            display("warning: '%s' has changed." % self.path, self.logger)
             display("    " + "\n    ".join(wrap(' '.join([
                 "This results in pass phrases that are inconsistent",
                 "with those created in the past."]))), self.logger)
@@ -416,7 +418,7 @@ class Dictionary():
 
 # Master password class {{{1
 # Responsible for reading and managing the data from the master password file.
-class MasterPassword():
+class MasterPassword:
     # Constructor {{{2
     def __init__(self, path, dictionary, gpg, logger):
         self.path = path
@@ -474,7 +476,7 @@ class MasterPassword():
                 error('%s: %s.' % (err.filename, err.strerror), self.logger)
         hash = hashlib.sha1(contents.encode('utf-8')).hexdigest()
         if hash != self._get_field('secrets_hash'):
-            display("Warning: '%s' has changed." % secrets_path, self.logger)
+            display("warning: '%s' has changed." % secrets_path, self.logger)
             display("    " + "\n    ".join(wrap(' '.join([
                 "This results in pass phrases that are inconsistent",
                 "with those created in the past."]))), self.logger)
@@ -511,7 +513,7 @@ class MasterPassword():
             try:
                 self.master_password = getpass.getpass()
                 if not self.master_password:
-                    display("Warning: Master password is empty.", self.logger)
+                    display("warning: Master password is empty.", self.logger)
             except KeyboardInterrupt:
                 sys.exit()
 
@@ -557,7 +559,7 @@ class MasterPassword():
 
 # Accounts class {{{1
 # Responsible for reading and managing the data from the accounts file.
-class Accounts():
+class Accounts:
     # Constructor {{{2
     def __init__(self, path, logger, gpg, template=None):
         self.path = path
@@ -572,7 +574,7 @@ class Accounts():
         self.logger = logger
         self.gpg = gpg
         self.data = None
-        self.accounts = self._read_accounts_file(path)
+        self.accounts = self._read_accounts_file()
         if template:
             self.template = self.accounts.get(template, {})
             if not self.template:
@@ -669,7 +671,7 @@ class Accounts():
                 yield (ID, data[field])
 
     # Read accounts file {{{2
-    def _read_accounts_file(self, path):
+    def _read_accounts_file(self):
         accounts_data = {}
         try:
             if get_extension(self.path) in ['gpg', 'asc']:
@@ -686,8 +688,42 @@ class Accounts():
             else:
                 # Accounts file is not encrypted
                 with open(self.path) as f:
-                    code = compile(f.read(), path, 'exec')
+                    code = compile(f.read(), self.path, 'exec')
                     exec(code, accounts_data)
+            additional_accounts = accounts_data.get('additional_accounts', [])
+            if type(additional_accounts) == str:
+                additional_accounts = additional_accounts.split()
+            more_accounts = {}
+            for each in additional_accounts:
+                path = make_path(get_head(self.path), each)
+                if get_extension(path) in ['gpg', 'asc']:
+                    # Accounts file is GPG encrypted, decrypt it
+                    with open(path, 'rb') as f:
+                        decrypted = self.gpg.decrypt_file(f)
+                        if not decrypted.ok:
+                            error("%s\n%s" % (
+                                "%s: unable to decrypt." % (path),
+                                decrypted.stderr
+                            ), self.logger)
+                        code = compile(decrypted.data, path, 'exec')
+                        exec(code, more_accounts)
+                else:
+                    # Accounts file is not encrypted
+                    with open(path) as f:
+                        code = compile(f.read(), path, 'exec')
+                        exec(code, more_accounts)
+                existing_accounts = set(accounts_data['accounts'].keys())
+                new_accounts = set(more_accounts['accounts'].keys())
+                keys_in_common = sorted(
+                    existing_accounts.intersection(new_accounts))
+                if len(keys_in_common) > 2:
+                    display("%s: overrides existing accounts:\n    %s" % (
+                        path, ',\n    '.join(sorted(keys_in_common))),
+                        self.logger)
+                elif keys_in_common:
+                    display("%s: overrides existing account: %s" % (
+                        path, keys_in_common[0]), self.logger)
+                accounts_data['accounts'].update(more_accounts['accounts'])
         except IOError as err:
             error('%s: %s.' % (err.filename, err.strerror), self.logger)
         except SyntaxError as err:
@@ -698,7 +734,7 @@ class Accounts():
             return accounts_data['accounts']
         except KeyError:
             error(
-                "%s: defective accounts file, 'accounts' not found." % path,
+                "%s: defective accounts file, 'accounts' not found." % self.path,
                 self.logger)
 
     # Get log file {{{2
@@ -731,7 +767,7 @@ class Accounts():
 
     # Account class {{{2
     # Responsible for holding all of the information for a particular account
-    class Account():
+    class Account:
         def __init__(self, ID, data):
             self.ID = ID
             self.data = data
@@ -844,7 +880,7 @@ class Accounts():
         except KeyError:
             account = self.template
             display(
-                "Warning: account '%s' not found." % account_id,
+                "warning: account '%s' not found." % account_id,
                 self.logger)
 
         # Get information from template
@@ -900,7 +936,7 @@ class Accounts():
 
 # PasswordWriter class {{{1
 # Used to get account information to the user.
-class PasswordWriter():
+class PasswordWriter:
     # PasswordWriter is responsible for sending output to the user. It has
     # three backends, one that writes to standard out, one that writes to the
     # clipboard, and one that autotypes. To accommodate the three backends the
@@ -1241,6 +1277,7 @@ class Password:
         if not logger:
             logger = Logging()
         self.logger = logger
+        self.accounts_path = make_path(self.settings_dir, ACCOUNTS_FILENAME)
 
         # Get the dictionary
         self.dictionary = Dictionary(
@@ -1252,12 +1289,15 @@ class Password:
         # Process master password file
         self.master_password_path = make_path(
             self.settings_dir, MASTER_PASSWORD_FILENAME)
-        self.accounts_path = make_path(
-            self.settings_dir, ACCOUNTS_FILENAME)
         if init:
             self._create_initial_settings_files(gpg_id=init)
         self.master_password = MasterPassword(
             self.master_password_path, self.dictionary, self.gpg, self.logger)
+        try:
+            accounts_path = self.master_password.data['accounts']
+            self.accounts_path = make_path(self.settings_dir, accounts_path)
+        except KeyError:
+            pass
 
     # Create initial settings files {{{2
     # Will create initial versions of the master password file and the accounts
@@ -1320,7 +1360,8 @@ class Password:
         create_file(
             self.master_password_path,
             MASTER_PASSWORD_FILE_INITIAL_CONTENTS % (
-                self.dictionary.hash, SECRETS_SHA1, default_password),
+                self.dictionary.hash, SECRETS_SHA1, ACCOUNTS_FILENAME,
+                default_password),
             encrypt=True)
         create_file(
             self.accounts_path,
