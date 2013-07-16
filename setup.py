@@ -11,7 +11,7 @@ setup(
   , author_email='kaleAndKen@theKunderts.net'
   , download_url='git@github.com:KenKundert/password.git'
   , scripts=['pw']
-  , py_modules=['pw', 'cursor', 'secrets', 'dialog', 'fileutils']
+  , py_modules=['pw', 'cursor', 'secrets', 'dialog', 'charsets', 'fileutils']
   , data_files=[
         ('', ['words']),
         ('man/man1', ['pw.1']),

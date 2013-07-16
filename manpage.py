@@ -7,8 +7,8 @@ from textwrap import dedent
 import re
 from pw import SEARCH_FIELDS
 
-date = "2013-07-15"
-version = "1.2"
+date = "2013-07-16"
+version = "1.3"
 
 # Program Manpage {{{1
 programManpage = {
@@ -538,6 +538,20 @@ configManpage = {
         *secrets_hash* to the original file, and then moving it back to its 
         original location of *~/.config/pw/master.gpg*.
 
+        charsets_hash
+        ~~~~~~~~~~~~
+        This is a hash of the file that contains the alphabets and the exclude 
+        function that you can use when creating alphabets for your 
+        character-based passwords.  It is used to warn you that the character 
+        sets code has changed, presumably when the program itself was updated.  
+        If this occurs you should verify that the passwords it generates are the 
+        same.  If not, you should not use the updated version of the program. If 
+        they are the same, you should update the *charsets_hash*. Do this by 
+        moving the existing *master.gpg* file out of the way, generating a new 
+        one with *pw --init*, copying the new *charsets_hash* to the original 
+        file, and then moving it back to its original location of 
+        *~/.config/pw/master.gpg*.
+
         accounts
         ~~~~~~~~
         This is the name of the accounts file. The name may be given with or 
@@ -684,7 +698,23 @@ configManpage = {
         preexisting ones.  You can add characters simply summing them.
 
         The accounts file is a Python file that contain variables that are used
-        by the password program.
+        by the password program. When created it will lead off with some useful 
+        imports. The *dedent* function is used to strip off leading whitespace 
+        from multiline remarks. A collection of character sets are provided::
+
+            lowercase = "abcdefghijklmnopqrstuvwxyz"
+            uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            letters = lowercase + uppercase
+            digits = "0123456789"
+            alphanumeric = letters + digits
+            hexdigits = "0123456789abcdef"
+            punctuation = """!"#$%&'()*+,-./:;<=>?@[\]^_`{{|}}~"""
+            whitespace = " \t"
+            printable = alphanumeric + punctuation + whitespace
+            distinguishable = exclude(alphanumeric, 'Il1O0\\t')
+
+        Finally, the *exclude* function is used to remove characters from 
+        a character set.
 
         log_file
         ~~~~~~~~

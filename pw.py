@@ -40,15 +40,17 @@ SEARCH_FIELDS = ['username', 'account', 'email', 'url', 'remarks']
 XDOTOOL = '/usr/bin/xdotool'
 XSEL = '/usr/bin/xsel'
 SECRETS_SHA1 = "db7ce3fc4a9392187d0a8df7c80b0cdfd7b1bc22"
+CHARSETS_SHA1 = "51ee8f58814c1b763121f983a532f5ed75cd8736"
 
 # Initial master password file {{{2
 MASTER_PASSWORD_FILE_INITIAL_CONTENTS = dedent('''\
-    dict_hash = "%s" # DO NOT CHANGE THIS LINE
-    secrets_hash = "%s" # DO NOT CHANGE THIS LINE
+    dict_hash = "%s"      # DO NOT CHANGE THIS LINE
+    secrets_hash = "%s"   # DO NOT CHANGE THIS LINE
+    charsets_hash = "%s"  # DO NOT CHANGE THIS LINE
 
     accounts_file = "%s"
     passwords = {
-        'default': """<%s>""", # DO NOT CHANGE THIS LINE
+        'default': """<%s>""",  # DO NOT CHANGE THIS LINE
     }
     default_password = 'default'
     password_overrides = {
@@ -62,35 +64,20 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
     #
     # Add information about each of your accounts to the accounts dictionary.
     #
-    # You can use the character sets and exclude function to create alphabets
-    # for you character-base passwords. You can use the dedent function to
-    # strip leading whitespace from multi-line remarks.
-
-    from textwrap import dedent
-
-    # Exclude function
-    # Use this to strip characters from a character set.
-    def exclude(chars, exclusions):
-        return chars.translate(str.maketrans('', '', exclusions))
-
-    # Character sets
-    # Use these to construct alphabets by summing together the ones you want.
-    lowercase = "abcdefghijklmnopqrstuvwxyz"
-    uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    letters = lowercase + uppercase
-    digits = "0123456789"
-    alphanumeric = letters + digits
-    hexdigits = "0123456789abcdef"
-    punctuation = """!"#$%%&'()*+,-./:;<=>?@[\\]^_`{|}~"""
-    whitespace = " \\t"
-    printable = alphanumeric + punctuation + whitespace
-    distinguishable = exclude(alphanumeric, 'Il1O0\\t')
-
+    # You can use the dedent function to strip leading whitespace from
+    # multi-line remarks.  You can use the character sets and exclude function
+    # to create alphabets for you character-base passwords.
+    #
     # Example:
     # To create an alphabet with all characters except tabs use either:
     #     'alphabet': exclude(printable, '\\t')
     # or:
     #     'alphabet': alphanumeric + punctuation + ' '
+
+    from textwrap import dedent
+    from charsets import (
+        exclude, lowercase, uppercase, letters, digits, alphanumeric,
+        hexdigits, punctuation, whitespace, printable, distinguishable)
 
     # The desired location of the log file (use an absolute path)
     log_file = '%s'
@@ -462,24 +449,25 @@ class MasterPassword:
         # Check that dictionary has not changed
         self.dictionary.validate(self._get_field('dict_hash'))
 
-        # Check that secrets.py has not changed
-        secrets_path = make_path(get_head(__file__), 'secrets.py')
-        try:
-            with open(secrets_path) as f:
-                contents = f.read()
-        except IOError as err:
-            secrets_path = make_path(get_head(__file__), '../../secrets.py')
+        # Check that secrets.py and charset.py have not changed
+        for each in ['secrets', 'charsets']:
+            path = make_path(get_head(__file__), each + '.py')
             try:
-                with open(secrets_path) as f:
+                with open(path) as f:
                     contents = f.read()
             except IOError as err:
-                error('%s: %s.' % (err.filename, err.strerror), self.logger)
-        hash = hashlib.sha1(contents.encode('utf-8')).hexdigest()
-        if hash != self._get_field('secrets_hash'):
-            display("warning: '%s' has changed." % secrets_path, self.logger)
-            display("    " + "\n    ".join(wrap(' '.join([
-                "This results in pass phrases that are inconsistent",
-                "with those created in the past."]))), self.logger)
+                path = make_path(get_head(__file__), '../..', each + '.py')
+                try:
+                    with open(path) as f:
+                        contents = f.read()
+                except IOError as err:
+                    error('%s: %s.' % (err.filename, err.strerror), self.logger)
+            hash = hashlib.sha1(contents.encode('utf-8')).hexdigest()
+            if hash != self._get_field('%s_hash' % each):
+                display("warning: '%s' has changed." % path, self.logger)
+                display("    " + "\n    ".join(wrap(' '.join([
+                    "This results in passwords that are inconsistent",
+                    "with those created in the past."]))), self.logger)
 
     # Get field {{{2
     def _get_field(self, key):
@@ -1360,8 +1348,8 @@ class Password:
         create_file(
             self.master_password_path,
             MASTER_PASSWORD_FILE_INITIAL_CONTENTS % (
-                self.dictionary.hash, SECRETS_SHA1, ACCOUNTS_FILENAME,
-                default_password),
+                self.dictionary.hash, SECRETS_SHA1, CHARSETS_SHA1,
+                ACCOUNTS_FILENAME, default_password),
             encrypt=True)
         create_file(
             self.accounts_path,
