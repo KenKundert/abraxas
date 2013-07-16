@@ -56,7 +56,7 @@ programManpage = {
         will get the same password. As such, the passwords do not have to be 
         saved; instead they are regenerated on the fly.
 
-        This password generator provides two significant advantages over 
+        This password generator provides three important advantages over 
         conventional password managers.  First, it allows groups of people to 
         share access to accounts without having to securely share each password.  
         Instead, one member of the group creates a master password that is 
@@ -68,7 +68,14 @@ programManpage = {
         the name of the account but do not store any information about even the 
         existence of the account on your computer.  With **pw**, you only need 
         to remember the name of the account and it will regenerate the password 
-        for you.
+        for you. Finally, by securely storing a small amount of information, 
+        perhaps on a piece of paper in your safe-deposit box, you can often 
+        recover most if not all of your passwords even if you somehow lose your 
+        accounts file. You can even recover passwords that were created after 
+        you created your backup. This is because *pw* combines the master 
+        password with some easily reconstructed information, such as the account 
+        name, to create the password. If you save the master password, the rest 
+        should be recoverable.
 
         To use it, one creates a file that contains information about each of 
         his or her non-stealth accounts.  Amongst that information would be 
@@ -828,6 +835,82 @@ configManpage = {
         some useful templates and an example account entry that is commented 
         out. Feel free to modify the templates and delete the example account.
 
+        template
+        ~~~~~~~~
+        A string containing the ID of the template for this account (explained 
+        above).
+
+        master
+        ~~~~~~
+        A string containing the ID of the master password for this account.
+        It is recommended that each account explicitly declare its master 
+        password (perhaps through a template). That way existing passwords do 
+        not change if you were to change your default master password.
+
+        version
+        ~~~~~~~
+        The version is a string and its contents are arbitrary, however when its 
+        contents change so to does the generated password. So it can be as 
+        simple as a number or it could be a date or whatever you like. But it is 
+        good if you pick a convention and stick with it so that if you somehow 
+        lose your accounts file you still have some hope of recovering your 
+        passwords.
+
+        Some websites put odd restrictions on the generated passwords, such as 
+        it must contain a digit and a symbol or it imposes a limit on the 
+        maximum number of repeated characters. Some of these restrictions can be 
+        satisfied by adding a prefix or a suffix, but for others, like the 
+        repeated character limit, there is no built in support in *pw* to always 
+        satisfy them. In this case you can simply bump the version until you get 
+        a password that meets their requirements.
+
+        type
+        ~~~~
+        The type of password to generate. Should be either 'words' (default) to 
+        generate pass phrases or 'chars' to generate passwords.
+
+        num-words
+        ~~~~~~~~~
+        The number of words to use in the pass phrase (when 'type' is 'words').
+
+        num-chars
+        ~~~~~~~~~
+        The number of characters to use in the passwords (when 'type' is 
+        'chars').
+
+        alphabet
+        ~~~~~~~~
+        A string containing the characters to use when creating a password (when 
+        'type' is 'chars'). The default alphabet consists of the standard upper 
+        and lower case letters along with the digits.
+
+        prefix
+        ~~~~~~
+        A string whose contents are added to the beginning of a password (when 
+        'type' is 'chars').
+
+        suffix
+        ~~~~~~
+        A string whose contents are added to the end of a password (when 'type' 
+        is 'chars').
+
+        aliases
+        ~~~~~~~
+        List of names that can be used as aliases for this account.  This 
+        feature is often used to specify a shorter and easier to type name for 
+        the account. 
+
+        The secrets are generated based on the primary account name (the key for
+        dictionary that describes the account). As such, that name should be
+        chosen so that it is unambiguous and you will never be tempted to change
+        it.  That often results in a name that is too long to type easily.  This
+        entry allows you to specify one or more names that can be used as
+        aliases for the primary account name.  For example, you might want to
+        choose a name like "gmail-derrickAsh" as the primary name of your gmail
+        account and "gmail" as an alias. This would allow you to later create
+        another gmail account and make it your primary gmail account simply by
+        moving the "gmail" alias the new account.
+
         username
         ~~~~~~~~
         A string containing the username for the account.
@@ -846,7 +929,14 @@ configManpage = {
 
         remarks
         ~~~~~~~
-        A string containing any relevant remarks about the account.
+        A string containing any relevant remarks about the account. You can 
+        create a multiline remark as follows::
+
+            'remarks': dedent("""
+                Wireless network settings:
+                    SSID: ourhouse
+                    Network security: WPA2 Personal
+            """)
 
         security questions
         ~~~~~~~~~~~~~~~~~~
@@ -920,65 +1010,6 @@ configManpage = {
 
         The default autotype script is 
         "{{username}}{{tab}}{{password}}{{return}}"
-
-        aliases
-        ~~~~~~~
-        List of names that can be used as aliases for this account.  This 
-        feature is often used to specify a shorter and easier to type name for 
-        the account. 
-
-        The secrets are generated based on the primary account name (the key for
-        dictionary that describes the account). As such, that name should be
-        chosen so that it is unambiguous and you will never be tempted to change
-        it.  That often results in a name that is too long to type easily.  This
-        entry allows you to specify one or more names that can be used as
-        aliases for the primary account name.  For example, you might want to
-        choose a name like "gmail-derrickAsh" as the primary name of your gmail
-        account and "gmail" as an alias. This would allow you to later create
-        another gmail account and make it your primary gmail account simply by
-        moving the "gmail" alias the new account.
-
-        template
-        ~~~~~~~~
-        A string containing the ID of the template for this account (explained 
-        above).
-
-        master
-        ~~~~~~
-        A string containing the ID of the master password for this account.
-        It is recommended that each account explicitly declare its master 
-        password (perhaps through a template). That way existing passwords do 
-        not change if you were to change your default master password.
-
-        type
-        ~~~~
-        The type of password to generate. Should be either 'words' (default) to 
-        generate pass phrases or 'chars' to generate passwords.
-
-        num-words
-        ~~~~~~~~~
-        The number of words to use in the pass phrase (when 'type' is 'words').
-
-        num-chars
-        ~~~~~~~~~
-        The number of characters to use in the passwords (when 'type' is 
-        'chars').
-
-        alphabet
-        ~~~~~~~~
-        A string containing the characters to use when creating a password (when 
-        'type' is 'chars'). The default alphabet consists of the standard upper 
-        and lower case letters along with the digits.
-
-        prefix
-        ~~~~~~
-        A string whose contents are added to the beginning of a password (when 
-        'type' is 'chars').
-
-        suffix
-        ~~~~~~
-        A string whose contents are added to the end of a password (when 'type' 
-        is 'chars').
 
         Words File
         ++++++++++
