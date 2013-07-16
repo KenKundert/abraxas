@@ -1407,7 +1407,7 @@ class Password:
         try:
             import yaml
         except ImportError:
-            error('archive feature requires yaml, which is not available.')
+            error('archive feature requires yaml, which is not available.', self.logger)
 
         gpg = gnupg.GPG()
         filename = expand_path(self.accounts.get_archive_file())
@@ -1498,7 +1498,7 @@ class Password:
         try:
             import yaml
         except ImportError:
-            error('archive feature requires yaml, which is not available.')
+            error('archive feature requires yaml, which is not available.', self.logger)
 
         gpg = gnupg.GPG()
         # Loop through accounts saving passwords and questions
