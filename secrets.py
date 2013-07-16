@@ -6,6 +6,7 @@ import string
 # Globals {{{1
 default_passphrase_length = 4
 default_password_length = 12
+default_separator = ' '
 default_alphabet = string.ascii_letters + string.digits
 
 # Utilities {{{1
@@ -48,6 +49,7 @@ class Passphrase():
         key += master_password
         digest = hashlib.sha512((key).encode('utf-8')).hexdigest()
         length = account.get_num_words(default_passphrase_length)
+        separator = account.get_separator(default_separator)
         words = dictionary.get_words()
 
         # Generate pass phrase
@@ -60,7 +62,7 @@ class Passphrase():
             # word from the dictionary.
             index = int(chunk, 16) % len(words)
             phrase += [words[index]]
-        return ' '.join(phrase)
+        return separator.join(phrase)
 
 # Password class {{{1
 # Generates a password from an alphabet.

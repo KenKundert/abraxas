@@ -871,28 +871,34 @@ configManpage = {
 
         num-words
         ~~~~~~~~~
-        The number of words to use in the pass phrase (when 'type' is 'words').
+        The number of words to use in the pass phrase when 'type' is 'words' 
+        (default is 4).
+
+        separator
+        ~~~~~~~~~
+        A string that is used as the inter-word separator when 'type' is 
+        'words'. If not given, a space is used.
 
         num-chars
         ~~~~~~~~~
-        The number of characters to use in the passwords (when 'type' is 
-        'chars').
+        The number of characters to use in the passwords when 'type' is 'chars' 
+        (default is 12).
 
         alphabet
         ~~~~~~~~
-        A string containing the characters to use when creating a password (when 
-        'type' is 'chars'). The default alphabet consists of the standard upper 
+        A string containing the characters to use when creating a password when 
+        'type' is 'chars'. The default alphabet consists of the standard upper 
         and lower case letters along with the digits.
 
         prefix
         ~~~~~~
-        A string whose contents are added to the beginning of a password (when 
-        'type' is 'chars').
+        A string whose contents are added to the beginning of a password when 
+        'type' is 'chars'.
 
         suffix
         ~~~~~~
-        A string whose contents are added to the end of a password (when 'type' 
-        is 'chars').
+        A string whose contents are added to the end of a password when 'type' 
+        is 'chars'.
 
         aliases
         ~~~~~~~

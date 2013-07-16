@@ -39,7 +39,7 @@ SEARCH_FIELDS = ['username', 'account', 'email', 'url', 'remarks']
 # Makes it harder for someone to replace them so as to expose the secrets.
 XDOTOOL = '/usr/bin/xdotool'
 XSEL = '/usr/bin/xsel'
-SECRETS_SHA1 = "db7ce3fc4a9392187d0a8df7c80b0cdfd7b1bc22"
+SECRETS_SHA1 = "5d0182e4b939352b352027201008e8af473ee612"
 CHARSETS_SHA1 = "51ee8f58814c1b763121f983a532f5ed75cd8736"
 
 # Initial master password file {{{2
@@ -148,11 +148,14 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
         #       'template': "<an account id>",
         #       'master': "<a master password id>",
         #       'password-type': 'words',    # choose between "words" and "chars"
-        #       'num-chars': <int>, # used for pass phrases and security questions
-        #       'num-words': <int>, # used for passwords
-        #       'alphabet': alphanumeric # construct from character sets
-        #       'prefix': '',
-        #       'suffix': '',
+        #       'num-words': <int>, # number of words in passphrases
+        #       'separator': ' ',   # separates words in passphrases
+        #       'num-chars': <int>, # number of characters in passwords
+        #       'alphabet': distinguishable
+        #                           # character set used in passwords
+        #                           # construct from character sets
+        #       'prefix': '',       # added to the front of passwords
+        #       'suffix': '',       # added to the end of passwords
         #   },
         }
     additional_accounts = []
@@ -394,7 +397,7 @@ class Dictionary:
 
     def validate(self, saved_hash):
         if saved_hash != self.hash:
-            display("warning: '%s' has changed." % self.path, self.logger)
+            display("Warning: '%s' has changed." % self.path, self.logger)
             display("    " + "\n    ".join(wrap(' '.join([
                 "This results in pass phrases that are inconsistent",
                 "with those created in the past."]))), self.logger)
@@ -464,7 +467,7 @@ class MasterPassword:
                     error('%s: %s.' % (err.filename, err.strerror), self.logger)
             hash = hashlib.sha1(contents.encode('utf-8')).hexdigest()
             if hash != self._get_field('%s_hash' % each):
-                display("warning: '%s' has changed." % path, self.logger)
+                display("Warning: '%s' has changed." % path, self.logger)
                 display("    " + "\n    ".join(wrap(' '.join([
                     "This results in passwords that are inconsistent",
                     "with those created in the past."]))), self.logger)
@@ -501,7 +504,7 @@ class MasterPassword:
             try:
                 self.master_password = getpass.getpass()
                 if not self.master_password:
-                    display("warning: Master password is empty.", self.logger)
+                    display("Warning: Master password is empty.", self.logger)
             except KeyboardInterrupt:
                 sys.exit()
 
@@ -573,8 +576,8 @@ class Accounts:
         # Validate and repair each account, then process any aliases
         string_fields = [
             'account', 'alphabet', 'autotype' 'email', 'master', 'prefix',
-            'remarks', 'suffix' 'template', 'type', 'url', 'username',
-            'version',
+            'remarks', 'separator', 'suffix' 'template', 'type', 'url',
+            'username', 'version'
         ]
         integer_fields = ['num-chars', 'num-words']
         list_fields = ['security questions', 'aliases']
@@ -793,6 +796,9 @@ class Accounts:
         def get_alphabet(self, default):
             return self.data.get('alphabet', default)
 
+        def get_separator(self, default):
+            return self.data.get('separator', default)
+
         def get_prefix(self):
             return self.data.get('prefix', '')
 
@@ -868,7 +874,7 @@ class Accounts:
         except KeyError:
             account = self.template
             display(
-                "warning: account '%s' not found." % account_id,
+                "Warning: account '%s' not found." % account_id,
                 self.logger)
 
         # Get information from template
@@ -1567,18 +1573,20 @@ if __name__ == "__main__":
 
             # If requested, search the account database and exit after printing
             # results
-            if cmd_line.find:
-                display(cmd_line.find + ':', logging)
-                for acct, aliases in password.find_accounts(cmd_line.find):
+            def print_search_results(search_term, search_func):
+                to_print = []
+                for acct, aliases in search_func(search_term):
                     aliases = ' (%s)' % (', '.join(aliases)) if aliases else ''
-                    display('   %s%s' % (acct, aliases), logging)
+                    to_print += [acct + aliases]
+                display(search_term + ':', logging)
+                display('   ' + ('\n   '.join(sorted(to_print))), logging)
+
+            if cmd_line.find:
+                print_search_results(cmd_line.find, password.find_accounts)
                 terminate(logging)
 
             if cmd_line.search:
-                display(cmd_line.search + ':', logging)
-                for acct, aliases in password.search_accounts(cmd_line.search):
-                    aliases = ' (%s)' % (', '.join(aliases)) if aliases else ''
-                    display('   %s%s' % (acct, aliases), logging)
+                print_search_results(cmd_line.search, password.search_accounts)
                 terminate(logging)
 
             if cmd_line.changed:
