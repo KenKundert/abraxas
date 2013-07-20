@@ -1437,7 +1437,7 @@ class Password:
                 self.logger)
         else:
             log("    No new accounts.", self.logger)
-        if new_ids:
+        if deleted_ids:
             display(
                 "DELETED ACCOUNTS:\n    %s" % '\n    '.join(deleted_ids),
                 self.logger)
