@@ -30,6 +30,10 @@
 # Then you can use easy_install to install python-gnupg, argparse, docutils, and 
 # PyYAML as above.
 
+# run pylint to find egregious errors
+# this is optional, you can delete this line if you don't have pylint
+pylint -E --disable=no-member charsets cursor dialog fileutils manpage pw secrets
+
 # get the version number for python3
 set vers=`python3 -c 'import sys; print("3.%s" % (sys.version_info.minor))'`
 echo "Installing pw to ~/.home/bin (Python$vers)."
