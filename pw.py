@@ -1418,7 +1418,7 @@ class Password:
         gpg = gnupg.GPG()
         filename = expand_path(self.accounts.get_archive_file())
         try:
-            with open(filename) as f:
+            with open(filename, 'rb') as f:
                 encrypted_secrets = f.read()
         except IOError as err:
             error('%s: %s.' % (err.filename, err.strerror), self.logger)
