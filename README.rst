@@ -62,8 +62,36 @@ Now get easy_install::
 Then you can use easy_install to install python-gnupg, argparse, docutils, and 
 PyYAML as above.
 
-To install, edit the install file and make sure your version of python is listed
-in supportedPythonVersions. Then::
+If you do not yet have a GPG key, you can get one using::
+
+   $ gpg --gen-key
+
+You should probably choose 4096 RSA keys. Now, edit ~/.gnupg/gpg-conf and the 
+line::
+
+   use-agent
+
+That way, if you have an agent running (and most login environments such as 
+Gnome or KDE will start an agent for you; if you do not have an agent running 
+you can generally have one started for you when you login by configuring your 
+Session settings) then you can just give your GPG key pass phrase once per login 
+session.
+
+To test the program, first modify test.pw.py and change the GPG key ID at the 
+top of the file to your ID or the email address you gave when creating your GPG 
+key.  Then run::
+
+   $ ./test
+
+or::
+
+   $ ./test3
+
+if you plan to use python3 and have both python3 and python3 installed.
+
+Once you are comfortable that everything is in order, you should install the 
+program. To do so, first open the install file and make sure your version of 
+python is given in the ``set python`` line. Then run::
 
    $ ./install
 
@@ -83,21 +111,6 @@ Once installed, you should be able to get information as follows::
    $ man pw     (information on how to use pw from the command line)
    $ man 3 pw   (information on how to use the pw API)
    $ man 5 pw   (information about the configuration files)
-
-If you do not yet have a GPG key, you can get one using::
-
-   $ gpg --gen-key
-
-You should probably choose 4096 RSA keys. Now, edit ~/.gnupg/gpg-conf and the 
-line::
-
-   use-agent
-
-That way, if you have an agent running (and most login environments such as 
-Gnome or KDE will start an agent for you; if you do not have an agent running 
-you can generally have one started for you when you login by configuring your 
-Session settings) then you can just give your GPG key pass phrase once per login 
-session.
 
 To start using the password program, you need to do a one-time setup to create 
 your account directory (~/.config/pw)::

@@ -29,12 +29,14 @@
 # Then you can use easy_install to install python-gnupg, argparse, docutils, and 
 # PyYAML as above.
 
+# Set python to the version of python you wish to use (ex. python2 or python3)
+set python=python
+
 # run pylint to find egregious errors
 # this is optional, you can delete this line if you don't have pylint
 pylint -E --disable=no-member charsets cursor dialog fileutils manpage pw secrets
 
-# Set python to the version of python you wish to use (ex. python2 or python3)
-set python=python
+# Determine the version of python we are using
 set vers=`$python -c 'import sys; print("%s.%s" % (sys.version_info.major, sys.version_info.minor))'`
 echo "Installing pw to ~/.home/bin (Python$vers)."
 
