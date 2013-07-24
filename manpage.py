@@ -402,55 +402,79 @@ apiManpage = {
         archive
         +++++++
 
-        This program is used to generate a document that includes the account 
-        numbers and login information for essential accounts. The resulting 
-        output could be encrypted and sent to your Executor or it could be 
-        printed and saved in a safe place such as a safe deposit box. The idea 
-        is that this information would help whoever needed to access your 
-        accounts in case something happened to you.
+        This program is used to generate an encrypted file that includes the 
+        account numbers and login information for essential accounts. The 
+        resulting file could be sent to your Executor or it could be printed and 
+        saved in a safe place such as a safe deposit box.  The idea is that this 
+        information would help whoever needed to access your accounts in case 
+        something happened to you.
 
         Here is the *archive* script::
 
             #!/bin/env python
 
             from __future__ import print_function, division
-            from pw import Password, PasswordWriter, PasswordError
+            from pw import Password, PasswordError
+            import gnupg
+            import sys
 
+            filename = 'kids.gpg'
+            recipients = [
+                'me@myfamily.name',
+                'son@myfamily.name',
+                'daughter@myfamily.name']
             accounts = [
                 ('login', 'Login'),
                 ('disk', 'Disk encryption'),
                 ('gpg', 'GPG'),
                 ('boa', 'Bank of America'),
-                ('tdwaterhouse', 'TD Waterhouse'),
-            ]
+                ('tdwaterhouse', 'TD Waterhouse')]
 
-            pw = Password()
-            pw.read_accounts()
+            try:
+                pw = Password()
+                pw.read_accounts()
 
-            for name, description in accounts:
-                print("%s:" % (description if description else name))
-                acct = pw.get_account(name)
+                lines = []
+                for name, description in accounts:
+                    lines += ["%s:" % (description if description else name)]
+                    acct = pw.get_account(name)
 
-                # Account number
-                account = acct.get_field('account')
-                if account:
-                    if type(account) == list:
-                        print("    account numbers:")
-                        print("        %s" % ',\n        '.join(account))
-                    else:
-                        print("    account number:", account)
+                    # Account number
+                    account = acct.get_field('account')
+                    if account:
+                        if type(account) == list:
+                            lines += ["    account numbers:"]
+                            lines += ["        %s" % ',\n        '.join(account)]
+                        else:
+                            lines += ["    account number:", account]
 
-                # Username
-                username = acct.get_field('username')
-                if username:
-                    print("    username:", username)
+                    # Username
+                    username = acct.get_field('username')
+                    if username:
+                        lines += ["    username:", username]
 
-                # Password
-                password = pw.generate_password()
-                if password:
-                    print("    password:", password)
+                    # Password
+                    password = pw.generate_password()
+                    if password:
+                        lines += ["    password:", password]
 
-                print()
+                    lines += []
+
+                gpg = gnupg.GPG()
+                encrypted = gpg.encrypt('\n'.join(lines), recipients)
+                if not encrypted.ok:
+                    sys.exit("%s: unable to encrypt.\n%s" % (filename, encrypted.stderr))
+                try:
+                    with open(filename, 'w') as file:
+                        file.write(str(encrypted))
+                    print("%s: created." % filename)
+                except IOError as err:
+                    sys.exit('%s: %s.' % (err.filename, err.strerror))
+
+            except KeyboardInterrupt:
+                sys.exit('Killed by user')
+            except PasswordError, err:
+                sys.exit(str(err))
 
 
         mountall
@@ -484,8 +508,7 @@ apiManpage = {
                 'personal': True,
                 'photos': True,
                 'profession': True,
-                'reference': True,
-            }}
+                'reference': True}}
 
             def run_cmd_with_password(cmd, pw_writer):
                 try:
@@ -535,6 +558,8 @@ apiManpage = {
                 exit('Killed by user')
             except ExecuteError as err:
                 exit(err.text)
+            except PasswordError, err:
+                sys.exit(str(err))
 
         The program starts by instantiating both the *Password* and the 
         *PasswordWriter* class. The *Password* class is responsible for 

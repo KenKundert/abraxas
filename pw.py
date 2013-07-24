@@ -1567,6 +1567,9 @@ class PasswordError(Exception):
     def __init__(self, message):
         self.message = message
 
+    def __str__(self):
+        return self.message
+
 # Main {{{1
 if __name__ == "__main__":
     cmd_line = CommandLine(sys.argv)
