@@ -1,14 +1,13 @@
 #!/bin/csh -f
 # Installs pw
 #
-# Requires Python3 be installed along with several python and linux packages.  
-# Here is how to get them.  As root, run:
-#     # yum install python3
-#     # yum install python3-setuptools (for installation)
-#     # yum install python3-docutils (for manpages)
-#     # yum install python3-PyYAML (for archives)
-#     # easy_install-3.3 python-gnupg
-#     # easy_install-3.3 argparse
+# Requires 2.7 or Python3.3. Also requires the following packages
+#     # yum install python
+#     # yum install python-setuptools (for installation)
+#     # yum install python-docutils (for manpages)
+#     # yum install python-PyYAML (for archives)
+#     # easy_install python-gnupg
+#     # easy_install argparse
 #     # yum install xdotool (autotype support)
 #     # yum install xsel (clipboard support)
 #     # yum install zenity (account selection when window title is not enough)  
@@ -34,8 +33,9 @@
 # this is optional, you can delete this line if you don't have pylint
 pylint -E --disable=no-member charsets cursor dialog fileutils manpage pw secrets
 
-# get the version number for python3
-set vers=`python3 -c 'import sys; print("3.%s" % (sys.version_info.minor))'`
+# Set python to the version of python you wish to use (ex. python2 or python3)
+set python=python
+set vers=`$python -c 'import sys; print("%s.%s" % (sys.version_info.major, sys.version_info.minor))'`
 echo "Installing pw to ~/.home/bin (Python$vers)."
 
 # remove build directories from a previous install to assure a clean install

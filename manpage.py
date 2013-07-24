@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/bin/env python
 # Convert the restructured text version of the manpage to a nroff manpage file.
 
 from docutils.core import publish_string
@@ -397,15 +397,78 @@ apiManpage = {
 
         DESCRIPTION
         ===========
-        The API to **pw** will be simply demonstrated by example. Here is 
-        a program that mounts a series of directories. It uses *sudo*, which 
-        requires a password the first time it is run, and it runs *mount* for 
-        each directory, which requires a password each time it is run.
+        The API to **pw** will be simply demonstrated by example.
+
+        archive
+        +++++++
+
+        This program is used to generate a document that includes the account 
+        numbers and login information for essential accounts. The resulting 
+        output could be encrypted and sent to your Executor or it could be 
+        printed and saved in a safe place such as a safe deposit box. The idea 
+        is that this information would help whoever needed to access your 
+        accounts in case something happened to you.
+
+        Here is the *archive* script::
+
+            #!/bin/env python
+
+            from __future__ import print_function, division
+            from pw import Password, PasswordWriter, PasswordError
+
+            accounts = [
+                ('login', 'Login'),
+                ('disk', 'Disk encryption'),
+                ('gpg', 'GPG'),
+                ('boa', 'Bank of America'),
+                ('tdwaterhouse', 'TD Waterhouse'),
+            ]
+
+            pw = Password()
+            pw.read_accounts()
+
+            for name, description in accounts:
+                print("%s:" % (description if description else name))
+                acct = pw.get_account(name)
+
+                # Account number
+                account = acct.get_field('account')
+                if account:
+                    if type(account) == list:
+                        print("    account numbers:")
+                        print("        %s" % ',\n        '.join(account))
+                    else:
+                        print("    account number:", account)
+
+                # Username
+                username = acct.get_field('username')
+                if username:
+                    print("    username:", username)
+
+                # Password
+                password = pw.generate_password()
+                if password:
+                    print("    password:", password)
+
+                print()
+
+
+        mountall
+        ++++++++
+
+        Here is a program that mounts a series of directories. It differs from 
+        the above script in that is uses autotype, which it accesses through 
+        *PasswordWriter*.
+
+        Mountall uses *sudo*, which requires a password the first time it is 
+        run, and it runs *mount* for each directory, which requires a password 
+        each time it is run.
 
         Here is the *mountall* script::
 
-            #!/bin/env python3
+            #!/bin/env python
 
+            from __future__ import print_function, division
             from fileutils import expandPath, makePath, execute, pipe, ExecuteError
             from sys import exit
             from os import fork
@@ -923,7 +986,9 @@ configManpage = {
 
         account
         ~~~~~~~
-        A string containing the account number for the account.
+        Either an account identifier for the account or a list containing 
+        multiple account identifier. Account identifiers must be given as 
+        strings.
 
         email
         ~~~~~

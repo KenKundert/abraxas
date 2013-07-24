@@ -1,4 +1,8 @@
-#!/bin/env python3
+#!/bin/env python
+
+# Replace the encryption key below (3E1C0A50) with your own key
+# Can take the form of a key ID (8 hexdigits) or as your email address
+gpg_id = '3E1C0A50'
 
 # Test PW
 # Imports {{{1
@@ -8,6 +12,7 @@ from pw import Password, PasswordError
 from fileutils import remove
 from textwrap import dedent
 import sys
+import os
 
 # Initialization {{{1
 fast, printSummary, printTests, printResults, colorize, parent = cmdLineOpts()
@@ -60,7 +65,7 @@ testCases = [
 
     # Run Password with damaged master password file
     Case(stimulus="pw = Password('./generated_settings', 'ken@designers-guide.com')"),
-    Case(stimulus="create_bogus_file('./generated_settings/master.gpg')"),
+    Case(stimulus="create_bogus_file('./generated_settings/master.asc')"),
     Case(stimulus="pw = Password('./generated_settings')",
         expected=dedent("""\
             generated_settings/master.gpg: unable to decrypt.
@@ -114,6 +119,8 @@ testCases = [
     Case(stimulus="pw.print_changed_secrets()"),
 
     # Run Password with the test settings directory
+    Case(stimulus="os.system('rm -f test_settings/master.gpg')"),
+    Case(stimulus="os.system('gpg -r %s -e test_settings/master')" % gpg_id),
     Case(stimulus="pw = Password('./test_settings')"),
     Case(stimulus="pw.read_accounts()"),
     Case(

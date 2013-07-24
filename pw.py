@@ -1,7 +1,8 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Generates passwords and pass phrases based on stored account information."""
 
 # Imports {{{1
+from __future__ import print_function, division
 from fileutils import (
     makePath as make_path,
     getTail as get_tail,
@@ -14,6 +15,7 @@ from fileutils import (
     execute, pipe, ExecuteError
 )
 import secrets
+import cursor
 from textwrap import dedent, wrap
 from time import sleep
 import argparse
@@ -40,7 +42,7 @@ SEARCH_FIELDS = ['username', 'account', 'email', 'url', 'remarks']
 XDOTOOL = '/usr/bin/xdotool'
 XSEL = '/usr/bin/xsel'
 SECRETS_SHA1 = "5d0182e4b939352b352027201008e8af473ee612"
-CHARSETS_SHA1 = "51ee8f58814c1b763121f983a532f5ed75cd8736"
+CHARSETS_SHA1 = "6c9644ab97b1f53f982f70e2808f0f1e850e1fe1"
 
 # Initial master password file {{{2
 MASTER_PASSWORD_FILE_INITIAL_CONTENTS = dedent('''\
@@ -575,13 +577,13 @@ class Accounts:
 
         # Validate and repair each account, then process any aliases
         string_fields = [
-            'account', 'alphabet', 'autotype' 'email', 'master', 'prefix',
+            'alphabet', 'autotype' 'email', 'master', 'prefix',
             'remarks', 'separator', 'suffix' 'template', 'type', 'url',
             'username', 'version'
         ]
         integer_fields = ['num-chars', 'num-words']
         list_fields = ['security questions', 'aliases']
-        list_or_string_fields = ['window']
+        list_or_string_fields = ['account', 'window']
         self.aliases = {}
         for ID in self.all_accounts(skip_templates=False):
             if type(ID) != str:
@@ -945,7 +947,7 @@ class PasswordWriter:
     #        Interpolates information from the account file into the output.
     #        The argument is the item to be interpolated (username, url, etc.)
     #    write_password() --> ('password')
-    #        Outputs the password as a secret (the output does its best to keep
+    #        Outputs the password as a secret (the writer does its best to keep
     #        it secure).
     #    write_question() --> ('question', [<int>])
     #        Outputs security question <int>, or all the available security
@@ -1055,17 +1057,24 @@ class PasswordWriter:
 
     # Process output to standard output {{{3
     def _process_output_to_stdout(self):
+        label_password = len(self.script) > 1
+
+        # Attach color label to a value
+        def highlight(label, value):
+            return cursor.color(label.upper() + ': ', 'magenta') + value
+
         # Send output to stdout with the labels.
         def display_secret(label, secret):
-            import cursor
             if self.wait:
-                text = ': '.join([cursor.color(label, 'magenta'), secret])
+                text = highlight(label, secret)
                 try:
                     cursor.write(text)
                     sleep(self.wait)
                     cursor.clear()
                 except KeyboardInterrupt:
                     cursor.clear()
+            if label_password:
+                print(highlight(label, secret))
             else:
                 print(secret)
 
@@ -1074,12 +1083,16 @@ class PasswordWriter:
             if action[0] == 'interp':
                 value = self.password.account.get_field(action[1])
                 if value:
-                    if '\n' in value:
-                        print(
-                            action[1].upper() + ':\n' + indent(
-                                value.strip(), '    '))
+                    if type(value) == list:
+                        print(highlight(
+                            action[1],
+                            '\n    ' + ',\n    '.join(value)))
+                    elif '\n' in value:
+                        print(highlight(
+                            action[1],
+                            '\n' + indent(value.strip(), '    ')))
                     else:
-                        print(action[1].upper() + ':', value.rstrip())
+                        print(highlight(action[1], value.rstrip()))
             elif action[0] == 'password':
                 display_secret(
                     'PASSWORD',
@@ -1091,13 +1104,16 @@ class PasswordWriter:
                 if questions:
                     if action[1] is None:
                         for index, question in enumerate(questions):
-                            print('QUESTION %d: %s' % (index, question))
+                            print(highlight('QUESTION %d' % index, question))
                     else:
                         try:
-                            print('QUESTION %d: %s' % (
-                                action[1], questions[action[1]]))
+                            print(highlight(
+                                'QUESTION %d' % action[1],
+                                questions[action[1]]))
                         except IndexError:
-                            print('QUESTION %d: <not available>' % action[1])
+                            print(highlight(
+                                'QUESTION %d' % action[1],
+                                '<not available>'))
             elif action[0] == 'answer':
                 question, answer = self.password.generate_answer(action[1])
                 if answer:
@@ -1115,7 +1131,9 @@ class PasswordWriter:
         for action in self.script:
             if action[0] == 'interp':
                 value = self.password.account.get_field(action[1])
-                if value:
+                if type(value) == list:
+                    lines += [', '.join(value)]
+                elif value:
                     lines += [value.rstrip()]
                 else:
                     lines += ['<%s unknown>' % action[1]]
@@ -1212,7 +1230,9 @@ class PasswordWriter:
                 scrubbed += ['<sleep %s>' % action[1]]
             elif action[0] == 'interp':
                 value = self.password.account.get_field(action[1])
-                if value:
+                if type(value) == list:
+                    value = ', '.join(value)
+                elif value:
                     value = value.rstrip()
                 else:
                     value = '<%s unknown>' % action[1]

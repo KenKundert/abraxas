@@ -17,7 +17,12 @@ def exclude(chars, exclusions):
 
     Use this to strip characters from a character set.
     """
-    return chars.translate(str.maketrans('', '', exclusions))
+    try:
+        # this version is compatible with python3
+        return chars.translate(str.maketrans('', '', exclusions))
+    except AttributeError:
+        # this version is compatible with python2
+        return chars.translate(None, exclusions)
 
 # Character sets
 # Use these to construct alphabets by summing together the ones you want.

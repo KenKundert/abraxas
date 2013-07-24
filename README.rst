@@ -31,14 +31,15 @@ uploaded several documents.  Without actually sharing the password, Bob uses the
 shared master password and the account name to regenerate the account's password 
 himself and downloads the documents.
 
-PW requires the following packages to fully function::
+PW is compatible with both python 2.7 or python 3.3 and beyond. It requires the 
+following packages to fully function::
 
-   # yum install python3
-   # yum install python3-setuptools (for installation)
-   # easy_install-3.3 python-gnupg
-   # easy_install-3.3 argparse
-   # easy_install-3.3 docutils (for manpages)
-   # easy_install-3.3 PyYAML (password archive)
+   # yum install python
+   # yum install python-setuptools (for installation)
+   # easy_install python-gnupg
+   # easy_install argparse
+   # easy_install docutils (for manpages)
+   # easy_install3 PyYAML (password archive)
    # yum install xdotool (autotype support)
    # yum install xsel (clipboard support)
    # yum install zenity (account selection when window title is not enough)
