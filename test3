@@ -3,4 +3,4 @@
 
 from runtests import runTests
 
-runTests(['pw', 'clones'], pythonCmd='python3')
+runTests(['pw'], pythonCmd='python3')
