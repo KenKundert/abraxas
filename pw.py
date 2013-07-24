@@ -1073,7 +1073,7 @@ class PasswordWriter:
                     cursor.clear()
                 except KeyboardInterrupt:
                     cursor.clear()
-            if label_password:
+            elif label_password:
                 print(highlight(label, secret))
             else:
                 print(secret)

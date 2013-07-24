@@ -439,6 +439,15 @@ apiManpage = {
                     lines += ["%s:" % (description if description else name)]
                     acct = pw.get_account(name)
 
+                    # Remarks
+                    remarks = acct.get_field('remarks')
+                    if remarks:
+                        if '\n' in remarks:
+                            lines += ["    remarks:"]
+                            lines += [indent(remarks.strip(), '        ')]
+                        else:
+                            lines += ["    remarks: " + remarks.strip()]
+
                     # Account number
                     account = acct.get_field('account')
                     if account:
@@ -457,6 +466,20 @@ apiManpage = {
                     password = pw.generate_password()
                     if password:
                         lines += ["    password:", password]
+
+                    # Security questions
+                    number = 0
+                    security_questions = []
+                    while True:
+                        try:
+                            question, answer = pw.generate_answer(number)
+                            security_questions += ["        %s ==> %s" % (question, answer)]
+                            number += 1
+                        except PasswordError:
+                            break
+                    if security_questions:
+                        lines += ['    security questions:']
+                        lines += security_questions
 
                     lines += []
 
