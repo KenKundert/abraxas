@@ -77,9 +77,7 @@ you can generally have one started for you when you login by configuring your
 Session settings) then you can just give your GPG key pass phrase once per login 
 session.
 
-To test the program, first modify test.pw.py and change the GPG key ID at the 
-top of the file to your ID or the email address you gave when creating your GPG 
-key.  Then run::
+To test the program, run::
 
    $ ./test
 
@@ -87,7 +85,7 @@ or::
 
    $ ./test3
 
-if you plan to use python3 and have both python3 and python3 installed.
+if you plan to use python3 and have both python2 and python3 installed.
 
 Once you are comfortable that everything is in order, you should install the 
 program. To do so, first open the install file and make sure your version of 

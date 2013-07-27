@@ -1277,7 +1277,7 @@ class PasswordWriter:
 class Password:
     """Password Generator"""
     # Constructor {{{2
-    def __init__(self, settings_dir=None, init=None, logger=None):
+    def __init__(self, settings_dir=None, init=None, logger=None, gpg_home=None):
         """Arguments:
            settings_dir
                Path to the settings directory. Generally only specified when
@@ -1288,8 +1288,9 @@ class Password:
            logger: Object that provides display(msg), log(msg), and error(msg)
                methods:
                    display() is called when a message is to be sent to the user
-                   log() is called when a message is to be logged
-                   exit() is called when an error has occurred.
+                   log() is called when a message is only to be logged
+                   error() is called when an error has occurred.
+           gpg_home: path to desired home directory for gpg
         """
 
         if not settings_dir:
@@ -1305,7 +1306,7 @@ class Password:
             DICTIONARY_FILENAME, self.settings_dir, logger)
 
         # Activate GPG
-        self.gpg = gnupg.GPG()
+        self.gpg = gnupg.GPG(**({'gnupghome': gpg_home} if gpg_home else {}))
 
         # Process master password file
         self.master_password_path = make_path(
@@ -1442,7 +1443,6 @@ class Password:
         except ImportError:
             error('archive feature requires yaml, which is not available.', self.logger)
 
-        gpg = gnupg.GPG()
         filename = expand_path(self.accounts.get_archive_file())
         try:
             with open(filename, 'rb') as f:
@@ -1450,7 +1450,7 @@ class Password:
         except IOError as err:
             error('%s: %s.' % (err.filename, err.strerror), self.logger)
 
-        unencrypted_secrets = str(gpg.decrypt(encrypted_secrets))
+        unencrypted_secrets = str(self.gpg.decrypt(encrypted_secrets))
         archived_secrets = yaml.load(unencrypted_secrets)
 
         # Look for changes in the accounts
@@ -1533,7 +1533,6 @@ class Password:
         except ImportError:
             error('archive feature requires yaml, which is not available.', self.logger)
 
-        gpg = gnupg.GPG()
         # Loop through accounts saving passwords and questions
         all_secrets = {}
         for account_id in self.all_accounts():
@@ -1557,9 +1556,8 @@ class Password:
         unencrypted_secrets = yaml.dump(all_secrets)
 
         # Encrypt and save yaml archive
-        gpg = gnupg.GPG()
         gpg_id = self.accounts.get_gpg_id()
-        encrypted_secrets = gpg.encrypt(unencrypted_secrets, gpg_id)
+        encrypted_secrets = self.gpg.encrypt(unencrypted_secrets, gpg_id)
         filename = expand_path(self.accounts.get_archive_file())
         try:
             with open(filename, 'w') as f:

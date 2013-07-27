@@ -1,9 +1,5 @@
 #!/bin/env python
 
-# Replace the encryption key below (3E1C0A50) with your own key
-# Can take the form of a key ID (8 hexdigits) or as your email address
-gpg_id = '3E1C0A50'
-
 # Test PW
 # Imports {{{1
 from runtests import cmdLineOpts, writeSummary
@@ -54,9 +50,9 @@ testCases = [
         isCommand=True),
 
     # Run Password with damaged accounts file
-    Case(stimulus="pw = Password('./generated_settings', 'ken@designers-guide.com')"),
+    Case(stimulus="pw = Password('./generated_settings', '4DC3AD14', None, 'test_key')"),
     Case(stimulus="create_bogus_file('./generated_settings/accounts')"),
-    Case(stimulus="pw = Password('./generated_settings')"),
+    Case(stimulus="pw = Password('./generated_settings', gpg_home='test_key')"),
     Case(
         stimulus="pw.read_accounts()",
         expected=dedent("generated_settings/accounts: defective accounts file, 'accounts' not found."),
@@ -64,9 +60,9 @@ testCases = [
     Case(stimulus="remove('./generated_settings')"),
 
     # Run Password with damaged master password file
-    Case(stimulus="pw = Password('./generated_settings', 'ken@designers-guide.com')"),
+    Case(stimulus="pw = Password('./generated_settings', '4DC3AD14', None, 'test_key')"),
     Case(stimulus="create_bogus_file('./generated_settings/master.asc')"),
-    Case(stimulus="pw = Password('./generated_settings')",
+    Case(stimulus="pw = Password('./generated_settings', gpg_home='test_key')",
         expected=dedent("""\
             generated_settings/master.gpg: unable to decrypt.
             gpg: no valid OpenPGP data found.
@@ -79,7 +75,7 @@ testCases = [
     Case(stimulus="remove('./generated_settings')"),
 
     # Run Password with a nonexistant settings directory
-    Case(stimulus="pw = Password('./generated_settings', 'ken@designers-guide.com')"),
+    Case(stimulus="pw = Password('./generated_settings', '4DC3AD14', None, 'test_key')"),
     Case(stimulus="pw.read_accounts()"),
     Case(
         stimulus="' '.join(sorted(pw.all_templates()))",
@@ -120,8 +116,8 @@ testCases = [
 
     # Run Password with the test settings directory
     Case(stimulus="os.system('rm -f test_settings/master.gpg')"),
-    Case(stimulus="os.system('gpg -r %s -e test_settings/master')" % gpg_id),
-    Case(stimulus="pw = Password('./test_settings')"),
+    Case(stimulus="os.system('gpg --homedir test_key -r 4DC3AD14 -e test_settings/master')"),
+    Case(stimulus="pw = Password('./test_settings', gpg_home='test_key')"),
     Case(stimulus="pw.read_accounts()"),
     Case(
         stimulus="';'.join(['%s(%s)' % (each[0], ','.join(each[1])) for each in sorted(pw.find_accounts('col'), key=lambda x: x[0])])",
