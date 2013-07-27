@@ -43,6 +43,12 @@ XDOTOOL = '/usr/bin/xdotool'
 XSEL = '/usr/bin/xsel'
 SECRETS_SHA1 = "5d0182e4b939352b352027201008e8af473ee612"
 CHARSETS_SHA1 = "6c9644ab97b1f53f982f70e2808f0f1e850e1fe1"
+LABEL_COLOR = 'yellow'
+    # choose from normal, black, red, green, yellow, blue, magenta, cyan, white
+LABEL_STYLE = 'normal'
+    # choose from normal, bright, reverse, dim, underline, blink, reverse,
+    # invisible (these need to be implemented by underlying terminal, and some
+    # are not (such a blink and dim)
 
 # Initial master password file {{{2
 MASTER_PASSWORD_FILE_INITIAL_CONTENTS = dedent('''\
@@ -1061,7 +1067,8 @@ class PasswordWriter:
 
         # Attach color label to a value
         def highlight(label, value):
-            return cursor.color(label.upper() + ': ', 'magenta') + value
+            return (cursor.color(
+                label.upper() + ':', LABEL_COLOR, LABEL_STYLE) + ' ' + value)
 
         # Send output to stdout with the labels.
         def display_secret(label, secret):

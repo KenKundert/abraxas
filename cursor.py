@@ -17,8 +17,13 @@ colors = {
 
 styles = {
     'normal'        : 0,
-    'bold'          : 1,
-    'reverse'       : 2 }
+    'bright'        : 1,
+    'bold'          : 1,  # alias for bright
+    'dim'           : 2,
+    'underline'     : 4,
+    'blink'         : 5,  # often not available
+    'reverse'       : 7,
+    'invisible'     : 8 }
 
 def write(string):
     """ Write string to standard out. """
