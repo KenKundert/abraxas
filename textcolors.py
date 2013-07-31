@@ -3,11 +3,6 @@
 # Colored lines that contain newlines do not display correctly in less, they
 # lose their color on the far side of the newline. I could fix this by
 # looking for newlines and re-establishing the color afterwards.
-#
-# The code is not working properly. Turning off the colors is not working. In
-# particular, I am using textcolors in rantests, and initially the colors are
-# active, I run colorizeIfTTY(), and redirect the output to a file, and the
-# colors are not disabled.
 '''
 Use to access strings that control the colors produced by a terminal. The
 possible colors are:
@@ -68,6 +63,17 @@ def stripColors(text):
     Strip the color codes from a string.
     """
     return _colorCodeRegex.sub('', text)
+
+def isTTY(stream=sys.stdout):
+    """
+    Is stream connected to a TTY.
+
+    One generally does not want to colorize a stream such as stdout or
+    stderr if it being redirected to a file. This function returns True if
+    passed a stream that is connected to a TTY. Can be used to turn off
+    colors for streams that do not go to a TTY.
+    """
+    return os.isatty(stream.fileno())
 
 class Colors:
     def __init__(self, wantColors = True):
@@ -161,17 +167,6 @@ class Colors:
         argument colored using the color specified with the function was created.
         """
         return lambda text: self(color, text)
-
-    def colorizeIfTTY(self, stream=sys.stdout):
-        """
-        Disables colorization if stream is not a TTY.
-
-        One generally does not want to colorize a stream such as stdout or
-        stderr if it being redirected to a file. This function will turn off
-        colors if stream is not a TTY but will now turn on colors if it is.
-        """
-        if self.wantColors and not os.isatty(stream.fileno()):
-            self.colorize(False)
 
 def _capitalize(arg):
     return arg[0].upper() + arg[1:]
