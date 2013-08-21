@@ -85,7 +85,8 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
     from textwrap import dedent
     from charsets import (
         exclude, lowercase, uppercase, letters, digits, alphanumeric,
-        hexdigits, punctuation, whitespace, printable, distinguishable)
+        hexdigits, punctuation, whitespace, printable, distinguishable
+    )
 
     # The desired location of the log file (use an absolute path)
     log_file = '%s'
@@ -118,6 +119,12 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
             'num-chars': 12,
             'alphabet': alphanumeric + punctuation,
             'autotype': "{username}{tab}{password}{return}",
+        },
+        "=num": {  # typically used for PINs
+            'password-type': 'chars',
+            'num-chars': 4,
+            'alphabet': digits,
+            'autotype': "{password}{return}",
         },
         "=anum": {  # typically used for web passwords (contains only easily distinguished alphanumeric characters)
             'password-type': 'chars',

@@ -79,7 +79,7 @@ testCases = [
     Case(stimulus="pw.read_accounts()"),
     Case(
         stimulus="' '.join(sorted(pw.all_templates()))",
-        expected='=anum =chars =extreme =master =words'),
+        expected='=anum =chars =extreme =master =num =words'),
     Case(stimulus="account = pw.get_account('test')"),
     Case(
         stimulus="account.get_id()",

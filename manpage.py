@@ -186,9 +186,9 @@ programManpage = {
         by giving the name of a template.  A template is simply a named 
         collection of attributes that specify how to generate the password. You 
         may configure as many templates as you wish.  By default, **pw** comes 
-        with five templates, =words, =chars, =anum, =master, and =extreme.  You 
-        can generate a pass word (a collection of characters) instead of a pass 
-        phrase (a collection of words) with::
+        with six templates, =words, =chars, =num, =anum, =master, and =extreme.  
+        You can generate a pass word (a collection of characters) instead of 
+        a pass phrase (a collection of words) with::
 
             /pw -T =anum my-secret-account
             warning: account 'my-secret-account' not found.
