@@ -1,6 +1,6 @@
 # Account information
 
-logfile = './test_settings/log'
+log_file = './test_settings/log'
 
 # The GPG ID of the user (used to encrypt archive.gpg file)
 # gpgID = '<your GPG ID in the form of an email address>'

@@ -2,6 +2,7 @@
 
 # Test PW
 # Imports {{{1
+from __future__ import print_function, division
 from runtests import cmdLineOpts, writeSummary
 from textcolors import Colors
 from pw import Password, PasswordError
@@ -15,6 +16,7 @@ fast, printSummary, printTests, printResults, colorize, parent = cmdLineOpts()
 testsRun = 0
 failures = 0
 remove('./generated_settings')
+os.chmod("test_key", 0o700)
 
 colors = Colors(colorize)
 succeed = colors.colorizer('green')
