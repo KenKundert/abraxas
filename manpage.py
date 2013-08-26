@@ -657,7 +657,7 @@ configManpage = {
         original location of *~/.config/pw/master.gpg*.
 
         charsets_hash
-        ~~~~~~~~~~~~
+        ~~~~~~~~~~~~~
         This is a hash of the file that contains the alphabets and the exclude 
         function that you can use when creating alphabets for your 
         character-based passwords.  It is used to warn you that the character 

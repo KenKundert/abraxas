@@ -836,7 +836,7 @@ class Accounts:
                 status, title = pipe(
                     '%s getactivewindow getwindowname' % XDOTOOL)
             except ExecuteError as err:
-                error(err.text, self.logger)
+                error(str(err), self.logger)
             title = title.strip()
             log('Focused window title: %s' % title, self.logger)
 
@@ -1182,7 +1182,7 @@ class PasswordWriter:
         try:
             pipe('%s -b -i' % XSEL, text)
         except ExecuteError as err:
-            error(err.message, self.logger)
+            error(str(err), self.logger)
         try:
             sleep(self.wait)
         except KeyboardInterrupt:
@@ -1190,7 +1190,7 @@ class PasswordWriter:
         try:
             execute("%s -b -c" % XSEL)
         except ExecuteError as err:
-            error(err.message, self.logger)
+            error(str(err), self.logger)
 
         # Use Gobject Introspection (GTK) to put the information on the
         # clipboard (for some reason I cannot get this to work).
@@ -1227,7 +1227,7 @@ class PasswordWriter:
                             '%s -' % XDOTOOL,
                             'getactivewindow type "%s"' % segment)
             except ExecuteError as err:
-                error(err.message, self.logger)
+                error(str(err), self.logger)
 
         # Execute the script
         text = []
@@ -1664,6 +1664,6 @@ if __name__ == "__main__":
             writer.process_output()
             terminate(logging)
     except PasswordError as err:
-        sys.exit('%s: %s' % (cmd_line.name_as_invoked(), err.message))
+        sys.exit('%s: %s' % (cmd_line.name_as_invoked(), str(err)))
     except KeyboardInterrupt:
         sys.exit('Killed by user')
