@@ -49,6 +49,7 @@ LABEL_STYLE = 'normal'
     # choose from normal, bright, reverse, dim, underline, blink, reverse,
     # invisible (these need to be implemented by underlying terminal, and some
     # are not (such a blink and dim)
+INITIAL_AUTOTYPE_DELAY=0.25
 
 # Initial master password file {{{2
 MASTER_PASSWORD_FILE_INITIAL_CONTENTS = dedent('''\
@@ -1232,7 +1233,7 @@ class PasswordWriter:
         # Execute the script
         text = []
         scrubbed = []
-        sleep(0.25)
+        sleep(INITIAL_AUTOTYPE_DELAY)
         for action in self.script:
             if action[0] == 'verb':
                 text += [action[1]]

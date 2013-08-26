@@ -31,8 +31,8 @@ uploaded several documents.  Without actually sharing the password, Bob uses the
 shared master password and the account name to regenerate the account's password 
 himself and downloads the documents.
 
-PW is compatible with both python 2.7 or python 3.3 and beyond. It requires the 
-following packages to fully function::
+PW is compatible with both python 2.6 and beyond or python 3.3 and beyond. It 
+requires the following packages to fully function::
 
    # yum install python
    # yum install python-setuptools (for installation)
