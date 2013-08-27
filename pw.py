@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 """Generates passwords and pass phrases based on stored account information."""
 
-#    Password Generator
-#    Copyright (C) 2013 Kenneth S. Kundert and Kale B. Kundert
+#  Password Generator
+#  Copyright (C) 2013 Kenneth S. Kundert and Kale B. Kundert
 #
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
 #
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see [http://www.gnu.org/licenses/].
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see [http://www.gnu.org/licenses/].
 
 
 # Imports {{{1
@@ -161,7 +161,37 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
         },
 
         # Accounts
-        # Place your accounts here.
+        # AAAAA
+        # BBBBB
+        # CCCCC
+        # DDDDD
+        # EEEEE
+        # FFFFF
+        # GGGGG
+        # HHHHH
+        # IIIII
+        # JJJJJ
+        # KKKKK
+        # LLLLL
+        # MMMMM
+        # NNNNN
+        # OOOOO
+        # PPPPP
+        # QQQQQ
+        # RRRRR
+        # SSSSS
+        # TTTTT
+        # UUUUU
+        # VVVVV
+        # WWWWW
+        # XXXXX
+        # YYYYY
+        # ZZZZZ
+        #
+        # Place your accounts above. Sort them and place them below the
+        # appropriate tab to make them easier to find. Here is a template that
+        # shows what an account might contain. Feel free to delete this example
+        # along with this comment.
         #   "<account-id>": {
         #       'username': "<username>",
         #       'account': "<account-number>",
