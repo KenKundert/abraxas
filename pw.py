@@ -965,10 +965,20 @@ class Accounts:
         return False
 
     @staticmethod
-    def _inSearchField(pattern, acct):
+    def _inSearchField(pattern, ID, acct):
         for each in SEARCH_FIELDS:
-            if pattern.search(acct.get(each, '')):
-                return True
+            try:
+                value = acct.get(each, '')
+                if type(value) is list:
+                    for every in value:
+                        if pattern.search(every):
+                            return True
+                else:
+                    if pattern.search(value):
+                        return True
+            except TypeError:
+                print("%s %s: field is of wrong type" % (ID, each))
+
         return False
 
     def find_accounts(self, target):
@@ -987,7 +997,7 @@ class Accounts:
             if (
                     self._inID(pattern, ID) or
                     self._inAliases(pattern, acct) or
-                    self._inSearchField(pattern, acct)):
+                    self._inSearchField(pattern, ID, acct)):
                 yield ID, self.accounts[ID].get('aliases', [])
 
 
