@@ -68,14 +68,15 @@ programManpage = {
         the name of the account but do not store any information about even the 
         existence of the account on your computer.  With **pw**, you only need 
         to remember the name of the account and it will regenerate the password 
-        for you. Finally, by securely storing a small amount of information, 
-        perhaps on a piece of paper in your safe-deposit box, you can often 
-        recover most if not all of your passwords even if you somehow lose your 
-        accounts file. You can even recover passwords that were created after 
-        you created your backup. This is because *pw* combines the master 
-        password with some easily reconstructed information, such as the account 
-        name, to create the password. If you save the master password, the rest 
-        should be recoverable.
+        for you. This is perfect for your TrueCrypt hidden volume password. 
+        Finally, by securely storing a small amount of information, perhaps on 
+        a piece of paper in your safe-deposit box, you can often recover most if 
+        not all of your passwords even if you somehow lose your accounts file.  
+        You can even recover passwords that were created after you created your 
+        backup. This is because *pw* combines the master password with some 
+        easily reconstructed information, such as the account name, to create 
+        the password. If you save the master password, the rest should be 
+        recoverable.
 
         To use it, one creates a file that contains information about each of 
         his or her non-stealth accounts.  Amongst that information would be 
@@ -839,7 +840,9 @@ configManpage = {
 
         Specifies the location of the log file. If not given, it 
         defaults to '~/.config/pw/log'. An absolute path should be used to
-        specify the file.
+        specify the file. If a '.gpg' or '.asc' suffix is given on this file, it 
+        will be encrypted using your public key. Without encryption, this file 
+        leaks account names.
 
         archive_file
         ~~~~~~~~~~~~
@@ -975,8 +978,8 @@ configManpage = {
         satisfy them. In this case you can simply bump the version until you get 
         a password that meets their requirements.
 
-        type
-        ~~~~
+        password-type
+        ~~~~~~~~~~~~~
         The type of password to generate. Should be either 'words' (default) to 
         generate pass phrases or 'chars' to generate passwords.
 
@@ -1129,6 +1132,11 @@ configManpage = {
 
         The default autotype script is 
         "{{username}}{{tab}}{{password}}{{return}}"
+
+        Other Fields
+        ~~~~~~~~~~~~
+        The value of all other fields will be printed when the user requests all 
+        information about the account.
 
         Words File
         ++++++++++

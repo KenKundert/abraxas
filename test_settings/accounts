@@ -3,7 +3,7 @@
 log_file = './test_settings/log'
 
 # The GPG ID of the user (used to encrypt archive.gpg file)
-# gpgID = '<your GPG ID in the form of an email address>'
+gpg_id = '4DC3AD14'
 
 # Account Information
 from textwrap import dedent

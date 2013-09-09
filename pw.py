@@ -54,6 +54,21 @@ ARCHIVE_FILENAME = 'archive.gpg'
 DEFAULT_TEMPLATE = "=words"
 DEFAULT_AUTOTYPE = "{username}{tab}{password}{return}"
 SEARCH_FIELDS = ['username', 'account', 'email', 'url', 'remarks']
+STRING_FIELDS = [
+    'alphabet', 'autotype', 'email', 'master', 'prefix',
+    'remarks', 'separator', 'suffix', 'template', 'type', 'url',
+    'username', 'version'
+]
+INTEGER_FIELDS = ['num-chars', 'num-words']
+LIST_FIELDS = ['security questions', 'aliases']
+LIST_OR_STRING_FIELDS = ['account', 'window']
+ENUM_FIELDS = {
+    'password-type': ['words', 'chars']
+}
+ALL_FIELDS = (
+    STRING_FIELDS + INTEGER_FIELDS + LIST_FIELDS + LIST_OR_STRING_FIELDS +
+    [each for each in ENUM_FIELDS.keys()]
+)
 # Use absolute paths for xdotool and xsel
 # Makes it harder for someone to replace them so as to expose the secrets.
 XDOTOOL = '/usr/bin/xdotool'
@@ -107,6 +122,8 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
     )
 
     # The desired location of the log file (use an absolute path)
+    # Adding a suffix of .gpg or .asc causes the file to be encrypted (otherwise
+    # it can leak account names).
     log_file = '%s'
 
     # The desired location of the archive file
@@ -366,10 +383,7 @@ class CommandLine:
 # Log messages to a file
 class Logging:
     def __init__(self, logfile=None, argv=None, prog_name=None):
-        if logfile:
-            self.logfile = self.set_logfile(logfile)
-        else:
-            self.logfile = None
+        self.logfile = logfile
         self.cache = []
         if argv:
             try:
@@ -383,20 +397,11 @@ class Logging:
         if argv and not prog_name:
             self.prog_name = argv[0]
 
-    # Open the logfile.
-    def set_logfile(self, logfile):
-        self.logfile = None
-        if logfile:
-            try:
-                filename = expand_path(logfile)
-                self.logfile = open(filename, 'w')
-                os.chmod(filename, 0o600)
-            except IOError as err:
-                self.display('%s: %s.' % (err.filename, err.strerror))
-
-        # Now that logfile is open, write any messages that were cached
-        self.log('\n'.join(self.cache))
-        self.cache = []
+    # Set the logfile name and gpg parameters.
+    def set_logfile(self, logfile, gpg, gpg_id):
+        self.logfile = logfile if logfile else self.logfile
+        self.gpg = gpg
+        self.gpg_id = gpg_id
 
     # Print the messages and also send it to the logfile.
     def display(self, msg):
@@ -406,15 +411,29 @@ class Logging:
     # Only send the message to the logfile.
     def log(self, msg):
         if msg:
-            if self.logfile:
-                self.logfile.write(msg + '\n')
-            else:
-                self.cache.append(msg)
+            self.cache.append(msg)
 
     # Close the logfile.
     def _terminate(self):
-        if self.logfile:
-            self.logfile.close()
+        if not self.logfile:
+            return
+        contents = '\n'.join(self.cache) + '\n'
+        filename = expand_path(self.logfile)
+
+        if get_extension(filename) in ['gpg', 'asc']:
+            encrypted = self.gpg.encrypt(
+                contents, self.gpg_id, always_trust=True, armor=True
+            )
+            if not encrypted.ok:
+                sys.stderr.write(
+                    "%s: unable to encrypt.\n%s" % (filename, encrypted.stderr))
+            contents = str(encrypted)
+        try:
+            with open(filename, 'w') as file:
+                file.write(contents)
+            os.chmod(filename, 0o600)
+        except IOError as err:
+            sys.stderr.write('%s: %s.' % (err.filename, err.strerror))
 
     # Support for the with statement
     def __enter__(self):
@@ -637,14 +656,6 @@ class Accounts:
             self.template = {}
 
         # Validate and repair each account, then process any aliases
-        string_fields = [
-            'alphabet', 'autotype' 'email', 'master', 'prefix',
-            'remarks', 'separator', 'suffix' 'template', 'type', 'url',
-            'username', 'version'
-        ]
-        integer_fields = ['num-chars', 'num-words']
-        list_fields = ['security questions', 'aliases']
-        list_or_string_fields = ['account', 'window']
         self.aliases = {}
         for ID in self.all_accounts(skip_templates=False):
             if type(ID) != str:
@@ -652,7 +663,7 @@ class Accounts:
             data = self.accounts[ID]
 
             # check the types of the data in the various fields
-            for each in string_fields:
+            for each in STRING_FIELDS:
                 if type(data.get(each, '')) != str:
                     display(
                         ' '.join([
@@ -661,7 +672,7 @@ class Accounts:
                             "Expected string, ignoring."]),
                         logger)
                     del data[each]
-            for each in integer_fields:
+            for each in INTEGER_FIELDS:
                 if type(data.get(each, 0)) != int:
                     display(
                         ' '.join([
@@ -670,7 +681,7 @@ class Accounts:
                             "Expected integer, ignoring."]),
                         logger)
                     del data[each]
-            for each in list_fields:
+            for each in LIST_FIELDS:
                 if type(data.get(each, [])) != list:
                     display(
                         ' '.join([
@@ -679,7 +690,7 @@ class Accounts:
                             "Expected list, ignoring."]),
                         logger)
                     del data[each]
-            for each in list_or_string_fields:
+            for each in LIST_OR_STRING_FIELDS:
                 if (
                     type(data.get(each, [])) != list and
                     type(data.get(each, '')) != str
@@ -691,6 +702,17 @@ class Accounts:
                             "Expected string or list, ignoring."]),
                         logger)
                     del data[each]
+            for key, values in ENUM_FIELDS.items():
+                val = data.get(key, '')
+                if (val and val not in values):
+                    display(
+                        ' '.join([
+                            "Invalid value for '%s' in %s account (%s)." % (
+                                key, ID, data[key]),
+                            "Expected one from: %s." % ', '.join(values),
+                            "Ignored."]),
+                        logger)
+                    del data[key]
 
             def addToAliases(ID, name):
                 if name in self.aliases:
@@ -1017,6 +1039,9 @@ class PasswordWriter:
     #    write_account_entry() --> ('interp', <label>)
     #        Interpolates information from the account file into the output.
     #        The argument is the item to be interpolated (username, url, etc.)
+    #    write_unknown_entries() --> ('unknown')
+    #        Interpolates any unrecognized fields in the account into the
+    #        output.
     #    write_password() --> ('password')
     #        Outputs the password as a secret (the writer does its best to keep
     #        it secure).
@@ -1055,6 +1080,9 @@ class PasswordWriter:
 
     def write_account_entry(self, label):
         self.script += [('interp', label)]
+
+    def write_unknown_entries(self):
+        self.script += [('unknown',)]
 
     def write_password(self):
         self.script += [('password',)]
@@ -1150,21 +1178,28 @@ class PasswordWriter:
             else:
                 print(secret)
 
+        # Send field to stdout with the labels.
+        def display_field(label, value):
+            if value:
+                if type(value) == list:
+                    print(highlight(label, '\n    '+',\n    '.join(value)))
+                elif '\n' in value:
+                    print(highlight(label, '\n'+indent(value.strip(), '    ')))
+                else:
+                    print(highlight(label, value.rstrip()))
+
         # Execute the script
         for action in self.script:
             if action[0] == 'interp':
-                value = self.password.account.get_field(action[1])
-                if value:
-                    if type(value) == list:
-                        print(highlight(
-                            action[1],
-                            '\n    ' + ',\n    '.join(value)))
-                    elif '\n' in value:
-                        print(highlight(
-                            action[1],
-                            '\n' + indent(value.strip(), '    ')))
-                    else:
-                        print(highlight(action[1], value.rstrip()))
+                display_field(
+                    action[1],
+                    self.password.account.get_field(action[1]))
+            elif action[0] == 'unknown':
+                fields = sorted(
+                    set(self.password.account.get_data().keys()) -
+                    set(ALL_FIELDS))
+                for field in fields:
+                    display_field(field, self.password.account.get_field(field))
             elif action[0] == 'password':
                 display_secret(
                     'PASSWORD',
@@ -1204,11 +1239,19 @@ class PasswordWriter:
             if action[0] == 'interp':
                 value = self.password.account.get_field(action[1])
                 if type(value) == list:
-                    lines += [', '.join(value)]
+                    lines += ["%s: %s" % (action[1], ', '.join(value))]
                 elif value:
-                    lines += [value.rstrip()]
-                else:
-                    lines += ['<%s unknown>' % action[1]]
+                    lines += ["%s: %s" % (action[1], value.rstrip())]
+            elif action[0] == 'unknown':
+                fields = sorted(
+                    set(self.password.account.get_data().keys()) -
+                    set(ALL_FIELDS))
+                for field in fields:
+                    value = self.password.account.get_field(field)
+                    if type(value) == list:
+                        lines += ["%s: %s" % (field, ', '.join(value))]
+                    elif value:
+                        lines += ["%s: %s" % (field, value.rstrip())]
             elif action[0] == 'password':
                 lines += [self.password.generate_password()]
             elif action[0] == 'question':
@@ -1474,7 +1517,10 @@ class Password:
         self.all_accounts = accounts.all_accounts
         self.find_accounts = accounts.find_accounts
         self.search_accounts = accounts.search_accounts
-        self.logger.set_logfile(accounts.get_log_file())
+        self.logger.set_logfile(
+            accounts.get_log_file(),
+            accounts.gpg,
+            accounts.get_gpg_id())
 
     # Get account {{{2
     def get_account(self, account_id):
@@ -1713,6 +1759,7 @@ if __name__ == "__main__":
                     writer.write_account_entry('remarks')
                 if cmd_line.info or cmd_line.all:
                     writer.write_question()
+                    writer.write_unknown_entries()
                 if cmd_line.question is not None:
                     writer.write_answer(cmd_line.question)
                 if cmd_line.password or cmd_line.all or writer.is_empty():
