@@ -1257,15 +1257,16 @@ class PasswordWriter:
             elif action[0] == 'question':
                 questions = self.password.account.get_field(
                     'security questions')
-                if action[1] is None:
-                    for index, question in enumerate(questions):
-                        lines += ['question %d: %s' % (index, question)]
-                else:
-                    try:
-                        lines += ['question %d: %s' % (
-                            action[1], questions[action[1]])]
-                    except IndexError:
-                        lines += ['question %d: <not available>' % action[1]]
+                if questions:
+                    if action[1] is None:
+                        for index, question in enumerate(questions):
+                            lines += ['question %d: %s' % (index, question)]
+                    else:
+                        try:
+                            lines += ['question %d: %s' % (
+                                action[1], questions[action[1]])]
+                        except IndexError:
+                            lines += ['question %d: <not available>' % action[1]]
             elif action[0] == 'answer':
                 question, answer = self.password.generate_answer(action[1])
                 if answer:
@@ -1359,16 +1360,17 @@ class PasswordWriter:
             elif action[0] == 'question':
                 questions = self.password.account.get_field(
                     'security questions')
-                if action[1] is None:
-                    for index, question in enumerate(questions):
-                        value = 'question %d: %s' % (index, question)
-                else:
-                    try:
-                        value = 'question %d: %s' % (
-                            action[1], questions[action[1]])
-                    except IndexError:
-                        value = 'question %d: <not available>' % action[1]
-                text += [value]
+                if questions:
+                    if action[1] is None:
+                        for index, question in enumerate(questions):
+                            value = 'question %d: %s' % (index, question)
+                    else:
+                        try:
+                            value = 'question %d: %s' % (
+                                action[1], questions[action[1]])
+                        except IndexError:
+                            value = 'question %d: <not available>' % action[1]
+                    text += [value]
                 scrubbed += [value]
             elif action[0] == 'answer':
                 question, answer = self.password.generate_answer(action[1])
