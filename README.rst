@@ -36,6 +36,7 @@ requires the following packages to fully function::
 
    # yum install python
    # yum install python-setuptools (for installation)
+   # yum install libyaml-devel (password archive)
    # easy_install python-gnupg
    # easy_install argparse
    # easy_install docutils (for manpages)

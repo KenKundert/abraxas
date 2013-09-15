@@ -1468,12 +1468,11 @@ class Password:
         def generate_random_string():
             def partition(bytestr):
                 for each in list(bytestr):
-                    yield each
+                    yield ord(each)
 
             digest = os.urandom(64)
-            import string
-            alphabet = (
-                string.ascii_letters + string.digits + string.punctuation)
+            from string import ascii_letters, digits, punctuation
+            alphabet = (ascii_letters + digits + punctuation)
             password = ''
             for index in partition(digest):
                 password += alphabet[index % len(alphabet)]
