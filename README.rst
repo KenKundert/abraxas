@@ -67,8 +67,8 @@ If you do not yet have a GPG key, you can get one using::
 
    $ gpg --gen-key
 
-You should probably choose 4096 RSA keys. Now, edit ~/.gnupg/gpg-conf and the 
-line::
+You should probably choose 4096 RSA keys. Now, edit ~/.gnupg/gpg-conf and add 
+the line::
 
    use-agent
 

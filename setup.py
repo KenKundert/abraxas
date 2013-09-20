@@ -18,4 +18,5 @@ setup(
         ('man/man3', ['pw.3']),
         ('man/man5', ['pw.5']),
     ]
+  , license='GPLv3'
 )
