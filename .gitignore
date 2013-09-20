@@ -2,6 +2,8 @@
 test_settings/log
 .*.swp
 test_key/random_seed
+pw.*
+install.out
 
 # Packages
 *.egg
