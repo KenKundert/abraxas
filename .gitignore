@@ -1,5 +1,6 @@
 *.py[co]
 test_settings/log
+test_settings/*.gpg
 .*.swp
 test_key/random_seed
 pw.*
