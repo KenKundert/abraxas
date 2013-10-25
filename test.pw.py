@@ -118,7 +118,7 @@ testCases = [
 
     # Run Password with the test settings directory
     Case(stimulus="os.system('rm -f test_settings/master.gpg')"),
-    Case(stimulus="os.system('gpg --homedir test_key -r 4DC3AD14 -e test_settings/master')"),
+    Case(stimulus="os.system('gpg2 --homedir test_key -r 4DC3AD14 -e test_settings/master')"),
     Case(stimulus="pw = Password('./test_settings', gpg_home='test_key')"),
     Case(stimulus="pw.read_accounts()"),
     Case(

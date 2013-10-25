@@ -73,6 +73,7 @@ ALL_FIELDS = (
 # Makes it harder for someone to replace them so as to expose the secrets.
 XDOTOOL = '/usr/bin/xdotool'
 XSEL = '/usr/bin/xsel'
+GPG_BINARY = 'gpg2'
 SECRETS_SHA1 = "5d0182e4b939352b352027201008e8af473ee612"
 CHARSETS_SHA1 = "6c9644ab97b1f53f982f70e2808f0f1e850e1fe1"
 LABEL_COLOR = 'yellow'
@@ -825,7 +826,7 @@ class Accounts:
             'archive_file',
             make_path(DEFAULT_SETTINGS_DIR, ARCHIVE_FILENAME))
 
-    # Get gpg it {{{2
+    # Get gpg id {{{2
     def get_gpg_id(self):
         try:
             return self.data['gpg_id']
@@ -1004,6 +1005,7 @@ class Accounts:
         return False
 
     def find_accounts(self, target):
+        # look for target in account ID and aliases only
         pattern = re.compile(target, re.I)
         for ID in self.all_accounts():
             if (
@@ -1013,6 +1015,7 @@ class Accounts:
 
     # Search accounts {{{2
     def search_accounts(self, target):
+        # look for target in account ID, aliases, and various fields
         pattern = re.compile(target, re.I)
         for ID in self.all_accounts():
             acct = self.accounts[ID]
@@ -1416,7 +1419,10 @@ class Password:
             DICTIONARY_FILENAME, self.settings_dir, logger)
 
         # Activate GPG
-        self.gpg = gnupg.GPG(**({'gnupghome': gpg_home} if gpg_home else {}))
+        gpg_args = {'gpgbinary': GPG_BINARY}
+        if gpg_home:
+            gpg_args.update({'gnupghome': gpg_home})
+        self.gpg = gnupg.GPG(**gpg_args)
 
         # Process master password file
         self.master_password_path = make_path(
