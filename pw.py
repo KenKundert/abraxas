@@ -238,7 +238,7 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
         #       'prefix': '',       # added to the front of passwords
         #       'suffix': '',       # added to the end of passwords
         #   },
-        }
+    }
     additional_accounts = []
 ''')
 
