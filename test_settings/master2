@@ -1,0 +1,7 @@
+passwords = {
+    'shared': """fifty intake overtake collie""",
+}
+password_overrides = {
+    'colgate': """white teeth""",
+}
+

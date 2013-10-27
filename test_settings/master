@@ -7,6 +7,6 @@ passwords = {
 }
 default_password = 'current'
 password_overrides = {
-    'colgate': """toothpaste""",
+    'aquafresh': """toothpaste""",
 }
-
+additional_master_password_files = "master2.gpg"

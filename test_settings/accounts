@@ -62,5 +62,7 @@ accounts = {
         'prefix': 'pre:',
         'suffix': ':suf',
     },
+    "aquafresh": {
+    },
 }
 additional_accounts = ["more_accounts", "yet_more_accounts"]

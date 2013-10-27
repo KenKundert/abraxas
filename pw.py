@@ -528,6 +528,56 @@ class MasterPassword:
                 error(
                     '%s: master password ID must be a string.' % ID,
                     self.logger)
+
+        # Open additional master password files
+        additional_password_files = data.get(
+            'additional_master_password_files', [])
+        if type(additional_password_files) == str:
+            additional_password_files = additional_password_files.split()
+        more_data = {}
+        for each in additional_password_files:
+            path = make_path(get_head(self.path), each)
+            if get_extension(path) in ['gpg', 'asc']:
+                # File is GPG encrypted, decrypt it
+                try:
+                    with open(path, 'rb') as f:
+                        decrypted = self.gpg.decrypt_file(f)
+                        if not decrypted.ok:
+                            error("%s\n%s" % (
+                                "%s: unable to decrypt." % (path),
+                                decrypted.stderr
+                            ), self.logger)
+                        code = compile(decrypted.data, path, 'exec')
+                        exec(code, more_data)
+                except IOError as err:
+                    error('%s: %s.' % (err.filename, err.strerror), self.logger)
+            else:
+                error(
+                    "%s: must have .gpg or .asc extension" % (path),
+                    self.logger)
+
+            # Check for duplicate master passwords
+            existing_passwords = set(data.get('passwords', {}).keys())
+            new_passwords = set(more_data.get('passwords', {}).keys())
+            keys_in_common = sorted(
+                existing_passwords.intersection(new_passwords))
+            if keys_in_common:
+                display("%s: overrides existing password:\n    %s" % (
+                    path, ',\n    '.join(sorted(keys_in_common))),
+                    self.logger)
+            data['passwords'].update(more_data.get('passwords', {}))
+
+            # Check for duplicate passwords overrides
+            existing_overrides = set(data['password_overrides'].keys())
+            new_overrides = set(more_data['password_overrides'].keys())
+            keys_in_common = sorted(
+                existing_overrides.intersection(new_overrides))
+            if keys_in_common:
+                display("%s: overrides existing password overrides:\n    %s" % (
+                    path, ',\n    '.join(sorted(keys_in_common))),
+                    self.logger)
+            data['password_overrides'].update(more_data.get('password_overrides',{}))
+
         return data
 
     # Validate program assumptions {{{2
@@ -775,15 +825,18 @@ class Accounts:
                 path = make_path(get_head(self.path), each)
                 if get_extension(path) in ['gpg', 'asc']:
                     # Accounts file is GPG encrypted, decrypt it
-                    with open(path, 'rb') as f:
-                        decrypted = self.gpg.decrypt_file(f)
-                        if not decrypted.ok:
-                            error("%s\n%s" % (
-                                "%s: unable to decrypt." % (path),
-                                decrypted.stderr
-                            ), self.logger)
-                        code = compile(decrypted.data, path, 'exec')
-                        exec(code, more_accounts)
+                    try:
+                        with open(path, 'rb') as f:
+                            decrypted = self.gpg.decrypt_file(f)
+                            if not decrypted.ok:
+                                error("%s\n%s" % (
+                                    "%s: unable to decrypt." % (path),
+                                    decrypted.stderr
+                                ), self.logger)
+                            code = compile(decrypted.data, path, 'exec')
+                            exec(code, more_accounts)
+                    except IOError as err:
+                        error('%s: %s.' % (err.filename, err.strerror), self.logger)
                 else:
                     # Accounts file is not encrypted
                     with open(path) as f:

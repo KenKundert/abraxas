@@ -119,6 +119,8 @@ testCases = [
     # Run Password with the test settings directory
     Case(stimulus="os.system('rm -f test_settings/master.gpg')"),
     Case(stimulus="os.system('gpg2 --homedir test_key -r 4DC3AD14 -e test_settings/master')"),
+    Case(stimulus="os.system('rm -f test_settings/master2.gpg')"),
+    Case(stimulus="os.system('gpg2 --homedir test_key -r 4DC3AD14 -e test_settings/master2')"),
     Case(stimulus="pw = Password('./test_settings', gpg_home='test_key')"),
     Case(stimulus="pw.read_accounts()"),
     Case(
@@ -131,10 +133,10 @@ testCases = [
     ),
     Case(
         stimulus="' '.join(sorted(pw.all_accounts()))",
-        expected='colgate crest sensodyne toms'),
+        expected='aquafresh colgate crest sensodyne toms'),
     Case(
         stimulus="';'.join(['%s(%s)' % (each[0], ','.join(each[1])) for each in sorted(pw.find_accounts('e'), key=lambda x: x[0])])",
-        expected='colgate(Colgate,Cg);crest(Crest);sensodyne()'),
+        expected='aquafresh();colgate(Colgate,Cg);crest(Crest);sensodyne()'),
     Case(stimulus="account = pw.get_account('crest')"),
     Case(
         stimulus="account.get_id()",
@@ -169,7 +171,7 @@ testCases = [
         expected='colgate'),
     Case(
         stimulus="pw.generate_password()",
-        expected='toothpaste'),
+        expected='white teeth'),
     Case(stimulus="account = pw.get_account('sensodyne')"),
     Case(
         stimulus="account.get_id()",
@@ -184,6 +186,13 @@ testCases = [
     Case(
         stimulus="pw.generate_password()",
         expected='tP,)olY+lA~Qt>4/APS4{C+drq$]Edg.Gs"d2]YEGnL>cP-5IYKEs_WXso*L{U z'),
+    Case(stimulus="account = pw.get_account('aquafresh')"),
+    Case(
+        stimulus="account.get_id()",
+        expected='aquafresh'),
+    Case(
+        stimulus="pw.generate_password()",
+        expected='toothpaste'),
     Case(stimulus="account = pw.get_account('none')"),
     Case(
         stimulus="account.get_id()",
