@@ -1168,11 +1168,11 @@ configManpage = {
         plays particularly nicely with **pw**. It copies the command being run 
         to the window title so it can be used to determine which account to use.
 
-        When sharing your accounts you may not wish to share your window 
-        settings.  For example, if both you and your partner have accounts at 
-        Chase and you both want to have the window title on the Chase webpage to 
-        trigger your own account. You can arrange this by using some Python code 
-        as follows::
+        When sharing your accounts with a partner you may not wish to share your 
+        window settings.  For example, if both you and your partner have 
+        accounts at Chase and you both want to have the window title on the 
+        Chase webpage to trigger your own account. You can arrange this by using 
+        some Python code as follows::
 
             from getpass import getuser
 
