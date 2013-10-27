@@ -124,7 +124,7 @@ programManpage = {
         so are more likely to know the information, like the answers to these 
         security questions, that allows them access to your account.  The motive 
         generally comes eventually. It is hard to live one's life without 
-        angering a friend or family member at some point, and then they feel 
+        angering a friend or family member at some point, and then they may feel 
         justified in helping themselves to your accounts.
 
         The password generator outputs account information upon request.  It is 
@@ -169,11 +169,17 @@ programManpage = {
             $ gpg --armor --encrypt --recipient <your-gpg-id> accounts
             $ rm accounts
 
+        In some cases the mere existence of this file, even though encrypted, 
+        may be problematic. Once discovered, authorities may compel you hand 
+        over the decryption keys, which would expose the existence of all of 
+        your accounts and provide access to each of them.
+
         It is possible to generate passwords for accounts that are not described 
         in the accounts file. As such, these 'stealth' accounts are more secure 
-        since no information is retained that refers to these accounts. To 
-        generate a password or pass phrase for such an account you would simply 
-        give the name of the account on the command line. For example::
+        since no information is retained that refers to these accounts; they 
+        provide plausible deniability. To generate a password or pass phrase for 
+        such an account you would simply give the name of the account on the 
+        command line. For example::
 
             $ pw my-secret-account
             warning: account 'my-secret-account' not found.
@@ -191,7 +197,7 @@ programManpage = {
         You can generate a pass word (a collection of characters) instead of 
         a pass phrase (a collection of words) with::
 
-            /pw -T =anum my-secret-account
+            $ pw -T =anum my-secret-account
             warning: account 'my-secret-account' not found.
             PASSWORD: Rkybp9EFXLu4
 
@@ -256,8 +262,8 @@ programManpage = {
         Before using **pw** you must have a GPG identity (a public/private key 
         pair tagged to an email account). In addition, it is recommended that 
         you run gpg-agent (add 'gpg-agent' alone on a line into your 
-        ~/.gnupg/gpg.conf file).  Then you must create your accounts and master 
-        password file.  To do so, run::
+        ~/.gnupg/gpg.conf file and then start the agent).  Then you must create 
+        your accounts and master password file.  To do so, run::
 
             $ pw -I <gpg-id>
 
@@ -273,7 +279,7 @@ programManpage = {
 
             $ gpg --armor --encrypt --recipient <gpg-id> accounts
 
-        To make easy to change an encrypted file, it is recommended that you 
+        To make it easy to change an encrypted file, it is recommended that you 
         download and install the gpg plugin for vim, which can be found at 
         http://www.vim.org/scripts/script.php?script_id=3645.  The file you will 
         download is named gnupg.vim, simply move it into ~/.vim/plugin.  Once 
