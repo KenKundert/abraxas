@@ -183,7 +183,7 @@ programManpage = {
         give even a slightly different account name you will get a different 
         password.  In this case **pw** generates a password with the default 
         settings, which is actually a 4 word pass phrase, which most websites 
-        reject.  You can indicate that **pw** should generate a actual password 
+        reject.  You can indicate that **pw** should generate an actual password 
         by giving the name of a template.  A template is simply a named 
         collection of attributes that specify how to generate the password. You 
         may configure as many templates as you wish.  By default, **pw** comes 
@@ -255,7 +255,8 @@ programManpage = {
         +++++++++++++++
         Before using **pw** you must have a GPG identity (a public/private key 
         pair tagged to an email account). In addition, it is recommended that 
-        you run gpg-agent. Then you must create your accounts and master 
+        you run gpg-agent (add 'gpg-agent' alone on a line into your 
+        ~/.gnupg/gpg.conf file).  Then you must create your accounts and master 
         password file.  To do so, run::
 
             $ pw -I <gpg-id>
@@ -647,7 +648,7 @@ configManpage = {
         secrets_hash
         ~~~~~~~~~~~~
         This is a hash of the file that contains the code used when generating 
-        the hash and converting it to a password of pass phrase.  It is used to 
+        the hash and converting it to a password or pass phrase.  It is used to 
         warn you that the secrets code has changed, presumably when the program 
         itself was updated.  If this occurs you should verify that the passwords 
         it generates are the same. If not, you should not use the updated 
@@ -686,8 +687,8 @@ configManpage = {
 
             passwords = {{
                 'default': """l8i6-v?>GCTQK"oz3yzZg5Ne=&,.!*Q$2ddEaZbESwnl<4*BRi1D887XQ!W4/&}}e""",
-                'shared with peter': "hush puppie",
-                'shared with debbie': "lounge lizard",
+                'derrick and peter': "hush puppie",
+                'derrick and debbie': "lounge lizard",
             }}
 
         As shown, your account comes preloaded with a very long and very random 
@@ -699,7 +700,7 @@ configManpage = {
         you can go wild. For example, using your default master password you 
         could use **pw** to generate new master passwords::
 
-            $ pw -T =extreme 'shared with peter'
+            $ pw -T =extreme 'derrick and peter'
             PASSWORD: [Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|
 
         You can then use that string as a master password. Notice that this 
@@ -708,8 +709,8 @@ configManpage = {
 
             passwords = {{
                 'default': """l8i6-v?>GCTQK"oz3yzZg5Ne=&,.!*Q$2ddEaZbESwnl<4*BRi1D887XQ!W4/&}}e""",
-                'shared with peter': """[Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|""",
-                'shared with debbie': "lounge lizard",
+                'derrick and peter': """[Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|""",
+                'derrick and debbie': "lounge lizard",
             }}
 
         Of course it is not necessary to go to these extremes. Your password 
@@ -718,15 +719,15 @@ configManpage = {
         phone.  In this case, using the =master template to generate a simple 
         but long pass phase is much preferred::
 
-            $ pw -T =master "shared with debbie"
+            $ pw -T =master "derrick and debbie"
             PASSWORD: impulse nostril double irony conflate rookie posting blind
 
         Then your passwords entry becomes::
 
             passwords = {{
                 'default': """l8i6-v?>GCTQK"oz3yzZg5Ne=&,.!*Q$2ddEaZbESwnl<4*BRi1D887XQ!W4/&}}e""",
-                'shared with peter': """[Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|""",
-                'shared with debbie': """impulse nostril double irony conflate rookie posting blind""",
+                'derrick and peter': """[Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|""",
+                'derrick and debbie': """impulse nostril double irony conflate rookie posting blind""",
             }}
 
         This approach of using the default password to generate new master 
@@ -760,9 +761,10 @@ configManpage = {
 
             passwords = {{
                 'default': """l8i6-v?>GCTQK"oz3yzZg5Ne=&,.!*Q$2ddEaZbESwnl<4*BRi1D887XQ!W4/&}}e""",
-                'shared with peter (deprecated 120301)': """[Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|""",
-                'shared with peter': """h#KLT@f0IN(srTs$CBqRvMowBfiCT26q\yox(]w!PSlj_|ZMuDZ|{{P0Jo4:aa4M"""
-                'shared with debbie': """impulse nostril double irony conflate rookie posting blind""",
+                'derrick and peter (deprecated 120301)':
+                    """[Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|""",
+                'derrick and peter': """h#KLT@f0IN(srTs$CBqRvMowBfiCT26q\yox(]w!PSlj_|ZMuDZ|{{P0Jo4:aa4M"""
+                'derrick and debbie': """impulse nostril double irony conflate rookie posting blind""",
             }}
 
         Generally one uses the default password for the personal passwords, and
@@ -839,10 +841,10 @@ configManpage = {
 
         The accounts file is by default '~/.config/pw/accounts', but could also 
         end with either a '.gpg' or '.asc' extension if it is encrypted.  It 
-        starts out defining some character sets.  You are free to modify these 
+        starts out importing some character sets.  You are free to modify these 
         but there is generally no reason to.  They are there to help you create 
         alphabets for your passwords.  A function exclude() is also defined, 
-        which allow you to create an alphabet by removing characters from the 
+        which allows you to create an alphabet by removing characters from the 
         preexisting ones.  You can add characters simply summing them.
 
         The accounts file is a Python file that contain variables that are used
@@ -864,6 +866,9 @@ configManpage = {
         Finally, the *exclude* function is used to remove characters from 
         a character set.
 
+        The following attributes will be read and used by the password program 
+        if they exist in an accounts file.
+
         log_file
         ~~~~~~~~
 
@@ -883,7 +888,10 @@ configManpage = {
         gpg_id
         ~~~~~~
 
-        The GPG ID of the user (it is used to encrypt the archive file).
+        The GPG ID of the user (it is used to encrypt the archive file). It 
+        would either by the email address associated with the ID, or the eight 
+        digit hexidecimal GPG key ID if you have multiple keys associated with 
+        the same email address.
 
         accounts
         ~~~~~~~~
@@ -1241,8 +1249,8 @@ configManpage = {
             dict_hash = "d9aa1c08e08d6cacdf82819eeb5832429eadb95a"
             secrets_hash = "db7ce3fc4a9392187d0a8df7c80b0cdfd7b1bc22"
             passwords = {{
-                'shared with peter': "e9a7a4246a6a95f179cd4579e6f9cb69",
-                'shared with debbie': "60b56e021118ca2a261f405e15ac0165",
+                'derrick and peter': "e9a7a4246a6a95f179cd4579e6f9cb69",
+                'derrick and debbie': "60b56e021118ca2a261f405e15ac0165",
                 'default': """[Y$*{{QCf"?yvDc'{{4v?4r.iA0b3brHY z40;lZIs~bjj<DpDz&wK!XCWq=,gb}}-|""",
             }}
             default_password = 'default'
@@ -1336,7 +1344,7 @@ configManpage = {
                 }},
                 "consumer-reports": {{
                     'template': "=chars",
-                    'master': 'shared with debbie',
+                    'master': 'derrick and debbie',
                     'username': "DandD",
                     'url': "https://ec.consumerreports.org/ec/myaccount/login.htm",
                     'window': 'My account login*',
