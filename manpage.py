@@ -79,7 +79,7 @@ programManpage = {
         recoverable.
 
         To use it, one creates a file that contains information about each of 
-        his or her non-stealth accounts.  Amongst that information would be 
+        his or her non-stealth accounts.  Among that information would be 
         information that controls how the passwords are generated. This file is 
         generally not encrypted, though you can encrypt it if you like).  
         Another file is created that contains one or more master passwords.  
@@ -155,7 +155,7 @@ programManpage = {
 
         Security
         ++++++++
-        The accounts file can be a simple ASCII file that contains somehwat 
+        The accounts file can be a simple ASCII file that contains somewhat 
         sensitive information.  From this file one could infer the existence of 
         an account and would have some identifying information such as the 
         username and account number, but the passwords themselves are not 
@@ -284,7 +284,7 @@ programManpage = {
         http://www.vim.org/scripts/script.php?script_id=3645.  The file you will 
         download is named gnupg.vim, simply move it into ~/.vim/plugin.  Once 
         you have done this, edit the file with vim or gvim.  It should ask you 
-        for the GPG passphrase associated with the GPG identity you specified.  
+        for the GPG pass phrase associated with the GPG identity you specified.  
         Once you have entered it you can edit the file. 
 
         Then if desired, you can edit the accounts file and add an account. See 
@@ -359,7 +359,7 @@ programManpage = {
 
         --archive               Archive all the secrets to 
                                 ~/.config/pw/archive.gpg.
-        --changed               Indentiy all the secrets that have changed since 
+        --changed               Identify all the secrets that have changed since 
                                 last archived.
 
         -I <GPG-ID>, --init <GPG-ID>
@@ -638,7 +638,7 @@ configManpage = {
         ++++++++++++++++++++
         The master password file is named '~/.config/pw/master.gpg'. It is 
         encrypted with the GPG ID that you specified when you ran 'pw --init'.
-        It is a Python file that contains a collecton of variables. To be able
+        It is a Python file that contains a collection of variables. To be able
         to edit it conveniently it is recommended that you add the gnupg plugin
         to vim (download it from
         ``http://www.vim.org/scripts/script.php?script_id=3645`` and copy it
@@ -819,7 +819,7 @@ configManpage = {
         A list of additional master password files. This is helpful in cases 
         where you want to have a separate file for passwords shared with others.  
         The additional master password files must also be encrypted.  If they 
-        are truely shared, then you will want to encrypt them using multiple 
+        are truly shared, then you will want to encrypt them using multiple 
         recipients.
 
         An additional master password file is also a Python file, and the only 
@@ -855,7 +855,7 @@ configManpage = {
 
         The accounts file is a Python file that contain variables that are used
         by the password program. When created it will lead off with some useful 
-        imports. The *dedent* function is used to strip off leading whitespace 
+        imports. The *dedent* function is used to strip off leading white space 
         from multiline remarks. A collection of character sets are provided::
 
             lowercase = "abcdefghijklmnopqrstuvwxyz"
@@ -896,7 +896,7 @@ configManpage = {
 
         The GPG ID of the user (it is used to encrypt the archive file). It 
         would either by the email address associated with the ID, or the eight 
-        digit hexidecimal GPG key ID if you have multiple keys associated with 
+        digit hexadecimal GPG key ID if you have multiple keys associated with 
         the same email address.
 
         accounts
@@ -914,7 +914,7 @@ configManpage = {
         associated with any particular account in the real world.  For example::
 
             accounts = {{
-                "=words": {{  # typically used for linux pass phrases
+                "=words": {{  # typically used for Linux pass phrases
                     'type': 'words',
                     'num-words': 4,
                     'autotype': "{{password}}{{return}}",
@@ -963,7 +963,7 @@ configManpage = {
         want to have a separate file for accounts shared with someone else. In 
         this way you can share the details of the shared accounts file without 
         exposing your personal accounts. The additional account files may also 
-        be encrypted.  If they are truely shared, then you will want to encrypt 
+        be encrypted.  If they are truly shared, then you will want to encrypt 
         them using multiple recipients.
 
         An additional accounts file is also a Python file, and the only thing
@@ -1135,7 +1135,7 @@ configManpage = {
         When initially giving the answers to these questions, you will have to 
         select the questions you will answer, enter them into the accounts file, 
         then get the answers by running **pw**, and then copying the answers 
-        into the webpage for your account. In this way, your answers will be 
+        into the web page for your account. In this way, your answers will be 
         quite unpredictable, even to those that know you well.
 
         The answers to the security questions will change if you change your 
@@ -1147,13 +1147,13 @@ configManpage = {
         window
         ~~~~~~
         This may be either a glob string or a list of glob strings that match 
-        the title of the webpage used to enter the username/password for the 
+        the title of the web page used to enter the username/password for the 
         account. This is used to determine which account should be used if no 
         account name is given on the command line.
 
-        This enables you to set up a hotkey, such as Alt-P, to run 'pw -t', 
-        which will identify which account to use from the active window 
-        title and then use the *autotype* field to log you in.
+        This enables you to set up a hot key, such as Alt-P, to run 'pw -t', 
+        which will identify which account to use from the active window title 
+        and then use the *autotype* field to log you in.
 
         When using commands from a shell the title of the window is generally 
         unaffected by the command that is running. However, you can write 
@@ -1164,20 +1164,21 @@ configManpage = {
             xdotool getactivewindow set_window --name "Mutt"
             mutt
 
-        Lilyterm is a Linux terminal emulator that I can recommend and that 
-        plays particularly nicely with **pw**. It copies the command being run 
-        to the window title so it can be used to determine which account to use.
+        Alternatively, you can switch to Lilyterm, which is a Linux terminal 
+        emulator that I can recommend and that plays particularly nicely with 
+        **pw**. It copies the command being run to the window title so it can be 
+        used to determine which account to use.
 
-        Generally the window feature works well with your web browser, though 
-        some sites neglect to put identifying information in the title bar of 
-        their login page.  This can be addressed in Firefox and Thunderbird by 
+        Generally the window feature works well with web browsers, though some 
+        sites neglect to put identifying information in the title bar of their 
+        login page.  This can be addressed in Firefox and Thunderbird by 
         installing the 'Hostname in Titlebar' add on. It adds the URL to the 
-        title bar.
+        title bar, making it available to be matched with a window glob string.
 
         When sharing your accounts with a partner you may not wish to share your 
         window settings.  For example, if both you and your partner have 
         accounts at Chase and you both want to have the window title on the 
-        Chase webpage to trigger your own account. You can arrange this by using 
+        Chase web page to trigger your own account. You can arrange this by using 
         some Python code as follows::
 
             from getpass import getuser
@@ -1284,7 +1285,7 @@ configManpage = {
             # Account Information
             accounts = {{
                 # Templates
-                "=words": {{  # typically used for linux pass phrases
+                "=words": {{  # typically used for Linux pass phrases
                     'type': 'words',
                     'num-words': 4,
                     'autotype': "{{password}}{{return}}",
