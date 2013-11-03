@@ -1168,6 +1168,12 @@ configManpage = {
         plays particularly nicely with **pw**. It copies the command being run 
         to the window title so it can be used to determine which account to use.
 
+        Generally the window feature works well with your web browser, though 
+        some sites neglect to put identifying information in the title bar of 
+        their login page.  This can be addressed in Firefox and Thunderbird by 
+        installing the 'Hostname in Titlebar' add on. It adds the URL to the 
+        title bar.
+
         When sharing your accounts with a partner you may not wish to share your 
         window settings.  For example, if both you and your partner have 
         accounts at Chase and you both want to have the window title on the 
