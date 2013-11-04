@@ -1174,6 +1174,9 @@ configManpage = {
         login page.  This can be addressed in Firefox and Thunderbird by 
         installing the 'Hostname in Titlebar' add on. It adds the URL to the 
         title bar, making it available to be matched with a window glob string.
+        This add on also adds the protocol to the title as well. That allows you 
+        to key the password in such a way that it will not autotype unless the 
+        connection is encrypted (the protocol is https).
 
         When sharing your accounts with a partner you may not wish to share your 
         window settings.  For example, if both you and your partner have 
