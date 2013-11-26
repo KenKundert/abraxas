@@ -23,10 +23,7 @@ from docutils.core import publish_string
 from docutils.writers import manpage
 from textwrap import dedent
 from password.prefs import SEARCH_FIELDS
-
-# Version {{{1
-date = "2013-11-25"
-version = "1.4"
+from password.version import date, version
 
 # Program Manpage {{{1
 programManpage = {

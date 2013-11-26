@@ -34,7 +34,7 @@ set python=python
 
 # run pylint to find egregious errors
 # this is optional, you can delete this line if you don't have pylint
-pylint -E --disable=no-member charsets cursor dialog fileutils manpage pw secrets
+#pylint -E --disable=no-member charsets cursor dialog fileutils manpage pw secrets
 
 # Determine the version of python we are using
 set vers=`$python -c 'import sys; print("%s.%s" % (sys.version_info[0], sys.version_info[1]))'`

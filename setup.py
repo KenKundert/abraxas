@@ -1,5 +1,5 @@
 from setuptools import setup
-from manpage import version
+from password.version import version
 
 # Create/update manpage before installling
 import manpage
@@ -22,4 +22,14 @@ setup(
         ('man/man5', ['pw.5']),
     ]
   , license='GPLv3'
+  , classifiers=[
+      "Development Status :: 5 - Production/Stable",
+      "Environment :: Console",
+      "Topic :: Utilities",
+      "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+      "Natural Language :: English",
+      "Operating System :: POSIX :: Linux",
+      "Programming Language :: Python :: 2.7",
+      "Programming Language :: Python :: 3.3",
+    ]
 )
