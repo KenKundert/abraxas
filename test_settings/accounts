@@ -7,7 +7,7 @@ gpg_id = '4DC3AD14'
 
 # Account Information
 from textwrap import dedent
-from charsets import alphanumeric, punctuation, printable, hexdigits, exclude
+from password.charsets import alphanumeric, punctuation, printable, hexdigits, exclude
 accounts = {
     # Templates
     # The first view are intended to be templates.

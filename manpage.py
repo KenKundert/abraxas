@@ -1,14 +1,32 @@
 #!/bin/env python
-# Convert the restructured text version of the manpage to a nroff manpage file.
 
+# Password Generator Documentation
+#
+# Converts a restructured text version of the manpages to nroff.
+
+# License {{{1
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
+
+# Imports {{{1
 from docutils.core import publish_string
 from docutils.writers import manpage
 from textwrap import dedent
-import re
-from pw import SEARCH_FIELDS
+from password.prefs import SEARCH_FIELDS
 
-date = "2013-07-16"
-version = "1.3"
+# Version {{{1
+date = "2013-11-25"
+version = "1.4"
 
 # Program Manpage {{{1
 programManpage = {
@@ -422,7 +440,7 @@ apiManpage = {
             #!/bin/env python
 
             from __future__ import print_function, division
-            from pw import Password, PasswordError
+            from password import PasswordGenerator, PasswordError
             import gnupg
             import sys
 
@@ -439,7 +457,7 @@ apiManpage = {
                 ('tdwaterhouse', 'TD Waterhouse')]
 
             try:
-                pw = Password()
+                pw = PasswordGenerator()
                 pw.read_accounts()
 
                 lines = []
@@ -528,7 +546,7 @@ apiManpage = {
             from sys import exit
             from os import fork
             from time import sleep
-            from pw import Password, PasswordWriter, PasswordError
+            from password import PasswordGenerator, PasswordWriter, PasswordError
 
             shares = {{
                 'music': 'audio',
@@ -555,7 +573,7 @@ apiManpage = {
 
             try:
                 # Open the password generator
-                pw = Password()
+                pw = PasswordGenerator()
                 pw.read_accounts()
                 writer = PasswordWriter('t', pw)
 
@@ -592,8 +610,8 @@ apiManpage = {
             except PasswordError, err:
                 sys.exit(str(err))
 
-        The program starts by instantiating both the *Password* and the 
-        *PasswordWriter* class. The *Password* class is responsible for 
+        The program starts by instantiating both the *PasswordGenerator* and the 
+        *PasswordWriter* class. The *PasswordGenerator* class is responsible for 
         generating the password and *PasswordWriter* gets it to the user. In 
         this case the autotype facility of *PasswordWriter* is used to mimic the 
         keyboard.  When instantiating the *PasswordWriter* you must specify the 
@@ -1395,4 +1413,4 @@ def write(genRST=False):
 if __name__ == '__main__':
     write(True)
 
-# vim: set sw=4 sts=4 tw=80 formatoptions=ntcqwa12 et spell: 
+# vim: set sw=4 sts=4 tw=80 formatoptions=ntcqwa12 et spell:

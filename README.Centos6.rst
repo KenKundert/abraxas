@@ -212,9 +212,9 @@ your key sequence (Alt-P?). The username and password should appear and then you
 should be logged in. If this does not happen, take a look at ~/.config/pw/log 
 for clues as to what is going wrong. If instead of logging in there is a burst 
 of extremely strange behavior, such as your windows being moved about the 
-screen, you might consider editing the file pw.py and increasing the value of 
-INITIAL_AUTOTYPE_DELAY and reinstalling.  If this delay is not long enough the 
-username and password can confuse the window manager and be treated as window 
-manager commands.
+screen, you might consider editing the file passwords/prefs.py and increasing 
+the value of INITIAL_AUTOTYPE_DELAY and reinstalling.  If this delay is not long 
+enough the username and password can confuse the window manager and be treated 
+as a window manager command.
 
 -Ken

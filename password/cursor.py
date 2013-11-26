@@ -1,6 +1,6 @@
 import sys
 
-# This module provides some tools for manipulating the position of the cursor.  
+# This module provides some tools for manipulating the position of the cursor.
 # This is useful for programs that need to update some simple pieces of 
 # information (like a clock) but don't require a full-blown ncurses interface.
 

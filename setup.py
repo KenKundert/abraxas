@@ -1,4 +1,5 @@
 from setuptools import setup
+from manpage import version
 
 # Create/update manpage before installling
 import manpage
@@ -9,9 +10,11 @@ setup(
   , description="password generator"
   , author="Kale Kundert & Ken Kundert"
   , author_email='kaleAndKen@theKunderts.net'
+  , version=version
   , download_url='git@github.com:KenKundert/password.git'
   , scripts=['pw']
-  , py_modules=['pw', 'cursor', 'secrets', 'dialog', 'charsets', 'fileutils']
+  , packages=['password']
+  , py_modules=['cmdline', 'fileutils']
   , data_files=[
         ('', ['words']),
         ('man/man1', ['pw.1']),
