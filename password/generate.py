@@ -142,7 +142,7 @@ class PasswordGenerator:
         def generate_random_string():
             def partition(bytestr):
                 for each in list(bytestr):
-                    yield ord(each)
+                    yield each
 
             digest = os.urandom(64)
             from string import ascii_letters, digits, punctuation
