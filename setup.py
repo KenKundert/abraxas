@@ -1,7 +1,7 @@
 from setuptools import setup
 from password.version import version
 
-# Create/update manpage before installling
+# Create/update manpage before installing
 import manpage
 manpage.write()
 
