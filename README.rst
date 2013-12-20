@@ -146,10 +146,10 @@ get around to changing your password.
 
 Finally, you will want to chose a keystroke sequence and configure the window 
 manager to run the password generator when you trigger it with that keystroke.  
-Doing so will depend on your window manager. With Gnome, it requires that you 
-open your Keyboard Shortcuts preferences and a new shortcut. I recommend 
+How you do that depends on your window manager. With Gnome, it requires that you 
+open your Keyboard Shortcuts preferences and create a new shortcut.  I recommend 
 ``Alt-p`` as a reasonable keystroke sequence. Enter ``pw --autotype`` as the 
-command to run. Then, when you create your accounts, you should add the 
+command to run.  Then, when you create your accounts, you should add the 
 appropriate window titles to the account entry so that the appropriate account 
 can be determined automatically from the window title. For example, with the 
 gmail account entered above, you can go to ``gmail.com``, select the username 
