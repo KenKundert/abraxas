@@ -60,7 +60,15 @@ LABEL_STYLE = 'normal'
     # choose from normal, bright, reverse, dim, underline, blink, reverse,
     # invisible (these need to be implemented by underlying terminal, and some
     # are not (such a blink and dim)
-INITIAL_AUTOTYPE_DELAY=0.25
+INITIAL_AUTOTYPE_DELAY=0.5
+
+# Associate a command with a browser key.
+# The command must contain a single %s, which is replaced with URL.
+BROWSERS = {
+    'f': 'firefox -new-tab %s > /dev/null',
+    'v': 'vimprobable2 %s',
+}
+DEFAULT_BROWSER = 'f'
 
 # Initial master password file {{{2
 MASTER_PASSWORD_FILE_INITIAL_CONTENTS = dedent('''\

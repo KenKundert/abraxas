@@ -61,8 +61,12 @@ programManpage = {
         each word is taken from a dictionary of 10,000 words. Thus, even if 
         a bad guy knew that four lower case words were being used for your pass 
         phrase, there are still 10,000,000,000,000,000 possible combinations for 
-        him to try.  For another perspective on the attractiveness of pass 
-        phrases, see http://xkcd.com/936/. 
+        him to try (this represents a minimum entropy of 53 bits).  Using six 
+        words results in 80 bits of entropy, which meets the threshold 
+        recommended by NIST for the most secure pass phrases.
+
+        For another perspective on the attractiveness of pass phrases, see 
+        http://xkcd.com/936/. 
 
         Unlike other password generators, this one produces a highly 
         unpredictable password from a master password and the name of the 
@@ -362,6 +366,10 @@ programManpage = {
                                 List any account that contains the given string 
                                 in {search_fields}, or its ID.
 
+        -b, --default-browser   Open account in the default browser.
+        -B <browser>, --browser <browser>
+                                Open account in the specified browser.
+
         -T <template>, --template <template>
                                 Template to use if account is not found.
         -l, --list              List available master passwords and templates 
@@ -391,6 +399,95 @@ programManpage = {
         A log file is created in ~/.config/pw/log (the location of this file can 
         be specified in the *log_file* variable in the accounts file).
 
+        PASSWORD SECURITY
+        =================
+
+        How Much Entropy is Enough
+        ++++++++++++++++++++++++++
+
+        A 4 word PW password provides 53 bits of entropy, which seems like 
+        a lot, but NIST is recommending 80 bits for you most secure passwords.  
+        So, how much is actually required. It is worth exploring this question.  
+        Entropy is a measure of how hard the password is to guess. Specifically, 
+        it is the base two logarithm of the likelihood of guessing the password 
+        in a single guess. The actual entropy is hard to pin down, so generally 
+        we talk about the minimum entropy, which is the likelihood of an 
+        adversary guessing the password if he or she knows everything about the 
+        scheme used to generate the password but does not know the password 
+        itself.  So in this case the minimum entropy is the likelihood of 
+        guessing the password if it is known that we are using 4 space separated 
+        words as our passphrase. This is very easy to compute.  There are 
+        roughly 10,000 words in our dictionary, so if there was only one word in 
+        our pass phrase, the chance of guessing it would be one in 10,000 or 13 
+        bits of entropy. If we used a two word pass phrase the chance of 
+        guessing it in a single guess is one in 10,000*10,000 or one in 
+        100,000,000 or 26 bits of entropy.
+
+        The probability of guessing our pass phrase in one guess is not our 
+        primary concern. Really what we need to worry about is given 
+        a determined attack, how long would it take to guess the password. To 
+        calculate that, we need to know how fast our adversary could try 
+        guesses. If they are trying guesses by typing them in by hand, their 
+        rate is so low, say one every 10 seconds, that even a one word 
+        passphrase may be enough to deter them.  Alternatively, they may have 
+        a script that automatically tries pass phrases through a login 
+        interface.  Again, generally the rate is relatively slow.  Perhaps at 
+        most the can get is 1000 tries per second. In this case they would be 
+        able to guess a one word pass phrase in 10 seconds and a two word 
+        passphrase in a day, but a 4 word pass phrase would require 300,000 
+        years to guess in this way.
+
+        The next important thing to think about is how your password is stored 
+        by the machine or service you are logging into. The worst case situation 
+        is if they save the passwords in plain text. In this case if someone 
+        were able to break in to the machine or service, they could steal the 
+        passwords. Saving passwords in plain text is an extremely poor practice 
+        that was surprisingly common, but is becoming less common as companies 
+        start to realize their liability when their password files get stolen. 
+        Instead, they are moving to saving passwords as hashes.  A hash is 
+        a transformation that is very difficult to reverse, meaning that if you 
+        have the password it is easy to compute its hash, but given the hash it 
+        is extremely difficult to compute the original password. Thus, they save 
+        the hashes (the transformed passwords) rather than the passwords. When 
+        you log in and provide your password, it is transformed with the hash 
+        and the result is compared against the saved hash. If they are the same, 
+        you are allowed in. In that way, your password is no longer available to 
+        thieves that break in.  However, they can still steal the file of hashed 
+        passwords, which is not as good as getting the plain text passwords, but 
+        it is still valuable because it allows thieves to greatly increase the 
+        rate that they can try passwords. If a poor hash was used to hash the 
+        passwords, then passwords can be tried at a very high rate.  For 
+        example, it was recently reported that password crackers were able to 
+        try 8 billion passwords per second when passwords were hashed with the 
+        MD5 algorithm. This would allow a 4 word pass phrase to be broken in 14 
+        days, whereas a 6 word password would still require 4M years to break.  
+        The rate for the more computational intensive sha512 hash was only 2,000 
+        passwords per second. In this case, a 4 word pass phrase would require 
+        160K years to break.
+
+        In most cases you have no control over how your passwords are stored on 
+        the machines or services that you log into.  Your best defense against 
+        the notoriously poor security practices of most sites is to always use 
+        a unique password for sites where you are not in control of the secrets.  
+        For example, you might consider using the same passphrase for you login 
+        password and the pass phrase for an ssh key on a machine that you 
+        administer, but never use the same password for two different websites 
+        unless you do not care if they become public.
+
+        So, if we return to the question of how much entropy is enough, you can 
+        say that for important passwords where you are in control of the 
+        password database and it is extremely unlikely to get stolen, then four 
+        randomly chosen words from a reasonably large dictionary is plenty (for 
+        PW this is 53 bits of entropy).  If what the passphrase is trying to 
+        protect is very valuable and you do not control the password database 
+        (ex., your brokerage account) you might want to follow the NIST 
+        recommendation and use 6 words to get 80 bits of entropy. If you typing 
+        passwords on your work machine, many of which employ keyloggers to 
+        record your every keystroke, then no amount of entropy will protect you 
+        from anyone that has or gains access to the output of the keylogger.  In 
+        this case, you should consider things like one-time passwords or 
+        two-factor authentication.
+
         SEE ALSO
         ========
         pw(3), pw(5)
@@ -410,7 +507,7 @@ apiManpage = {
         password generator
         ------------------
 
-        :Author: Ken Kundert <pw@nurdletech.com>
+        :Author: Kale Kundert, Ken Kundert <pw@nurdletech.com>
         :Date: {date}
         :Version: {version}
         :Manual section: 3
