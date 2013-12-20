@@ -63,7 +63,8 @@ programManpage = {
         phrase, there are still 10,000,000,000,000,000 possible combinations for 
         him to try (this represents a minimum entropy of 53 bits).  Using six 
         words results in 80 bits of entropy, which meets the threshold 
-        recommended by NIST for the most secure pass phrases.
+        recommended by NIST for the most secure pass phrases. For more on this, 
+        see 'How Much Entropy is Enough' below.
 
         For another perspective on the attractiveness of pass phrases, see 
         http://xkcd.com/936/. 
@@ -406,22 +407,23 @@ programManpage = {
         ++++++++++++++++++++++++++
 
         A 4 word PW password provides 53 bits of entropy, which seems like 
-        a lot, but NIST is recommending 80 bits for you most secure passwords.  
+        a lot, but NIST is recommending 80 bits for your most secure passwords.  
         So, how much is actually required. It is worth exploring this question.  
         Entropy is a measure of how hard the password is to guess. Specifically, 
         it is the base two logarithm of the likelihood of guessing the password 
-        in a single guess. The actual entropy is hard to pin down, so generally 
-        we talk about the minimum entropy, which is the likelihood of an 
-        adversary guessing the password if he or she knows everything about the 
-        scheme used to generate the password but does not know the password 
-        itself.  So in this case the minimum entropy is the likelihood of 
-        guessing the password if it is known that we are using 4 space separated 
-        words as our passphrase. This is very easy to compute.  There are 
-        roughly 10,000 words in our dictionary, so if there was only one word in 
-        our pass phrase, the chance of guessing it would be one in 10,000 or 13 
-        bits of entropy. If we used a two word pass phrase the chance of 
-        guessing it in a single guess is one in 10,000*10,000 or one in 
-        100,000,000 or 26 bits of entropy.
+        in a single guess. Every increase by one in the entropy represents 
+        a doubling in the difficulty of guessing your password. The actual 
+        entropy is hard to pin down, so generally we talk about the minimum 
+        entropy, which is the likelihood of an adversary guessing the password 
+        if he or she knows everything about the scheme used to generate the 
+        password but does not know the password itself.  So in this case the 
+        minimum entropy is the likelihood of guessing the password if it is 
+        known that we are using 4 space separated words as our passphrase.  This 
+        is very easy to compute.  There are roughly 10,000 words in our 
+        dictionary, so if there was only one word in our pass phrase, the chance 
+        of guessing it would be one in 10,000 or 13 bits of entropy. If we used 
+        a two word pass phrase the chance of guessing it in a single guess is 
+        one in 10,000*10,000 or one in 100,000,000 or 26 bits of entropy.
 
         The probability of guessing our pass phrase in one guess is not our 
         primary concern. Really what we need to worry about is given 
@@ -460,10 +462,10 @@ programManpage = {
         example, it was recently reported that password crackers were able to 
         try 8 billion passwords per second when passwords were hashed with the 
         MD5 algorithm. This would allow a 4 word pass phrase to be broken in 14 
-        days, whereas a 6 word password would still require 4M years to break.  
-        The rate for the more computational intensive sha512 hash was only 2,000 
-        passwords per second. In this case, a 4 word pass phrase would require 
-        160K years to break.
+        days, whereas a 6 word password would still require 4,000,000 years to 
+        break.  The rate for the more computational intensive sha512 hash was 
+        only 2,000 passwords per second. In this case, a 4 word pass phrase 
+        would require 160,000 years to break.
 
         In most cases you have no control over how your passwords are stored on 
         the machines or services that you log into.  Your best defense against 
@@ -481,12 +483,13 @@ programManpage = {
         PW this is 53 bits of entropy).  If what the passphrase is trying to 
         protect is very valuable and you do not control the password database 
         (ex., your brokerage account) you might want to follow the NIST 
-        recommendation and use 6 words to get 80 bits of entropy. If you typing 
-        passwords on your work machine, many of which employ keyloggers to 
-        record your every keystroke, then no amount of entropy will protect you 
-        from anyone that has or gains access to the output of the keylogger.  In 
-        this case, you should consider things like one-time passwords or 
-        two-factor authentication.
+        recommendation and use 6 words to get 80 bits of entropy. If you are 
+        typing passwords on your work machine, many of which employ keyloggers 
+        to record your every keystroke, then no amount of entropy will protect 
+        you from anyone that has or gains access to the output of the keylogger.  
+        In this case, you should consider things like one-time passwords or 
+        two-factor authentication. Or better yet, only access sensitive accounts 
+        from your home machine and not from any machine that you do not control.
 
         SEE ALSO
         ========
