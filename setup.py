@@ -14,7 +14,7 @@ setup(
   , download_url='git@github.com:KenKundert/password.git'
   , scripts=['pw']
   , packages=['password']
-  , py_modules=['cmdline', 'fileutils']
+  , py_modules=['fileutils']
   , data_files=[
         ('', ['words']),
         ('man/man1', ['pw.1']),
