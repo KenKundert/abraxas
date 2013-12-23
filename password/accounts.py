@@ -62,7 +62,7 @@ class Accounts:
         self.aliases = {}
         for ID in self.all_accounts(skip_templates=False):
             if type(ID) != str:
-                error('%s: account ID must be a string.' % ID)
+                logger.error('%s: account ID must be a string.' % ID)
             data = self.accounts[ID]
 
             # check the types of the data in the various fields
@@ -145,6 +145,7 @@ class Accounts:
 
     # Read accounts file {{{2
     def _read_accounts_file(self):
+        logger = self.logger
         accounts_data = {}
         try:
             if get_extension(self.path) in ['gpg', 'asc']:
@@ -152,10 +153,9 @@ class Accounts:
                 with open(self.path, 'rb') as f:
                     decrypted = self.gpg.decrypt_file(f)
                     if not decrypted.ok:
-                        self.logger.error("%s\n%s" % (
+                        logger.error("%s\n%s" % (
                             "%s: unable to decrypt." % (self.path),
-                            decrypted.stderr
-                        ))
+                            decrypted.stderr))
                     code = compile(decrypted.data, self.path, 'exec')
                     exec(code, accounts_data)
             else:
@@ -175,14 +175,13 @@ class Accounts:
                         with open(path, 'rb') as f:
                             decrypted = self.gpg.decrypt_file(f)
                             if not decrypted.ok:
-                                self.logger.error("%s\n%s" % (
+                                logger.error("%s\n%s" % (
                                     "%s: unable to decrypt." % (path),
-                                    decrypted.stderr
-                                ))
+                                    decrypted.stderr))
                             code = compile(decrypted.data, path, 'exec')
                             exec(code, more_accounts)
                     except IOError as err:
-                        self.logger.error('%s: %s.' % (err.filename, err.strerror))
+                        logger.error('%s: %s.' % (err.filename, err.strerror))
                 else:
                     # Accounts file is not encrypted
                     with open(path) as f:
@@ -193,14 +192,15 @@ class Accounts:
                 keys_in_common = sorted(
                     existing_accounts.intersection(new_accounts))
                 if len(keys_in_common) > 2:
-                    self.logger.display("%s: overrides existing accounts:\n    %s" % (
-                        path, ',\n    '.join(sorted(keys_in_common))))
+                    logger.display(
+                        "%s: overrides existing accounts:\n    %s" % (
+                            path, ',\n    '.join(sorted(keys_in_common))))
                 elif keys_in_common:
-                    self.logger.display("%s: overrides existing account: %s" % (
+                    logger.display("%s: overrides existing account: %s" % (
                         path, keys_in_common[0]))
                 accounts_data['accounts'].update(more_accounts['accounts'])
         except IOError as err:
-            self.logger.error('%s: %s.' % (err.filename, err.strerror))
+            logger.error('%s: %s.' % (err.filename, err.strerror))
         except SyntaxError as err:
             traceback.print_exc(0)
             sys.exit()
@@ -208,7 +208,7 @@ class Accounts:
         try:
             return accounts_data['accounts']
         except KeyError:
-            self.logger.error(
+            logger.error(
                 "%s: defective accounts file, 'accounts' not found." % self.path)
 
     # Get log file {{{2

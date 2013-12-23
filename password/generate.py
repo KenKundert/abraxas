@@ -201,7 +201,6 @@ class PasswordGenerator:
         account = self.accounts.get_account(account_id)
         self.account = account
         self.logger.log('Using account: %s' % account.get_id())
-        self.master_password.set_master_password(account)
         return account
 
     # Generate password or answer {{{2
