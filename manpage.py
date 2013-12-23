@@ -93,7 +93,7 @@ programManpage = {
         a piece of paper in your safe-deposit box, you can often recover most if 
         not all of your passwords even if you somehow lose your accounts file.  
         You can even recover passwords that were created after you created your 
-        backup. This is because *pw* combines the master password with some 
+        backup. This is because **pw** combines the master password with some 
         easily reconstructed information, such as the account name, to create 
         the password. If you save the master password, the rest should be 
         recoverable.
@@ -406,7 +406,7 @@ programManpage = {
         How Much Entropy is Enough
         ++++++++++++++++++++++++++
 
-        A 4 word PW password provides 53 bits of entropy, which seems like 
+        A 4 word **pw** password provides 53 bits of entropy, which seems like 
         a lot, but NIST is recommending 80 bits for your most secure passwords.  
         So, how much is actually required. It is worth exploring this question.  
         Entropy is a measure of how hard the password is to guess. Specifically, 
@@ -480,7 +480,7 @@ programManpage = {
         say that for important passwords where you are in control of the 
         password database and it is extremely unlikely to get stolen, then four 
         randomly chosen words from a reasonably large dictionary is plenty (for 
-        PW this is 53 bits of entropy).  If what the passphrase is trying to 
+        **pw** this is 53 bits of entropy).  If what the passphrase is trying to 
         protect is very valuable and you do not control the password database 
         (ex., your brokerage account) you might want to follow the NIST 
         recommendation and use 6 words to get 80 bits of entropy. If you are 
@@ -912,13 +912,14 @@ configManpage = {
         Using a value of None for default_password disables the default 
         password, forcing you to always specify a master password. If the master 
         password is not given in the accounts file, it will be requested when 
-        the PW program is run, which allows you to use a master password that is 
-        not stored in the master password file.  This provides the ultimate in 
-        security for stealth accounts in that even if someone guessed the name 
-        of your stealth account and had access to your private GPG key, perhaps 
-        because you were compelled to give it to them, they still could not 
-        regenerate the pass phrase for your stealth account because it requires 
-        a master password that only you know but can plausibly deny having.
+        the **pw** program is run, which allows you to use a master password 
+        that is not stored in the master password file.  This provides the 
+        ultimate in security for stealth accounts in that even if someone 
+        guessed the name of your stealth account and had access to your private 
+        GPG key, perhaps because you were compelled to give it to them, they 
+        still could not regenerate the pass phrase for your stealth account 
+        because it requires a master password that only you know but can 
+        plausibly deny having.
 
         password_overrides
         ~~~~~~~~~~~~~~~~~~
@@ -946,7 +947,7 @@ configManpage = {
         recipients.
 
         An additional master password file is also a Python file, and the only 
-        things that are used by *pw* in this file is a dictionary named 
+        things that are used by **pw** in this file is a dictionary named 
         *passwords* and *password_overrides*.
 
         You can specify a single master password file using a string, and 
@@ -1090,7 +1091,7 @@ configManpage = {
         them using multiple recipients.
 
         An additional accounts file is also a Python file, and the only thing
-        that is used by *pw* in this file is a dictionary named *accounts*. It
+        that is used by **pw** in this file is a dictionary named *accounts*. It
         is generally a good idea to start from a copy of the original accounts
         file and simply delete unnecessary definitions (*log_file*,
         *archive_file* and *gpg_id*) and the non-shared accounts. In this way,
@@ -1140,9 +1141,9 @@ configManpage = {
         it must contain a digit and a symbol or it imposes a limit on the 
         maximum number of repeated characters. Some of these restrictions can be 
         satisfied by adding a prefix or a suffix, but for others, like the 
-        repeated character limit, there is no built in support in *pw* to always 
-        satisfy them. In this case you can simply bump the version until you get 
-        a password that meets their requirements.
+        repeated character limit, there is no built in support in **pw** to 
+        always satisfy them. In this case you can simply bump the version until 
+        you get a password that meets their requirements.
 
         password-type
         ~~~~~~~~~~~~~
