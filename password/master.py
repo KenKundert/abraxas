@@ -26,6 +26,7 @@ from fileutils import (
     getHead as get_head,
     getExt as get_extension,
 )
+import sys
 
 # Master password class {{{1
 # Responsible for reading and managing the data from the master password file.
@@ -38,9 +39,9 @@ class MasterPassword:
         self.logger = logger
         self.data = self._read_master_password_file()
         self.passphrase = secrets.Passphrase(
-            lambda text: display(text, logger))
+            lambda text: logger.display(text))
         self.password = secrets.Password(
-            lambda text: display(text, logger))
+            lambda text: logger.display(text))
         self._validate_assumptions()
 
     # Read master password file {{{2
@@ -98,9 +99,9 @@ class MasterPassword:
             keys_in_common = sorted(
                 existing_passwords.intersection(new_passwords))
             if keys_in_common:
-                display("%s: overrides existing password:\n    %s" % (
-                    path, ',\n    '.join(sorted(keys_in_common))),
-                    self.logger)
+                self.logger.display(
+                    "%s: overrides existing password:\n    %s" % (
+                        path, ',\n    '.join(sorted(keys_in_common))))
             data['passwords'].update(more_data.get('passwords', {}))
 
             # Check for duplicate passwords overrides
@@ -109,9 +110,9 @@ class MasterPassword:
             keys_in_common = sorted(
                 existing_overrides.intersection(new_overrides))
             if keys_in_common:
-                display("%s: overrides existing password overrides:\n    %s" % (
-                    path, ',\n    '.join(sorted(keys_in_common))),
-                    self.logger)
+                self.logger.display(
+                    "%s: overrides existing password overrides:\n    %s" % (
+                        path, ',\n    '.join(sorted(keys_in_common))))
             data['password_overrides'].update(more_data.get('password_overrides',{}))
 
         return data
@@ -136,10 +137,10 @@ class MasterPassword:
                     self.logger.error('%s: %s.' % (err.filename, err.strerror))
             hash = hashlib.sha1(contents.encode('utf-8')).hexdigest()
             if hash != self._get_field('%s_hash' % each):
-                display("Warning: '%s' has changed." % path, self.logger)
-                display("    " + "\n    ".join(wrap(' '.join([
+                self.logger.display("Warning: '%s' has changed." % path)
+                self.logger.display("    " + "\n    ".join(wrap(' '.join([
                     "This results in passwords that are inconsistent",
-                    "with those created in the past."]))), self.logger)
+                    "with those created in the past."]))))
 
     # Get field {{{2
     def _get_field(self, key):
@@ -170,10 +171,12 @@ class MasterPassword:
         else:
             import getpass
             try:
+                self.logger.display(
+                    "Provide master password for account %s." % account.ID)
                 self.master_password = getpass.getpass()
                 if not self.master_password:
-                    display("Warning: Master password is empty.", self.logger)
-            except KeyboardInterrupt:
+                    self.logger.display("Warning: Master password is empty.")
+            except (EOFError, KeyboardInterrupt):
                 sys.exit()
 
     def password_names(self):
@@ -189,6 +192,7 @@ class MasterPassword:
             pass
 
         # Otherwise generate a pass phrase or a password as directed
+        self.set_master_password(account)
         password_type = account.get_password_type()
         if password_type == 'words':
             return self.passphrase.generate(
