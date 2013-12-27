@@ -172,7 +172,7 @@ class MasterPassword:
             import getpass
             try:
                 self.logger.display(
-                    "Provide master password for account %s." % account.ID)
+                    "Provide master password for account '%s'." % account.ID)
                 self.master_password = getpass.getpass()
                 if not self.master_password:
                     self.logger.display("Warning: Master password is empty.")
@@ -206,6 +206,7 @@ class MasterPassword:
     # Generate an answer to a security question {{{2
     # Only use pass phrases as answers to security questions, not passwords.
     def generate_answer(self, account, question):
+        self.set_master_password(account)
         if type(question) == int:
             security_questions = account.get_security_questions()
             try:
