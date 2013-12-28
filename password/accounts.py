@@ -331,7 +331,7 @@ class Accounts:
                 self.logger.log(
                     "Window title matches the following accounts: '%s'." % (
                         "' '".join(matches)))
-                from dialog import accountSelectDialog
+                from password.dialog import accountSelectDialog
                 accounts = accountSelectDialog(sorted(matches))
                 try:
                     self.logger.log(

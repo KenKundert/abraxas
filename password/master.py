@@ -153,7 +153,7 @@ class MasterPassword:
     # Get the master password associated with this account.
     # If there is none, use the default.
     # If there is no default, ask the user for a password.
-    def set_master_password(self, account):
+    def get_master_password(self, account):
         passwords = self._get_field('passwords')
         default_password = self._get_field('default_password')
 
@@ -164,7 +164,7 @@ class MasterPassword:
             password_id = default_password
         if password_id:
             try:
-                self.master_password = passwords[password_id]
+                return passwords[password_id]
             except KeyError:
                 self.logger.error(
                     '%s: master password not found.' % password_id)
@@ -173,9 +173,10 @@ class MasterPassword:
             try:
                 self.logger.display(
                     "Provide master password for account '%s'." % account.ID)
-                self.master_password = getpass.getpass()
-                if not self.master_password:
+                master_password = getpass.getpass()
+                if not master_password:
                     self.logger.display("Warning: Master password is empty.")
+                return master_password
             except (EOFError, KeyboardInterrupt):
                 sys.exit()
 
@@ -192,13 +193,13 @@ class MasterPassword:
             pass
 
         # Otherwise generate a pass phrase or a password as directed
-        self.set_master_password(account)
+        master_password = self.get_master_password(account)
         password_type = account.get_password_type()
         if password_type == 'words':
             return self.passphrase.generate(
-                self.master_password, account, self.dictionary)
+                master_password, account, self.dictionary)
         elif password_type == 'chars':
-            return self.password.generate(self.master_password, account)
+            return self.password.generate(master_password, account)
         else:
             self.logger.error(
                 "%s: unknown password type (expected 'words' or 'chars').")
@@ -206,16 +207,16 @@ class MasterPassword:
     # Generate an answer to a security question {{{2
     # Only use pass phrases as answers to security questions, not passwords.
     def generate_answer(self, account, question):
-        self.set_master_password(account)
-        if type(question) == int:
-            security_questions = account.get_security_questions()
-            try:
-                question = security_questions[question]
-            except IndexError:
-                self.logger.error(
-                    'There is no security question #%s.' % question)
+        assert type(question) == int
+        security_questions = account.get_security_questions()
+        try:
+            question = security_questions[question]
+        except IndexError:
+            self.logger.error(
+                'There is no security question #%s.' % question)
+        master_password = self.get_master_password(account)
         answer = self.passphrase.generate(
-            self.master_password, account, self.dictionary, question)
+            master_password, account, self.dictionary, question)
         return (question, answer)
 
 
