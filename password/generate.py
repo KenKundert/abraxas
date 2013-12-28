@@ -2,7 +2,7 @@
 #
 # The password generator.
 #
-# Copyright (C) 2013 Kenneth S. Kundert and Kale B. Kundert
+# Copyright (C) 2013-14 Kenneth S. Kundert and Kale B. Kundert
 
 # License {{{1
 # This program is free software: you can redistribute it and/or modify

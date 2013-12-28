@@ -2,7 +2,7 @@
 #
 # Responsible for reading and managing the data from the master password file.
 #
-# Copyright (C) 2013 Kenneth S. Kundert and Kale B. Kundert
+# Copyright (C) 2013-14 Kenneth S. Kundert and Kale B. Kundert
 
 # License {{{1
 # This program is free software: you can redistribute it and/or modify
@@ -207,13 +207,16 @@ class MasterPassword:
     # Generate an answer to a security question {{{2
     # Only use pass phrases as answers to security questions, not passwords.
     def generate_answer(self, account, question):
-        assert type(question) == int
-        security_questions = account.get_security_questions()
-        try:
-            question = security_questions[question]
-        except IndexError:
-            self.logger.error(
-                'There is no security question #%s.' % question)
+        # question may either be the question text (a string) or it may be an
+        # index into the list of questions in the account (an integer)
+        if type(question) == int:
+            # question given as an index, convert it to the question text
+            security_questions = account.get_security_questions()
+            try:
+                question = security_questions[question]
+            except IndexError:
+                self.logger.error(
+                    'There is no security question #%s.' % question)
         master_password = self.get_master_password(account)
         answer = self.passphrase.generate(
             master_password, account, self.dictionary, question)
