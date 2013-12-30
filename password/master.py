@@ -26,7 +26,9 @@ from fileutils import (
     getHead as get_head,
     getExt as get_extension,
 )
+from textwrap import wrap
 import sys
+import traceback
 
 # Master password class {{{1
 # Responsible for reading and managing the data from the master password file.

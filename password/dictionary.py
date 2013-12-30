@@ -26,6 +26,7 @@ from fileutils import (
     fileIsReadable as file_is_readable,
     exists,
 )
+from textwrap import wrap
 import hashlib
 
 # Dictionary {{{1

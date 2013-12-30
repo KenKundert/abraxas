@@ -47,11 +47,10 @@ from password.prefs import (
     SECRETS_SHA1, CHARSETS_SHA1,
     LOG_FILENAME, ARCHIVE_FILENAME
 )
-from textwrap import dedent, wrap
+from textwrap import dedent
 import argparse
 import gnupg
 import hashlib
-import traceback
 import os
 
 # PasswordGenerator class {{{1
