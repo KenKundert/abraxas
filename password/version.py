@@ -1,4 +1,4 @@
 # Password Generator
 
-date = "2013-11-26"
-version = "1.4"
+DATE = "2014-1-1"
+VERSION = "1.5"

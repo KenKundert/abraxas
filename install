@@ -34,7 +34,24 @@ python=python
 
 # run pylint to find egregious errors
 # this is optional, you can delete this line if you don't have pylint
-#pylint -E --disable=no-member charsets cursor dialog fileutils manpage pw secrets
+#pylint -E --disable=no-member \
+#    pw \
+#    fileutils \
+#    manpage \
+#    secrets \
+#    password.accounts \
+#    password.charsets \
+#    password.cursor \
+#    password.dialog \
+#    password.dictionary \
+#    password.generate \
+#    password.__init__ \
+#    password.logger \
+#    password.master \
+#    password.prefs \
+#    password.secrets \
+#    password.version \
+#    password.writer \
 
 # Determine the version of python we are using
 vers=$($python -c 'import sys; print("%s.%s" % (sys.version_info[0], sys.version_info[1]))')
@@ -56,6 +73,9 @@ do
     mkdir -p ~/.local/man/man$sect
     rm -f ~/.local/man/man$sect/pw.$sect
     ln -s ~/.local/lib/python$vers/site-packages/pw-*.egg/man/man$sect/pw.$sect ~/.local/man/man$sect
+        # if you get 'failed to create symbolic link' messages here, it is 
+        # because you still have a previous version installed. You must manually 
+        # delete them before installing.
 done
 
 # remove build directories, because I like a clean directory

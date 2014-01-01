@@ -5,12 +5,11 @@
 #
 from subprocess import Popen, PIPE
 from itertools import chain
+from password.prefs import ZENITY
 
-
-zen_exec = 'zenity'
 
 def run_zenity(type, *args):
-    return Popen([zen_exec, type] + list(args), stdin=PIPE, stdout=PIPE)
+    return Popen([ZENITY, type] + list(args), stdin=PIPE, stdout=PIPE)
 
 def ZenityList(column_names, title=None, text=None, boolstyle=None, editable=False, 
          select_col=None, sep='|', data=[]):
@@ -61,10 +60,12 @@ def ZenityList(column_names, title=None, text=None, boolstyle=None, editable=Fal
     if p.wait() == 0:
         return p.stdout.read().decode().strip().split(sep)
 
-
 def accountSelectDialog(accounts):
     return ZenityList(
         ["choice","account"],
         title="PW", text="Choose desired account:",
         boolstyle="radiolist", select_col="ALL", sep='|',
         data=[["",account] for account in accounts])
+
+def messageDialog(message):
+    run_zenity('--notification', *['--text=%s' % message])

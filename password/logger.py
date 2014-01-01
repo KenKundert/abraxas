@@ -21,6 +21,7 @@
 # Imports {{{1
 from __future__ import print_function, division
 from fileutils import expandPath as expand_path, getExt as get_extension
+from password.prefs import DEBUG
 import sys
 import os
 
@@ -40,6 +41,7 @@ class Logging:
             except:
                 now = ""
             self.log("Invoked as '%s'%s." % (' '.join(argv), now))
+        self.debug("Debug logging is on (should be off in normal operation).")
         self.prog_name = prog_name
         if argv and not prog_name:
             self.prog_name = argv[0]
@@ -60,10 +62,18 @@ class Logging:
         if msg:
             self.cache.append(msg)
 
+    # Only send the message to the logfile.
+    def debug(self, msg):
+        if DEBUG and msg:
+            self.cache.append(msg)
+
     # Log a message and then throw an exception.
     def error(self, msg):
         self.log(msg)
-        raise self.exception(msg)
+        if self.exception:
+            raise self.exception(msg)
+        else:
+            sys.exit(msg)
 
     # Exit cleanly.
     def terminate(self):

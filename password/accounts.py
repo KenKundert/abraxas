@@ -22,9 +22,10 @@
 # Imports {{{1
 from __future__ import print_function, division
 from password.prefs import (
-    DEFAULT_SETTINGS_DIR, ARCHIVE_FILENAME, STRING_FIELDS, INTEGER_FIELDS,
-    LIST_FIELDS, LIST_OR_STRING_FIELDS, ENUM_FIELDS, LOG_FILENAME,
-    SEARCH_FIELDS, XDOTOOL, DEFAULT_AUTOTYPE
+    DEFAULT_SETTINGS_DIR, DEFAULT_ARCHIVE_FILENAME, DEFAULT_LOG_FILENAME,
+    STRING_FIELDS, INTEGER_FIELDS, LIST_FIELDS, LIST_OR_STRING_FIELDS,
+    ENUM_FIELDS, SEARCH_FIELDS, PREFER_HTTPS,
+    XDOTOOL, DEFAULT_AUTOTYPE, TITLE_PATTERNS, URL_PATTERN
 )
 from fileutils import (
     exists, getExt as get_extension, makePath as make_path, getHead as get_head,
@@ -32,6 +33,7 @@ from fileutils import (
 )
 import re
 import sys
+import fnmatch
 import traceback
 
 
@@ -216,13 +218,13 @@ class Accounts:
     def get_log_file(self):
         return self.data.get(
             'log_file',
-            make_path(DEFAULT_SETTINGS_DIR, LOG_FILENAME))
+            make_path(DEFAULT_SETTINGS_DIR, DEFAULT_LOG_FILENAME))
 
     # Get archive file {{{2
     def get_archive_file(self):
         return self.data.get(
             'archive_file',
-            make_path(DEFAULT_SETTINGS_DIR, ARCHIVE_FILENAME))
+            make_path(DEFAULT_SETTINGS_DIR, DEFAULT_ARCHIVE_FILENAME))
 
     # Get gpg id {{{2
     def get_gpg_id(self):
@@ -252,8 +254,8 @@ class Accounts:
         def get_data(self):
             return self.data
 
-        def get_field(self, field):
-            return self.data.get(field, None)
+        def get_field(self, field, default=None):
+            return self.data.get(field, default)
 
         def get_master(self, default):
             return self.data.get('master', default)
@@ -296,6 +298,8 @@ class Accounts:
                     account_id))
 
         def find_account_id():
+            # Uses window title to perform account discovery
+            logger = self.logger
             # Account ID was not given by the user.
             # Try to determine it from title of active window.
             # First get the title from the active window.
@@ -303,44 +307,153 @@ class Accounts:
                 status, title = pipe(
                     '%s getactivewindow getwindowname' % XDOTOOL)
             except ExecuteError as err:
-                self.logger.error(str(err))
+                logger.error(str(err))
             title = title.strip()
-            self.logger.log('Focused window title: %s' % title)
+            logger.log('Account Discovery ...')
+            logger.log('Focused window title: %s' % title)
 
-            # Look through window field in each account and see if any match.
-            import fnmatch
-            matches = []
-            for ID, window in self.get_fields('window'):
-                if type(window) == str:
-                    if fnmatch.fnmatch(title, window):
-                        matches.append(ID)
-                elif type(window == list):
-                    for each in window:
-                        if fnmatch.fnmatch(title, each):
-                            matches.append(ID)
+            # Look through fields in each account and see if any match.
+            #   Title information is separated into components. Title matches if
+            #   - title component matches if given
+            #   - host component matches if given
+            #   - email component matches if given
+            #   - username component matches if given
+            #   - account component matches if given
+            #   But the following mismatches would invalidate:
+            #   - any of the above, if given
+            #   - protocol if given
+            matches = set([])
+            for pattern_name, pattern in TITLE_PATTERNS:
+                logger.debug('Using title pattern: %s' % pattern_name)
+                match = pattern.match(title)
+                if match:
+                    fields = match.groupdict()
+                    logger.debug(
+                        'Title components:\n    %s' % '\n    '.join(
+                            ['%s: %s' % (key, val) for key, val in fields.items()]))
+                    required_protocol = None
+                    for ID, account in self.accounts.items():
+                        logger.debug('Trying account: %s' % ID)
+                        windows = account.get('window', [])
+                        if type(windows) == str:
+                            windows = [windows]
+
+                        match_found = False
+                        reasons = []
+                        for key in sorted(fields.keys(), key=lambda x: x=='protocol'):
+                            # the above has a special sort that assures protocol
+                            # is processed last
+                            val = fields[key]
+                            if key == 'title':
+                                for each in windows:
+                                    if fnmatch.fnmatch(val, each):
+                                        match_found = True
+                                        logger.debug('    title matches')
+                                        reasons += ['title matches']
+                                        break
+                                else:
+                                    if windows:
+                                        logger.debug('    title mismatch')
+                                        break
+                            elif key == 'host':
+                                urls = account.get('url', [])
+                                if type(urls) == str:
+                                    urls = [urls]
+                                for url in urls:
+                                    logger.debug('    account url: %s' % url)
+                                    match = URL_PATTERN.match(url)
+                                    if match:
+                                        url = match.groupdict()
+                                        logger.debug(
+                                            '    url components:\n        %s' % '\n        '.join(
+                                            ['%s: %s' % (key, val) for key, val in url.items()]))
+                                    else:
+                                        url = {}
+                                    if fnmatch.fnmatch(val, url.get('host', '')):
+                                        match_found = True
+                                        logger.debug('    host matches')
+                                        reasons += ['host matches']
+                                        required_protocol = url['protocol']
+                                        if required_protocol:
+                                            required_protocol = required_protocol.lower()
+                                        break
+                                else:
+                                    logger.debug('    host mismatch')
+                                    break
+                            elif key == 'username':
+                                if key == account.get('username'):
+                                    match_found = True
+                                    logger.debug('    username matches')
+                                    reasons += ['username matches']
+                                else:
+                                    logger.debug('    username mismatch')
+                                    break
+                            elif key == 'email':
+                                if key == account.get('email'):
+                                    logger.debug('    email matches')
+                                    reasons += ['email matches']
+                                    match_found = True
+                                else:
+                                    logger.debug('    email mismatch')
+                                    break
+                            elif key == 'account':
+                                if key == account.get('account'):
+                                    logger.debug('    account matches')
+                                    reasons += ['account matches']
+                                    match_found = True
+                                else:
+                                    logger.debug('    account mismatch')
+                                    break
+                            elif key == 'protocol':
+                                if PREFER_HTTPS and not required_protocol:
+                                    required_protocol = 'https'
+                                if (
+                                    required_protocol and
+                                    val.lower() != required_protocol
+                                ):
+                                    logger.debug('    protocol mismatch')
+                                    if match_found:
+                                        if required_protocol == 'https':
+                                            # this is the last test, and if a
+                                            # match is found but rejected
+                                            # because we are expecting https,
+                                            # warn the user that the page is not
+                                            # encrypted
+                                            from password.dialog import messageDialog
+                                            messageDialog(
+                                                "Account '%s' expects page to be encrypted." % ID)
+                                    break
+                        else:
+                            if match_found:
+                                logger.debug('    match!')
+                                successful_reasons = reasons
+                                matches.add(ID)
+                            else:
+                                logger.debug('    no fields to match')
+                if matches:
+                    # don't go through again if a match has already been found
+                    break
 
             # Only a single match is allowed.
+            logger.log(
+                "Window title matches the following accounts: '%s'." % (
+                    "' '".join(matches)))
             if len(matches) == 1:
+                match = matches.pop()
                 self.logger.log(
-                    "'%s' account selected due to window title." % matches[0])
-                return matches[0]
-            #elif matches:
-            #    self.logger.display(
-            #        "Active window title matches the following accounts:")
-            #    self.logger.display("    %s" % ('\n    '.join(matches)))
+                    "'%s' account selected because %s." % (
+                        match, ', '.join(successful_reasons)))
+                return match
             elif matches:
-                self.logger.log(
-                    "Window title matches the following accounts: '%s'." % (
-                        "' '".join(matches)))
                 from password.dialog import accountSelectDialog
                 accounts = accountSelectDialog(sorted(matches))
                 try:
-                    self.logger.log(
+                    logger.log(
                         "User selected '%s' account." % accounts[0])
                     return accounts[0]
                 except TypeError:
                     pass
-            self.logger.error("cannot determine desired account ID.")
+            logger.error("Cannot determine desired account ID.")
 
         # Validate account_id
         if not account_id:

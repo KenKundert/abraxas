@@ -141,7 +141,7 @@ class MasterPassword:
             if hash != self._get_field('%s_hash' % each):
                 self.logger.display("Warning: '%s' has changed." % path)
                 self.logger.display("    " + "\n    ".join(wrap(' '.join([
-                    "This results in passwords that are inconsistent",
+                    "This could result in passwords that are inconsistent",
                     "with those created in the past."]))))
 
     # Get field {{{2

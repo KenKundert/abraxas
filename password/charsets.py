@@ -6,9 +6,9 @@ construct a new alphabet for you passwords.
 
 Example:
 To create an alphabet with all characters except tabs use either:
-    'alphabet': exclude(printable, '\t')
+    'alphabet': exclude(PRINTABLE, '\t')
 or:
-    'alphabet': alphanumeric + punctuation + ' '
+    'alphabet': ALPHANUMERIC + PUNCTUATION + ' '
 """
 
 # Exclude function
@@ -26,13 +26,27 @@ def exclude(chars, exclusions):
 
 # Character sets
 # Use these to construct alphabets by summing together the ones you want.
-lowercase = "abcdefghijklmnopqrstuvwxyz"
-uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-letters = lowercase + uppercase
-digits = "0123456789"
-alphanumeric = letters + digits
-hexdigits = "0123456789abcdef"
-punctuation = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
-whitespace = " \t"
-printable = alphanumeric + punctuation + whitespace
-distinguishable = exclude(alphanumeric, 'Il1O0\\t')
+LOWERCASE = "abcdefghijklmnopqrstuvwxyz"
+UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+LETTERS = LOWERCASE + UPPERCASE
+DIGITS = "0123456789"
+ALPHANUMERIC = LETTERS + DIGITS
+HEXDIGITS = "0123456789abcdef"
+PUNCTUATION = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
+WHITESPACE = " \t"
+PRINTABLE = ALPHANUMERIC + PUNCTUATION + WHITESPACE
+DISTINGUISHABLE = exclude(ALPHANUMERIC, 'Il1O0\\t')
+
+
+# These are equivalent to the above, and are provided for backward compatibility
+# I don't recommend using these, they will likely go away in the future.
+lowercase = LOWERCASE
+uppercase = UPPERCASE
+letters = LETTERS
+digits = DIGITS
+alphanumeric = ALPHANUMERIC
+hexdigits = HEXDIGITS
+punctuation = PUNCTUATION
+whitespace = WHITESPACE
+printable = PRINTABLE
+distinguishable = DISTINGUISHABLE

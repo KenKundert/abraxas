@@ -1,6 +1,6 @@
 dict_hash = "d9aa1c08e08d6cacdf82819eeb5832429eadb95a"      # DO NOT CHANGE THIS LINE
-secrets_hash = "5d0182e4b939352b352027201008e8af473ee612"   # DO NOT CHANGE THIS LINE
-charsets_hash = "6c9644ab97b1f53f982f70e2808f0f1e850e1fe1"  # DO NOT CHANGE THIS LINE
+secrets_hash = "bb7811863130f42cee268e85430f28ac888148c5"   # DO NOT CHANGE THIS LINE
+charsets_hash = "dab48b2103ebde97f78cfebd15cc1e66d6af6ed0"  # DO NOT CHANGE THIS LINE
 
 passwords = {
     'current': """filly meddler pivot stool""",

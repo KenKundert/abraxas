@@ -4,10 +4,10 @@ import hashlib
 import string
 
 # Globals {{{1
-default_passphrase_length = 4
-default_password_length = 12
-default_separator = ' '
-default_alphabet = string.ascii_letters + string.digits
+DEFAULT_PASSPHRASE_LENGTH = 4
+DEFAULT_PASSWORD_LENGTH = 12
+DEFAULT_SEPARATOR = ' '
+DEFAULT_ALPHABET = string.ascii_letters + string.digits
 
 # Utilities {{{1
 # Partition a string into chunks, each of chars_per_chunk characters, and return
@@ -48,8 +48,8 @@ class Passphrase():
         key += account.get_id()
         key += master_password
         digest = hashlib.sha512((key).encode('utf-8')).hexdigest()
-        length = account.get_num_words(default_passphrase_length)
-        separator = account.get_separator(default_separator)
+        length = account.get_num_words(DEFAULT_PASSPHRASE_LENGTH)
+        separator = account.get_separator(DEFAULT_SEPARATOR)
         words = dictionary.get_words()
 
         # Generate pass phrase
@@ -87,11 +87,11 @@ class Password():
         key += account.get_id()
         key += master_password
         digest = hashlib.sha512((key).encode('utf-8')).hexdigest()
-        length = account.get_num_chars(default_password_length)
+        length = account.get_num_chars(DEFAULT_PASSWORD_LENGTH)
 
         # Generate password
         password = ''
-        alphabet = account.get_alphabet(default_alphabet)
+        alphabet = account.get_alphabet(DEFAULT_ALPHABET)
         self.check_length(alphabet, 8)
         for chunk in _partition(digest, 2, length):
             # chunk is a string that contains 2 hexadecimal digits (the

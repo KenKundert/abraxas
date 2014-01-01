@@ -23,10 +23,10 @@ from docutils.core import publish_string
 from docutils.writers import manpage
 from textwrap import dedent
 from password.prefs import SEARCH_FIELDS
-from password.version import date, version
+from password.version import DATE, VERSION
 
 # Program Manpage {{{1
-programManpage = {
+PROGRAM_MANPAGE = {
     'name': 'pw',
     'sect': '1',
     'contents': r"""{
@@ -43,7 +43,7 @@ programManpage = {
         :Version: {version}
         :Manual section: 1
 
-        .. :Copyright: public domain
+        .. :Copyright: Ken Kundert
         .. :Manual group: Utilities
 
         SYNOPSIS
@@ -169,7 +169,25 @@ programManpage = {
         clipboard is cleared after a minute.
 
         Finally, the password generator can output the information by mimicking 
-        the keyboard and 'typing' it to active window.  This is very powerful if 
+        the keyboard and 'typing' it to active window.  This is referred to as 
+        'autotype'.
+
+        Account Discovery
+        +++++++++++++++++
+        If no account is specified, **pw** will examine the window title and 
+        from it try to determine which account to use. In its most simple form 
+        window titles can be specified in the accounts, and the account with the 
+        matching title is used. Multiple title strings can be associated with 
+        each account, and those strings support globbing. In addition, **pw** 
+        can sometimes recognize components of the window title, components such 
+        as the URL, the protocol, etc., and it can compare those component to 
+        fields in the account to determine which account to use.
+
+        In particular, **pw** comes with the ability to recognize the title 
+        components created by 'Hostname in Titlebar', an add-on to Firefox that 
+        puts the URL and protocol in the title bar.
+
+        The combination of autotype and account discovery is very powerful if 
         you configure your window manager to run **pw** because it makes it 
         possible to login to websites and such with a single keystroke.
 
@@ -418,8 +436,8 @@ programManpage = {
         if he or she knows everything about the scheme used to generate the 
         password but does not know the password itself.  So in this case the 
         minimum entropy is the likelihood of guessing the password if it is 
-        known that we are using 4 space separated words as our passphrase.  This 
-        is very easy to compute.  There are roughly 10,000 words in our 
+        known that we are using 4 space separated words as our pass phrase.  
+        This is very easy to compute.  There are roughly 10,000 words in our 
         dictionary, so if there was only one word in our pass phrase, the chance 
         of guessing it would be one in 10,000 or 13 bits of entropy. If we used 
         a two word pass phrase the chance of guessing it in a single guess is 
@@ -430,14 +448,14 @@ programManpage = {
         a determined attack, how long would it take to guess the password. To 
         calculate that, we need to know how fast our adversary could try 
         guesses. If they are trying guesses by typing them in by hand, their 
-        rate is so low, say one every 10 seconds, that even a one word 
-        passphrase may be enough to deter them.  Alternatively, they may have 
+        rate is so low, say one every 10 seconds, that even a one word pass 
+        phrase may be enough to deter them.  Alternatively, they may have 
         a script that automatically tries pass phrases through a login 
         interface.  Again, generally the rate is relatively slow.  Perhaps at 
         most the can get is 1000 tries per second. In this case they would be 
-        able to guess a one word pass phrase in 10 seconds and a two word 
-        passphrase in a day, but a 4 word pass phrase would require 300,000 
-        years to guess in this way.
+        able to guess a one word pass phrase in 10 seconds and a two word pass 
+        phrase in a day, but a 4 word pass phrase would require 300,000 years to 
+        guess in this way.
 
         The next important thing to think about is how your password is stored 
         by the machine or service you are logging into. The worst case situation 
@@ -471,7 +489,7 @@ programManpage = {
         the machines or services that you log into.  Your best defense against 
         the notoriously poor security practices of most sites is to always use 
         a unique password for sites where you are not in control of the secrets.  
-        For example, you might consider using the same passphrase for you login 
+        For example, you might consider using the same pass phrase for you login 
         password and the pass phrase for an ssh key on a machine that you 
         administer, but never use the same password for two different websites 
         unless you do not care if they become public.
@@ -480,8 +498,8 @@ programManpage = {
         say that for important passwords where you are in control of the 
         password database and it is extremely unlikely to get stolen, then four 
         randomly chosen words from a reasonably large dictionary is plenty (for 
-        **pw** this is 53 bits of entropy).  If what the passphrase is trying to 
-        protect is very valuable and you do not control the password database 
+        **pw** this is 53 bits of entropy).  If what the pass phrase is trying 
+        to protect is very valuable and you do not control the password database 
         (ex., your brokerage account) you might want to follow the NIST 
         recommendation and use 6 words to get 80 bits of entropy. If you are 
         typing passwords on your work machine, many of which employ keyloggers 
@@ -498,7 +516,7 @@ programManpage = {
 }
 
 # API Manpage {{{1
-apiManpage = {
+API_MANPAGE = {
     'name': 'pw',
     'sect': '3',
     'contents': r'''{
@@ -515,7 +533,7 @@ apiManpage = {
         :Version: {version}
         :Manual section: 3
 
-        .. :Copyright: public domain
+        .. :Copyright: Ken Kundert
         .. :Manual group: Utilities
 
         DESCRIPTION
@@ -722,7 +740,7 @@ apiManpage = {
 }
 
 # Configuration Files Manpage {{{1
-configManpage = {
+CONFIG_MANPAGE = {
     'name': 'pw',
     'sect': '5',
     'contents': r'''{
@@ -739,7 +757,7 @@ configManpage = {
         :Version: {version}
         :Manual section: 5
 
-        .. :Copyright: public domain
+        .. :Copyright: Ken Kundert
         .. :Manual group: Utilities
 
         DESCRIPTION
@@ -980,18 +998,19 @@ configManpage = {
         The accounts file is a Python file that contain variables that are used
         by the password program. When created it will lead off with some useful 
         imports. The *dedent* function is used to strip off leading white space 
-        from multiline remarks. A collection of character sets are provided::
+        from multiline remarks. The passwords.charsets import provides 
+        a collection of useful character sets::
 
-            lowercase = "abcdefghijklmnopqrstuvwxyz"
-            uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            letters = lowercase + uppercase
-            digits = "0123456789"
-            alphanumeric = letters + digits
-            hexdigits = "0123456789abcdef"
-            punctuation = """!"#$%&'()*+,-./:;<=>?@[\]^_`{{|}}~"""
-            whitespace = " \t"
-            printable = alphanumeric + punctuation + whitespace
-            distinguishable = exclude(alphanumeric, 'Il1O0\\t')
+            LOWERCASE = "abcdefghijklmnopqrstuvwxyz"
+            UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            LETTERS = LOWERCASE + UPPERCASE
+            DIGITS = "0123456789"
+            ALPHANUMERIC = LETTERS + DIGITS
+            HEXDIGITS = "0123456789abcdef"
+            PUNCTUATION = """!"#$%&'()*+,-./:;<=>?@[\]^_`{{|}}~"""
+            WHITESPACE = " \t"
+            PRINTABLE = ALPHANUMERIC + PUNCTUATION + WHITESPACE
+            DISTINGUISHABLE = exclude(ALPHANUMERIC, 'Il1O0\\t')
 
         Finally, the *exclude* function is used to remove characters from 
         a character set.
@@ -1230,7 +1249,27 @@ configManpage = {
 
         url
         ~~~
-        A string containing the web address of the account.
+        A string containing the web address of the account or a list of strings 
+        each containing a web address.
+
+        If a list of URLs are provided, the first will be used with the 
+        ``--browser`` and ``--default-browser`` command line arguments. In this 
+        case, the browser will be started and directed to display the first 
+        address. All the addresses are used in account discovery. If a URL 
+        component is discovered in a title bar, it will be compared against all 
+        of the URLs given in the list looking for a match. The URLs may be glob 
+        strings to generalize the matching. Given that the first URL can be sent 
+        to the browser it is best not to use globbing in the first URL.
+
+        When a URL is used in account discovery, the presence of the 
+        communication protocol is significant. If the URL starts with 
+        'https://', then **pw** will insist on the use of an encrypted link. If 
+        the link is not encrypted, the account will not be selected as a match 
+        and a warning will be issued (this is a relatively common way of 
+        tricking you into disclosing your password). Even if the URL does not 
+        start with 'https://', **pw** will also require a encrypted link if 
+        PREFER_HTTPS is set to True in ``password/prefs.py`` unless the URL 
+        starts with 'http://'.
 
         remarks
         ~~~~~~~
@@ -1301,6 +1340,14 @@ configManpage = {
         This add on also adds the protocol to the title as well. That allows you 
         to key the password in such a way that it will not autotype unless the 
         connection is encrypted (the protocol is https).
+
+        In its default configuration, **pw** will recognize the components in 
+        a 'Hostname in Titlebar' title. Those components, which include the 
+        title, the hostname, and the communication protocol (http or https), and 
+        compare those to the corresponding entries in each account. The title is 
+        compared to the *window* entries and the hostname and protocol are 
+        compared against the *url*.  If no match is made with these components, 
+        then the raw title is compared against the *window* entries.
 
         When sharing your accounts with a partner you may not wish to share your 
         window settings.  For example, if both you and your partner have 
@@ -1420,7 +1467,7 @@ configManpage = {
                 "=chars": {{  # typically used for web passwords
                     'type': 'chars',
                     'num-chars': 12,
-                    'alphabet': alphanumeric + punctuation,
+                    'alphabet': ALPHANUMERIC + PUNCTUATION,
                     'autotype': "{{username}}{{tab}}{{password}}{{return}}",
                 }},
 
@@ -1491,6 +1538,14 @@ configManpage = {
                 }},
             }}
 
+        CONFIGURATION
+        =============
+        The file ``passwords/prefs.py`` contains various configuration settings 
+        that can be set to change the behavior of **pw**. You should be careful 
+        when changing these. Some settings can be changed with little concern, 
+        but others match the implementation and changing them my require changes 
+        to the underlying code.
+
         SEE ALSO
         ========
         pw(1), pw(3)
@@ -1499,15 +1554,16 @@ configManpage = {
 
 # Generate restructured text {{{1
 def write(genRST=False):
-    for each in [programManpage, apiManpage, configManpage]:
+    for each in [PROGRAM_MANPAGE, API_MANPAGE, CONFIG_MANPAGE]:
         rst = dedent(each['contents'][1:-1]).format(
-            date=date
-          , version=version
+            date=DATE
+          , version=VERSION
           , search_fields=', '.join(SEARCH_FIELDS)
         )
 
         # generate reStructuredText file (only used for debugging)
         if genRST:
+            print("generating %s.%s.rst" % (each['name'], each['sect']))
             with open('%s.%s.rst' % (each['name'], each['sect']), 'w') as f:
                 f.write(rst)
 

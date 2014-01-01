@@ -36,7 +36,7 @@ from password.master import MasterPassword
 from password.writer import PasswordWriter
 from password.accounts import Accounts
 from password.prefs import (
-    ACCOUNTS_FILENAME,
+    DEFAULT_ACCOUNTS_FILENAME,
     DEFAULT_SETTINGS_DIR,
     DEFAULT_TEMPLATE,
     DICTIONARY_FILENAME,
@@ -45,9 +45,8 @@ from password.prefs import (
     MASTER_PASSWORD_FILE_INITIAL_CONTENTS,
     ACCOUNTS_FILE_INITIAL_CONTENTS,
     SECRETS_SHA1, CHARSETS_SHA1,
-    LOG_FILENAME, ARCHIVE_FILENAME
+    DEFAULT_LOG_FILENAME, DEFAULT_ARCHIVE_FILENAME
 )
-from textwrap import dedent
 import argparse
 import gnupg
 import hashlib
@@ -79,7 +78,8 @@ class PasswordGenerator:
         if not logger:
             logger = Logging(exception=PasswordError)
         self.logger = logger
-        self.accounts_path = make_path(self.settings_dir, ACCOUNTS_FILENAME)
+        self.accounts_path = make_path(
+            self.settings_dir, DEFAULT_ACCOUNTS_FILENAME)
 
         # Get the dictionary
         self.dictionary = Dictionary(
@@ -163,13 +163,13 @@ class PasswordGenerator:
             self.master_password_path,
             MASTER_PASSWORD_FILE_INITIAL_CONTENTS % (
                 self.dictionary.hash, SECRETS_SHA1, CHARSETS_SHA1,
-                ACCOUNTS_FILENAME, default_password),
+                DEFAULT_ACCOUNTS_FILENAME, default_password),
             encrypt=True)
         create_file(
             self.accounts_path,
             ACCOUNTS_FILE_INITIAL_CONTENTS % (
-                make_path(self.settings_dir, LOG_FILENAME),
-                make_path(self.settings_dir, ARCHIVE_FILENAME),
+                make_path(self.settings_dir, DEFAULT_LOG_FILENAME),
+                make_path(self.settings_dir, DEFAULT_ARCHIVE_FILENAME),
                 gpg_id),
             encrypt=(get_extension(self.accounts_path) in ['gpg', 'asc']))
 
@@ -195,11 +195,14 @@ class PasswordGenerator:
             accounts.get_gpg_id())
 
     # Get account {{{2
-    def get_account(self, account_id):
+    def get_account(self, account_id, quiet=False):
         """Activate and return an account."""
         account = self.accounts.get_account(account_id)
         self.account = account
-        self.logger.log('Using account: %s' % account.get_id())
+        if quiet:
+            self.logger.debug('Using account: %s' % account.get_id())
+        else:
+            self.logger.log('Using account: %s' % account.get_id())
         return account
 
     # Generate password or answer {{{2
@@ -220,6 +223,7 @@ class PasswordGenerator:
            Inform the user of any secrets that have changes since they have
            been archived.
         """
+        self.logger.log("Print changed secrets.")
         try:
             import yaml
         except ImportError:
@@ -245,30 +249,34 @@ class PasswordGenerator:
             self.logger.display(
                 "NEW ACCOUNTS:\n    %s" % '\n    '.join(new_ids))
         else:
-            self.logger.log("    No new accounts.")
+            self.logger.log("No new accounts.")
         if deleted_ids:
             self.logger.display(
                 "DELETED ACCOUNTS:\n    %s" % '\n    '.join(deleted_ids))
         else:
-            self.logger.log("    No deleted accounts.")
+            self.logger.log("No deleted accounts.")
 
         # Loop through the accounts, and compare the secrets
+        accounts_with_password_diffs = []
+        accounts_with_question_diffs = []
         for account_id in self.all_accounts():
             questions = []
-            account = self.get_account(account_id)
+            account = self.get_account(account_id, quiet=True)
             password = self.generate_password(account)
             for i in account.get_security_questions():
                 questions += [list(self.generate_answer(i, account))]
             if account_id in archived_secrets:
                 # check that password is unchanged
                 if password != archived_secrets[account_id]['password']:
+                    accounts_with_password_diffs += [account_id]
                     self.logger.display("PASSWORD DIFFERS: %s" % account_id)
                 else:
-                    self.logger.log("    Password matches.")
+                    self.logger.debug("    Password matches.")
 
                 # check that number of questions is unchanged
                 archived_questions = archived_secrets[account_id]['questions']
                 if len(questions) != len(archived_questions):
+                    accounts_with_question_diffs += [account_id]
                     self.logger.display(
                         ' '.join([
                             "NUMBER OF SECURITY QUESTIONS CHANGED:",
@@ -276,7 +284,7 @@ class PasswordGenerator:
                                 account_id,
                                 len(archived_questions), len(questions))]))
                 else:
-                    self.logger.log(
+                    self.logger.debug(
                         "    Number of questions match (%d)." % (
                             len(questions)))
 
@@ -288,15 +296,27 @@ class PasswordGenerator:
                                 "QUESTION %d DIFFERS: %s (%s -> %s)." % (
                                     i, account_id, archived[0], new[0]))
                         else:
-                            self.logger.log(
+                            self.logger.debug(
                                 "    Question %d matches (%s)." % (i, new[0]))
                         if archived[1] != new[1]:
                             self.logger.display(
                                 "ANSWER TO QUESTION %d DIFFERS: %s (%s)." % (
                                 i, account_id, new[0]))
                         else:
-                            self.logger.log(
+                            self.logger.debug(
                                 "    Answer %d matches (%s)." % (i, new[0]))
+        if accounts_with_password_diffs:
+            self.logger.log(
+                "Accounts with changed passwords:\n    %s" % ',\n    '.join(
+                    accounts_with_password_diffs))
+        else:
+            self.logger.log("No accounts with changed passwords")
+        if accounts_with_question_diffs:
+            self.logger.log(
+                "Accounts with changed questions:\n    %s" % ',\n    '.join(
+                    accounts_with_question_diffs))
+        else:
+            self.logger.log("No accounts with changed questions")
 
     # Archive secrets {{{2
     def archive_secrets(self):
@@ -304,6 +324,7 @@ class PasswordGenerator:
 
            Save all secrets to the archive file.
         """
+        self.logger.log("Archive secrets.")
         try:
             import yaml
         except ImportError:
@@ -314,14 +335,14 @@ class PasswordGenerator:
         all_secrets = {}
         for account_id in self.all_accounts():
             questions = []
-            account = self.get_account(account_id)
+            account = self.get_account(account_id, quiet=True)
             password = self.generate_password(account)
-            self.logger.log("    Saving password.")
+            self.logger.debug("    Saving password.")
             for question in account.get_security_questions():
                 # convert the result to a list rather than leaving it a tuple
                 # because tuples are formatted oddly in yaml
                 questions += [list(self.generate_answer(question, account))]
-                self.logger.log(
+                self.logger.debug(
                     "    Saving question (%s) and its answer." % question)
             all_secrets[account_id] = {
                 'password': password,

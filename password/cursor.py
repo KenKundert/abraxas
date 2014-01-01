@@ -4,7 +4,7 @@ import sys
 # This is useful for programs that need to update some simple pieces of 
 # information (like a clock) but don't require a full-blown ncurses interface.
 
-colors = {
+COLORS = {
     'normal'        : 0,
     'black'         : 30,
     'red'           : 31,
@@ -15,7 +15,7 @@ colors = {
     'cyan'          : 36,
     'white'         : 37 }
 
-styles = {
+STYLES = {
     'normal'        : 0,
     'bright'        : 1,
     'bold'          : 1,  # alias for bright
@@ -36,8 +36,8 @@ def write_color(string, name, style='normal'):
 
 def color(string, name, style='normal'):
     """ Change the color of the given string. """
-    prefix = '\033[%d;%dm' % (styles[style], colors[name])
-    suffix = '\033[%d;%dm' % (styles['normal'], colors['normal'])
+    prefix = '\033[%d;%dm' % (STYLES[style], COLORS[name])
+    suffix = '\033[%d;%dm' % (STYLES['normal'], COLORS['normal'])
     return prefix + string + suffix
 
 def move(x, y):
