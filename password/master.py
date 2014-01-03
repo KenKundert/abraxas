@@ -26,6 +26,7 @@ from fileutils import (
     getHead as get_head,
     getExt as get_extension,
 )
+from password.prefs import MASTER_PASSWORD_FILENAME
 from textwrap import wrap
 import sys
 import traceback
@@ -142,7 +143,10 @@ class MasterPassword:
                 self.logger.display("Warning: '%s' has changed." % path)
                 self.logger.display("    " + "\n    ".join(wrap(' '.join([
                     "This could result in passwords that are inconsistent",
-                    "with those created in the past."]))))
+                    "with those created in the past.",
+                    "Use 'pw --changed' to assure that nothing has changed and",
+                    "then update the corresponding hash' in ~/.config/pw/%s to %s." % (
+                        MASTER_PASSWORD_FILENAME, hash)]))))
 
     # Get field {{{2
     def _get_field(self, key):
