@@ -8,9 +8,16 @@
 # Imports {{{1
 from password.generate import PasswordGenerator, PasswordError
 from password.writer import PasswordWriter
-from password.prefs import SEARCH_FIELDS, DEFAULT_SETTINGS_DIR, ARCHIVE_FILENAME
+from password.prefs import (
+    SEARCH_FIELDS, DEFAULT_SETTINGS_DIR, DEFAULT_ARCHIVE_FILENAME,
+    BROWSERS, DEFAULT_BROWSER
+)
 from password.logger import Logging
-from fileutils import getTail as get_tail, makePath as make_path
+from fileutils import (
+    getTail as get_tail,
+    makePath as make_path,
+    execute, ExecuteError
+)
 import argparse
 import sys
 
@@ -71,6 +78,13 @@ class CommandLine:
                 "List any account that contains the given string in",
                 "%s, or its ID." % ', '.join(SEARCH_FIELDS)])))
         parser.add_argument(
+            '-b', '--default-browser', action='store_true',
+            help="Open account in the default browser.")
+        parser.add_argument(
+            '-B', '--browser', type=str, metavar='<browser>',
+            help="Open account in the specified browser (choose from %s)." %
+                ', '.join(BROWSERS))
+        parser.add_argument(
             '-T', '--template',
             type=str, metavar='<template>', default=None,
             help="Template to use if account is not found.")
@@ -88,7 +102,7 @@ class CommandLine:
         parser.add_argument(
             '--archive', action='store_true',
             help=("Archive all the secrets to %s." % make_path(
-                DEFAULT_SETTINGS_DIR, ARCHIVE_FILENAME)))
+                DEFAULT_SETTINGS_DIR, DEFAULT_ARCHIVE_FILENAME)))
         parser.add_argument(
             '--changed', action='store_true',
             help=(
@@ -147,7 +161,7 @@ if __name__ == "__main__":
                     aliases = ' (%s)' % (', '.join(aliases)) if aliases else ''
                     to_print += [acct + aliases]
                 logging.display(search_term + ':')
-                logging.display('   ' + ('\n   '.join(sorted(to_print))))
+                logging.display('    ' + ('\n    '.join(sorted(to_print))))
 
             if cmd_line.find:
                 print_search_results(cmd_line.find, generator.find_accounts)
@@ -165,7 +179,34 @@ if __name__ == "__main__":
                 logging.terminate()
 
             # Select the requested account
-            generator.get_account(cmd_line.account)
+            account = generator.get_account(cmd_line.account)
+
+            # If requested, open accounts webpage in browser and then exit.
+            if cmd_line.browser or cmd_line.default_browser:
+                try:
+                    if cmd_line.default_browser:
+                        cmd = BROWSERS[DEFAULT_BROWSER]
+                    else:
+                        try:
+                            cmd = BROWSERS[cmd_line.browser]
+                        except KeyError:
+                            logging.error(
+                                'Unknown browser: %s, choose from %s.' % (
+                                    cmd_line.browser,
+                                    ', '.join(BROWSERS)))
+                    urls = account.get_field('url', [])
+                    if type(urls) == str:
+                        urls = [urls]
+                    if urls:
+                        url = urls[0]
+                            # choose first url if there are more than one
+                        logging.log("running '%s'" % (cmd % url))
+                        execute(cmd % url)
+                        logging.terminate()
+                    else:
+                        logging.error('url is unknown')
+                except ExecuteError as err:
+                    logging.error(str(err))
 
             # Create the secrets writer
             style = 'c' if cmd_line.clipboard else (
