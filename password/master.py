@@ -116,7 +116,8 @@ class MasterPassword:
                 self.logger.display(
                     "%s: overrides existing password overrides:\n    %s" % (
                         path, ',\n    '.join(sorted(keys_in_common))))
-            data['password_overrides'].update(more_data.get('password_overrides',{}))
+            data['password_overrides'].update(
+                more_data.get('password_overrides', {}))
 
         return data
 
@@ -229,3 +230,4 @@ class MasterPassword:
         return (question, answer)
 
 
+# vim: set sw=4 sts=4 et:

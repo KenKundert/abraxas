@@ -214,7 +214,8 @@ class PasswordWriter:
                     set(self.password.account.get_data().keys()) -
                     set(ALL_FIELDS))
                 for field in fields:
-                    display_field(field, self.password.account.get_field(field))
+                    display_field(
+                        field, self.password.account.get_field(field))
             elif action[0] == 'password':
                 display_secret(
                     'PASSWORD',
@@ -281,7 +282,8 @@ class PasswordWriter:
                             lines += ['question %d: %s' % (
                                 action[1], questions[action[1]])]
                         except IndexError:
-                            lines += ['question %d: <not available>' % action[1]]
+                            lines += [
+                                'question %d: <not available>' % action[1]]
             elif action[0] == 'answer':
                 question, answer = self.password.generate_answer(action[1])
                 if answer:
@@ -398,3 +400,4 @@ class PasswordWriter:
         autotype(''.join(text))
 
 
+# vim: set sw=4 sts=4 et:

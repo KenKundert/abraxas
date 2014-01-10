@@ -268,3 +268,6 @@ if printSummary:
 
 writeSummary(testsRun, failures)
 sys.exit(int(bool(failures)))
+
+
+# vim: set sw=4 sts=4 et:

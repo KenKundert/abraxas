@@ -372,3 +372,5 @@ class PasswordError(Exception):
     def __str__(self):
         return self.message
 
+
+# vim: set sw=4 sts=4 et:

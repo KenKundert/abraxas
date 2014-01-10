@@ -340,7 +340,7 @@ class Accounts:
 
                         match_found = False
                         reasons = []
-                        for key in sorted(fields.keys(), key=lambda x: x=='protocol'):
+                        for key in sorted(fields.keys(), key=lambda x: x == 'protocol'):
                             # the above has a special sort that assures protocol
                             # is processed last
                             val = fields[key]
@@ -531,3 +531,4 @@ class Accounts:
                 yield ID, self.accounts[ID].get('aliases', [])
 
 
+# vim: set sw=4 sts=4 et:

@@ -46,7 +46,7 @@ LABEL_STYLE = 'normal'
     # choose from normal, bright, reverse, dim, underline, blink, reverse,
     # invisible (these need to be implemented by underlying terminal, and some
     # are not (such a blink and dim)
-INITIAL_AUTOTYPE_DELAY=0.5
+INITIAL_AUTOTYPE_DELAY = 0.5
 DEBUG = False
     # Turns on the logging of extra information, but may expose sensitive
     # account information in the log file.
@@ -286,3 +286,6 @@ ALL_FIELDS = (
     STRING_FIELDS + INTEGER_FIELDS + LIST_FIELDS + LIST_OR_STRING_FIELDS +
     [each for each in ENUM_FIELDS.keys()]
 )
+
+
+# vim: set sw=4 sts=4 et:

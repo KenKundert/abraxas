@@ -168,7 +168,8 @@ if __name__ == "__main__":
                 logging.terminate()
 
             if cmd_line.search:
-                print_search_results(cmd_line.search, generator.search_accounts)
+                print_search_results(
+                    cmd_line.search, generator.search_accounts)
                 logging.terminate()
 
             if cmd_line.changed:
@@ -242,3 +243,6 @@ if __name__ == "__main__":
         sys.exit('%s: %s' % (cmd_line.name_as_invoked(), str(err)))
     except KeyboardInterrupt:
         sys.exit('Killed by user')
+
+
+# vim: set sw=4 sts=4 et:

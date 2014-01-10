@@ -1556,9 +1556,9 @@ CONFIG_MANPAGE = {
 def write(genRST=False):
     for each in [PROGRAM_MANPAGE, API_MANPAGE, CONFIG_MANPAGE]:
         rst = dedent(each['contents'][1:-1]).format(
-            date=DATE
-          , version=VERSION
-          , search_fields=', '.join(SEARCH_FIELDS)
+            date=DATE,
+            version=VERSION,
+            search_fields=', '.join(SEARCH_FIELDS)
         )
 
         # generate reStructuredText file (only used for debugging)
@@ -1575,4 +1575,4 @@ def write(genRST=False):
 if __name__ == '__main__':
     write(True)
 
-# vim: set sw=4 sts=4 tw=80 formatoptions=ntcqwa12 et spell:
+# vim: set sw=4 sts=4 formatoptions=ntcqwa12 et spell:
