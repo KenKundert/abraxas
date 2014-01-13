@@ -343,10 +343,10 @@ class Accounts:
                         for key in sorted(fields.keys(), key=lambda x: x == 'protocol'):
                             # the above has a special sort that assures protocol
                             # is processed last
-                            val = fields[key]
+                            value = fields[key]
                             if key == 'title':
                                 for each in windows:
-                                    if fnmatch.fnmatch(val, each):
+                                    if fnmatch.fnmatch(value, each):
                                         match_found = True
                                         logger.debug('    title matches')
                                         reasons += ['title matches']
@@ -366,10 +366,10 @@ class Accounts:
                                         url = match.groupdict()
                                         logger.debug(
                                             '    url components:\n        %s' % '\n        '.join(
-                                            ['%s: %s' % (key, val) for key, val in url.items()]))
+                                            ['%s: %s' % (k, v) for k, v in url.items()]))
                                     else:
                                         url = {}
-                                    if fnmatch.fnmatch(val, url.get('host', '')):
+                                    if fnmatch.fnmatch(value, url.get('host', '')):
                                         match_found = True
                                         logger.debug('    host matches')
                                         reasons += ['host matches']
@@ -409,7 +409,7 @@ class Accounts:
                                     required_protocol = 'https'
                                 if (
                                     required_protocol and
-                                    val.lower() != required_protocol
+                                    value.lower() != required_protocol
                                 ):
                                     logger.debug('    protocol mismatch')
                                     if match_found:

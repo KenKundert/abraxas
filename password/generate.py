@@ -140,8 +140,8 @@ class PasswordGenerator:
         # Generate a random long string to act as the default password
         def generate_random_string():
             def partition(bytestr):
-                for each in list(bytestr):
-                    yield each
+                for each in bytestr:
+                    yield ord(each)
 
             digest = os.urandom(64)
             from string import ascii_letters, digits, punctuation
