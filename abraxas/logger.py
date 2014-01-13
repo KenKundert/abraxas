@@ -1,4 +1,4 @@
-# Logging
+# Abraxas Logging
 #
 # Log output to a file.
 #
@@ -21,7 +21,7 @@
 # Imports {{{1
 from __future__ import print_function, division
 from fileutils import expandPath as expand_path, getExt as get_extension
-from password.prefs import DEBUG
+from abraxas.prefs import DEBUG
 import sys
 import os
 

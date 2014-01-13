@@ -1,4 +1,4 @@
-# Password Generator
+# Abraxas Password Generator
 #
 # The password generator.
 #
@@ -30,12 +30,12 @@ from fileutils import (
     mkdir, exists,
     execute, pipe, ExecuteError
 )
-from password.logger import Logging
-from password.dictionary import Dictionary
-from password.master import MasterPassword
-from password.writer import PasswordWriter
-from password.accounts import Accounts
-from password.prefs import (
+from abraxas.logger import Logging
+from abraxas.dictionary import Dictionary
+from abraxas.master import MasterPassword
+from abraxas.writer import PasswordWriter
+from abraxas.accounts import Accounts
+from abraxas.prefs import (
     DEFAULT_ACCOUNTS_FILENAME,
     DEFAULT_SETTINGS_DIR,
     DEFAULT_TEMPLATE,

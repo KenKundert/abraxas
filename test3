@@ -3,4 +3,4 @@
 
 from runtests import runTests
 
-runTests(['pw'], pythonCmd='python3')
+runTests(['abraxas'], pythonCmd='python3')

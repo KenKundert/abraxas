@@ -1,4 +1,4 @@
-# Master Password
+# Abraxas Master Password
 #
 # Responsible for reading and managing the data from the master password file.
 #
@@ -19,14 +19,14 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
 # Imports {{{1
-import password.secrets as secrets
+import abraxas.secrets as secrets
 import hashlib
 from fileutils import (
     makePath as make_path,
     getHead as get_head,
     getExt as get_extension,
 )
-from password.prefs import MASTER_PASSWORD_FILENAME
+from abraxas.prefs import DEFAULT_SETTINGS_DIR, MASTER_PASSWORD_FILENAME
 from textwrap import wrap
 import sys
 import traceback
@@ -74,7 +74,7 @@ class MasterPassword:
         additional_password_files = data.get(
             'additional_master_password_files', [])
         if type(additional_password_files) == str:
-            additional_password_files = additional_password_files.split()
+            additional_password_files = [additional_password_files]
         more_data = {}
         for each in additional_password_files:
             path = make_path(get_head(self.path), each)
@@ -145,9 +145,9 @@ class MasterPassword:
                 self.logger.display("    " + "\n    ".join(wrap(' '.join([
                     "This could result in passwords that are inconsistent",
                     "with those created in the past.",
-                    "Use 'pw --changed' to assure that nothing has changed and",
-                    "then update the corresponding hash' in ~/.config/pw/%s to %s." % (
-                        MASTER_PASSWORD_FILENAME, hash)]))))
+                    "Use 'abraxas --changed' to assure that nothing has changed and",
+                    "then update the corresponding hash' in %s/%s to %s." % (
+                        DEFAULT_SETTINGS_DIR, MASTER_PASSWORD_FILENAME, hash)]))))
 
     # Get field {{{2
     def _get_field(self, key):

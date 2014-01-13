@@ -26,7 +26,7 @@ from fileutils import (
     fileIsReadable as file_is_readable,
     exists,
 )
-from password.prefs import MASTER_PASSWORD_FILENAME
+from abraxas.prefs import DEFAULT_SETTINGS_DIR, MASTER_PASSWORD_FILENAME
 from textwrap import wrap
 import hashlib
 
@@ -71,9 +71,9 @@ class Dictionary:
             self.logger.display("    " + "\n    ".join(wrap(' '.join([
                 "This results in pass phrases that are inconsistent",
                 "with those created in the past.",
-                "Use 'pw --changed' to assure that nothing has changed and",
-                "then update 'dict_hash' in ~/.config/pw/%s to %s." % (
-                    MASTER_PASSWORD_FILENAME, self.hash)]))))
+                "Use 'abraxas --changed' to assure that nothing has changed and",
+                "then update 'dict_hash' in %s/%s to %s." % (
+                    DEFAULT_SETTINGS_DIR, MASTER_PASSWORD_FILENAME, self.hash)]))))
 
     # get_words {{{2
     def get_words(self):

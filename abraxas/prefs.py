@@ -1,6 +1,4 @@
-# Password Generator
-#
-# Preferences.
+# Abraxas Password Generator Preferences
 #
 # Copyright (C) 2013-14 Kenneth S. Kundert and Kale B. Kundert
 
@@ -24,7 +22,7 @@ import re
 
 # Globals {{{1
 # Filenames {{{2
-DEFAULT_SETTINGS_DIR = '~/.config/pw'
+DEFAULT_SETTINGS_DIR = '~/.config/abraxas'
 MASTER_PASSWORD_FILENAME = 'master.gpg'
 DEFAULT_ACCOUNTS_FILENAME = 'accounts'
     # accounts file will be encrypted if you add .gpg or .asc extension
@@ -51,10 +49,10 @@ DEBUG = False
     # Turns on the logging of extra information, but may expose sensitive
     # account information in the log file.
 PREFER_HTTPS = True
-    # When PREFER_HTTPS is true, pw will require the https protocol unless http
-    # is explicitly specified in the url.
-    # When PREFER_HTTPS is false, pw will allow the http protocol unless https
-    # is explicitly specified in the url.
+    # When PREFER_HTTPS is true, abraxas requires the https protocol unless
+    # http is explicitly specified in the url.
+    # When PREFER_HTTPS is false, abraxas allows the http protocol unless
+    # https is explicitly specified in the url.
 
 # Utility programs {{{2
 XDOTOOL = '/usr/bin/xdotool'
@@ -124,8 +122,8 @@ MASTER_PASSWORD_FILE_INITIAL_CONTENTS = dedent('''\
     password_overrides = {
         '<account>': """<place password here>""",
     }
-    
-    # vim: filetype=python
+
+    # vim: filetype=python sw=4 sts=4 et ai ff=unix:
 ''')
 
 # Initial accounts file {{{2
@@ -145,7 +143,7 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
     #     'alphabet': ALPHANUMERIC + PUNCTUATION + ' '
 
     from textwrap import dedent
-    from password.charsets import (
+    from abraxas.charsets import (
         exclude, LOWERCASE, UPPERCASE, LETTERS, DIGITS, ALPHANUMERIC,
         HEXDIGITS, PUNCTUATION, WHITESPACE, PRINTABLE, DISTINGUISHABLE
     )
@@ -196,7 +194,7 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
             'alphabet': DISTINGUISHABLE,
             'autotype': "{username}{tab}{password}{return}",
         },
-        "=master": {  # typically used to generate master passwords for pw
+        "=master": {  # typically used to generate master passwords for abraxas
             'password-type': 'words',
             'num-words': 8,
         },
@@ -269,7 +267,7 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
     }
     additional_accounts = []
 
-    # vim: filetype=python
+    # vim: filetype=python sw=4 sts=4 et ai ff=unix:
 ''')
 
 # Fields {{{1

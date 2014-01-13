@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 
-# Password Generator
+# Abraxas Password Generator
 # Copyright (C) 2013-14 Kenneth S. Kundert and Kale B. Kundert
 #
 # Generates passwords and pass phrases based on stored account information.
 
 # Imports {{{1
-from password.generate import PasswordGenerator, PasswordError
-from password.writer import PasswordWriter
-from password.prefs import (
+from abraxas.generate import PasswordGenerator, PasswordError
+from abraxas.writer import PasswordWriter
+from abraxas.prefs import (
     SEARCH_FIELDS, DEFAULT_SETTINGS_DIR, DEFAULT_ARCHIVE_FILENAME,
     BROWSERS, DEFAULT_BROWSER
 )
-from password.logger import Logging
+from abraxas.logger import Logging
 from fileutils import (
     getTail as get_tail,
     makePath as make_path,
@@ -244,5 +244,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         sys.exit('Killed by user')
 
-
-# vim: set sw=4 sts=4 et:
+# vim: set filetype=python sw=4 sts=4 et ai:

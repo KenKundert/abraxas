@@ -1,4 +1,4 @@
-# Password Accounts
+# Abraxas Password Accounts
 #
 # Responsible for reading and managing the data from the user's accounts file.
 #
@@ -21,7 +21,7 @@
 
 # Imports {{{1
 from __future__ import print_function, division
-from password.prefs import (
+from abraxas.prefs import (
     DEFAULT_SETTINGS_DIR, DEFAULT_ARCHIVE_FILENAME, DEFAULT_LOG_FILENAME,
     STRING_FIELDS, INTEGER_FIELDS, LIST_FIELDS, LIST_OR_STRING_FIELDS,
     ENUM_FIELDS, SEARCH_FIELDS, PREFER_HTTPS,
@@ -168,7 +168,7 @@ class Accounts:
                     exec(code, accounts_data)
             additional_accounts = accounts_data.get('additional_accounts', [])
             if type(additional_accounts) == str:
-                additional_accounts = additional_accounts.split()
+                additional_accounts = [additional_accounts]
             more_accounts = {}
             for each in additional_accounts:
                 path = make_path(get_head(self.path), each)
@@ -232,7 +232,7 @@ class Accounts:
             return self.data['gpg_id']
         except KeyError:
             self.logger.error(
-                "'gpg_id' missing from %s (see 'man 5 pw')." % self.path)
+                "'gpg_id' missing from %s (see 'man 5 abraxas')." % self.path)
 
     # List templates {{{2
     # Templates are accounts whose ID starts with =.
@@ -419,7 +419,7 @@ class Accounts:
                                             # because we are expecting https,
                                             # warn the user that the page is not
                                             # encrypted
-                                            from password.dialog import messageDialog
+                                            from abraxas.dialog import messageDialog
                                             messageDialog(
                                                 "Account '%s' expects page to be encrypted." % ID)
                                     break
@@ -445,7 +445,7 @@ class Accounts:
                         match, ', '.join(successful_reasons)))
                 return match
             elif matches:
-                from password.dialog import accountSelectDialog
+                from abraxas.dialog import accountSelectDialog
                 accounts = accountSelectDialog(sorted(matches))
                 try:
                     logger.log(

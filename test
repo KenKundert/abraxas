@@ -3,4 +3,4 @@
 
 from runtests import runTests
 
-runTests(['pw'])
+runTests(['abraxas'])

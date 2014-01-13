@@ -3,7 +3,15 @@ test_settings/log
 test_settings/*.gpg
 .*.swp
 test_key/random_seed
-pw.*
+abraxas.1
+abraxas.1.rst
+abraxas.1.pdf
+abraxas.3
+abraxas.3.rst
+abraxas.3.pdf
+abraxas.5
+abraxas.5.rst
+abraxas.5.pdf
 install.out
 
 # Packages

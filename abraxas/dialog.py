@@ -5,7 +5,7 @@
 #
 from subprocess import Popen, PIPE
 from itertools import chain
-from password.prefs import ZENITY
+from abraxas.prefs import ZENITY
 
 
 def run_zenity(type, *args):

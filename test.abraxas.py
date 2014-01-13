@@ -6,7 +6,7 @@
 from __future__ import print_function, division
 from runtests import cmdLineOpts, writeSummary
 from textcolors import Colors
-from password import PasswordGenerator, PasswordError
+from abraxas import PasswordGenerator, PasswordError
 from fileutils import remove
 from textwrap import dedent
 import sys

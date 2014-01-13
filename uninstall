@@ -1,0 +1,10 @@
+#!/bin/sh
+# Uninstalls abraxas
+
+# Set python to the version of python you wish to use (ex. python2 or python3)
+python=python3
+
+# this does not seem to work
+#python$vers setup.py develop --uninstall --user >& install.out
+rm -f ~/.local/bin/abraxas ~/.local/man/man?/abraxas?
+rm -rf ~/.local/lib/python[23]*/site-packages/abraxas-*.egg

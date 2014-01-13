@@ -1,4 +1,4 @@
-# Password Writer
+# Abraxas Password Writer
 #
 # Given a secret (password or passphrase) the password writer is responsible for
 # getting it to the user in reasonably secure manners.
@@ -21,8 +21,8 @@
 
 # Imports {{{1
 from __future__ import print_function, division
-import password.cursor as cursor
-from password.prefs import (
+import abraxas.cursor as cursor
+from abraxas.prefs import (
     LABEL_COLOR, LABEL_STYLE, XDOTOOL, XSEL, ALL_FIELDS, INITIAL_AUTOTYPE_DELAY
 )
 from fileutils import execute, pipe, ExecuteError

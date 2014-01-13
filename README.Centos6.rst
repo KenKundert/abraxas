@@ -4,15 +4,15 @@ Installing on Centos6.2
 Installing Prerequisites
 ------------------------
 
-Installing PW on any machine can be a bit of a challenge, mainly because of GPG, 
-which can take some work to get set up properly. However, getting GPG set up 
-pays off in many ways. Besides using it for passwords, you can encrypt your 
+Installing Abraxas on any machine can be a bit of a challenge, mainly because of 
+GPG, which can take some work to get set up properly. However, getting GPG set 
+up pays off in many ways. Besides using it for passwords, you can encrypt your 
 files and your email, and you can use it to prove your identity to others. There 
 is a great deal of information about this on the web if you care to search 
 around a bit.
 
-To show you how overcome many of the problems that occur when installing PW and 
-GPG, I will take you through the process of installing PW on Centos6.2.
+To show you how overcome many of the problems that occur when installing Abraxas 
+and GPG, I will take you through the process of installing Abraxas on Centos6.2.
 
 By default Centos comes with a rather thin set of yum repositories, and many of 
 the dependencies that we will need to install are not contained in the base 
@@ -102,13 +102,13 @@ click 'Add' and add the following::
    Name: GPG Agent
    Command: eval `gpg-agent --daemon`
 
-While you are at it, configure Gnome to run PW when you type a special key 
+While you are at it, configure Gnome to run Abraxas when you type a special key 
 sequence. This will allow you to login to webpages and such just by typing the 
 key sequence. To do so, go to 'System->Preference->Keyboard Shortcuts', click 
 'Add' and add the following::
 
    Name: Password
-   Command: /home/<you>/.local/bin/pw --autotype
+   Command: /home/<you>/.local/bin/abraxas --autotype
 
 Then click on the word 'Disabled' in the Shortcut column. It should switch to 
 "New Shortcut ...". Then simply type your desired key sequence. I use Alt-N 
@@ -134,15 +134,15 @@ This time, you should not be asked for your passphrase. If you are your
 connection to gpg-agent is broken. Look in ~/gnupg/gpg-agent.log for clues as to 
 what is going wrong.
 
-Installing Password
--------------------
+Installing Abraxas
+------------------
 
-At this point you should be able to test and install PW. As you (a normal user, 
-not root)::
+At this point you should be able to test and install Abraxas. As you (a normal 
+user, not root)::
 
-   $ cd password
+   $ cd abraxas
    $ ./test
-   pw: generated_settings/master.gpg: created.
+   abraxas: generated_settings/master.gpg: created.
    generated_settings/accounts: created.
    generated_settings/master.gpg: created.
    generated_settings/accounts: created.
@@ -157,26 +157,27 @@ not root)::
 
 Make sure you can access the man pages::
 
-   $ man pw
-   $ man 3 pw
-   $ man 5 pw
+   $ man abraxas
+   $ man 3 abraxas
+   $ man 5 abraxas
 
 Now, create your Password files using::
 
-   $ pw -I <your email address>
+   $ abraxas -I <your email address>
 
 You can give give the 8-digit hexadecimal key ID in lieu of your email address 
 if you like, and that is preferred if you have multiple GPG accounts with the 
 same email address. You can now test your setup using::
 
-   $ pw foo
-   $ pw -c foo
-   $ pw -t foo
+   $ abraxas foo
+   $ abraxas -c foo
+   $ abraxas -t foo
 
 In each case it will warn you that account 'foo' cannot be found.
 
-As your first account, you should configure PW to generate your gpg passphrase.  
-Add something like the following to 'accounts' in ~/.config/accounts::
+As your first account, you should configure Abraxas to generate your gpg 
+passphrase.  Add something like the following to 'accounts' in 
+~/.config/accounts::
 
    "gpg-BABEBEEF": {
       'aliases': ["gpg"],
@@ -187,7 +188,7 @@ Add something like the following to 'accounts' in ~/.config/accounts::
 where you should use your key ID rather than BABEBEEF. Now generate your new GPG 
 passphrase with::
 
-   pw gpg
+   abraxas gpg
 
 Finally, you need to update your GPG key to use this new passphrase. To do so, 
 use::
@@ -197,7 +198,7 @@ use::
 
 Now, in another window, run::
 
-   pw -c gpg
+   abraxas -c gpg
 
 which copies your passphrase into the clipboard temporarily, and paste this new 
 passphrase into the GPG "Enter Passphrase" form. When first assigning your 
@@ -205,16 +206,17 @@ passphrase you should type it the first time and paste it the second. That way
 you do not accidentally set it to a bogus value.
 
 Finally, you will want to test the autotype feature. To do so, edit 
-~/.config/pw/accounts and add an web account. Be sure to add the 'window' and 
-perhaps 'autotype' fields (run 'man 5 pw' for more information on how to add 
-your account). Then visit that webpage, click on the username field, and type 
-your key sequence (Alt-P?). The username and password should appear and then you 
-should be logged in. If this does not happen, take a look at ~/.config/pw/log 
-for clues as to what is going wrong. If instead of logging in there is a burst 
-of extremely strange behavior, such as your windows being moved about the 
-screen, you might consider editing the file passwords/prefs.py and increasing 
-the value of INITIAL_AUTOTYPE_DELAY and reinstalling.  If this delay is not long 
-enough the username and password can confuse the window manager and be treated 
-as a window manager command.
+~/.config/abraxas/accounts and add an web account. Be sure to add the 'window' 
+and perhaps 'autotype' fields (run 'man 5 abraxas' for more information on how 
+to add your account). Then visit that webpage, click on the username field, and 
+type your key sequence (Alt-P?). The username and password should appear and 
+then you should be logged in. If this does not happen, take a look at 
+~/.config/abraxas/log for clues as to what is going wrong (you can set DEBUG to 
+True in abraxas/prefs.py and reinstall for more information).  If instead of 
+logging in there is a burst of extremely strange behavior, such as your windows 
+being moved about the screen, you might consider editing the file 
+abraxas/prefs.py and increasing the value of INITIAL_AUTOTYPE_DELAY and 
+reinstalling.  If this delay is not long enough the username and password can 
+confuse the window manager and be treated as a window manager command.
 
 -Ken
