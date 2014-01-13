@@ -124,6 +124,8 @@ MASTER_PASSWORD_FILE_INITIAL_CONTENTS = dedent('''\
     password_overrides = {
         '<account>': """<place password here>""",
     }
+    
+    # vim: filetype=python
 ''')
 
 # Initial accounts file {{{2
@@ -266,6 +268,8 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
         #   },
     }
     additional_accounts = []
+
+    # vim: filetype=python
 ''')
 
 # Fields {{{1
