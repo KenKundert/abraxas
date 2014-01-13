@@ -47,7 +47,7 @@ LABEL_STYLE = 'normal'
     # invisible (these need to be implemented by underlying terminal, and some
     # are not (such a blink and dim)
 INITIAL_AUTOTYPE_DELAY = 0.5
-DEBUG = True
+DEBUG = False
     # Turns on the logging of extra information, but may expose sensitive
     # account information in the log file.
 PREFER_HTTPS = True
