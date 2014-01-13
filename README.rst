@@ -41,13 +41,12 @@ It requires the following packages to fully function::
    # yum install python
    # yum install python-setuptools (for installation)
    # yum install libyaml-devel (password archive)
-   # easy_install python-gnupg
-   # easy_install argparse
-   # easy_install docutils (for manpages)
-   # easy_install PyYAML (password archive)
+   # yum install PyYAML (password archive)
+   # yum install python-docutils (for manpages)
    # yum install xdotool (autotype support)
    # yum install xsel (clipboard support)
    # yum install zenity (account selection when window title is not enough)
+   # easy_install python-gnupg
 
 On Redhat-based systems you can get these dependencies by running ./yum.sh.
 
