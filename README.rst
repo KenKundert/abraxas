@@ -133,8 +133,8 @@ Once installed, you should be able to get information as follows::
 
 Configuring Vim
 ---------------
-To be able to easily edit the master password file, download the gnupg vim
-plugin from::
+To be able to easily edit encrypted files (such as the Abraxas master password 
+file), download the gnupg vim plugin from::
 
    http://www.vim.org/scripts/script.php?script_id=3645
 
@@ -142,8 +142,8 @@ Then copy it into::
 
    cp gnupg.vim ~/.vim/plugin
 
-Initial Setup of Abraxas
-------------------------
+Configuring Abraxas
+-------------------
 To start using Abraxas you need to do a one-time setup to create your account 
 directory (~/.config/abraxas)::
 
@@ -178,17 +178,21 @@ Alternatively, you can simply enter your existing password into
 ``password_overrides`` in ``~/.config/abraxas/master.gpg`` until the next time 
 you get around to changing your password.
 
-Configuring for Autotype
-------------------------
-If you use Firefox, I recommend you add 'Hostname in Titlebar' so that 
-**Abraxas** can recognize which account to use purely from the URL.
+Configuring the Window Manager for Abraxas Autotype
+---------------------------------------------------
+If you use Firefox or Thunderbird, I recommend you install the 'Hostname in 
+Titlebar' add-on to both so that Abraxas can recognize the account to use purely 
+from the URL.
 
 Finally, you will want to chose a keystroke sequence and configure the window 
 manager to run the password generator when you trigger it with that keystroke.  
 How you do that depends on your window manager. With Gnome, it requires that you 
 open your Keyboard Shortcuts preferences and create a new shortcut.  I recommend 
-``Alt-p`` as a reasonable keystroke sequence. Enter ``abraxas --autotype`` as 
-the command to run.  Then, when you create your accounts, you should add the 
+``Alt-p`` as a reasonable keystroke sequence. Enter::
+
+   $HOME/.local/bin/abraxas --autotype
+
+as the command to run.  Then, when you create your accounts, you should add the 
 appropriate window titles to the account entry so that the appropriate account 
 can be determined automatically from the window title. For example, with the 
 gmail account entered above, you can go to ``gmail.com``, select the username 
