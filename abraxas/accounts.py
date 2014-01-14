@@ -152,7 +152,7 @@ class Accounts:
         if not exists(self.path):
             # If file does not exist, look for encrypted versions
             for ext in ['gpg', 'asc']:
-                new_path = '.'.join([path, ext])
+                new_path = '.'.join([self.path, ext])
                 if exists(new_path):
                     self.path = new_path
                     break
