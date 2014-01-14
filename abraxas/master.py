@@ -26,7 +26,10 @@ from fileutils import (
     getHead as get_head,
     getExt as get_extension,
 )
-from abraxas.prefs import DEFAULT_SETTINGS_DIR, MASTER_PASSWORD_FILENAME
+from abraxas.prefs import (
+    DEFAULT_SETTINGS_DIR, MASTER_PASSWORD_FILENAME,
+    DICTIONARY_SHA1, SECRETS_SHA1, CHARSETS_SHA1
+)
 from textwrap import wrap
 import sys
 import traceback
@@ -35,11 +38,12 @@ import traceback
 # Responsible for reading and managing the data from the master password file.
 class MasterPassword:
     # Constructor {{{2
-    def __init__(self, path, dictionary, gpg, logger):
+    def __init__(self, path, dictionary, gpg, logger, stateless):
         self.path = path
         self.dictionary = dictionary
         self.gpg = gpg
         self.logger = logger
+        self.stateless = stateless
         self.data = self._read_master_password_file()
         self.passphrase = secrets.Passphrase(
             lambda text: logger.display(text))
@@ -49,22 +53,31 @@ class MasterPassword:
 
     # Read master password file {{{2
     def _read_master_password_file(self):
-        data = {}
-        try:
-            with open(self.path, 'rb') as f:
-                decrypted = self.gpg.decrypt_file(f)
-                if not decrypted.ok:
-                    self.logger.error("%s\n%s" % (
-                        "%s: unable to decrypt." % (self.path),
-                        decrypted.stderr
-                    ))
-                code = compile(decrypted.data, self.path, 'exec')
-                exec(code, data)
-        except IOError as err:
-            self.logger.error('%s: %s.' % (err.filename, err.strerror))
-        except SyntaxError as err:
-            traceback.print_exc(0)
-            sys.exit()
+        data = {
+            'accounts': None,
+            'passwords': {},
+            'default_password': None,
+            'password_overrides': {},
+            'additional_master_password_files': [],
+        }
+        if not self.stateless:
+            try:
+                with open(self.path, 'rb') as f:
+                    decrypted = self.gpg.decrypt_file(f)
+                    if not decrypted.ok:
+                        self.logger.error("%s\n%s" % (
+                            "%s: unable to decrypt." % (self.path),
+                            decrypted.stderr
+                        ))
+                    code = compile(decrypted.data, self.path, 'exec')
+                    exec(code, data)
+            except IOError as err:
+                self.logger.display('%s: %s.' % (err.filename, err.strerror))
+            except SyntaxError as err:
+                traceback.print_exc(0)
+                sys.exit()
+
+        # assure that the keys on the master passwords are strings
         for ID in data.get('passwords', {}):
             if type(ID) != str:
                 self.logger.error(
@@ -123,11 +136,18 @@ class MasterPassword:
 
     # Validate program assumptions {{{2
     def _validate_assumptions(self):
-        # Check that dictionary has not changed
-        self.dictionary.validate(self._get_field('dict_hash'))
+        # Check that dictionary has not changed.
+        # If the master password file exists, then self.data['dict_hash'] will
+        # exist, and we will compare the current hash for the dictionary against
+        # that stored in the master password file, otherwise we will compare
+        # against the one present when the program was configured.
+        self.dictionary.validate(self.data.get('dict_hash', DICTIONARY_SHA1))
 
         # Check that secrets.py and charset.py have not changed
-        for each in ['secrets', 'charsets']:
+        for each, sha1 in [
+            ('secrets', SECRETS_SHA1),
+            ('charsets', CHARSETS_SHA1)
+        ]:
             path = make_path(get_head(__file__), each + '.py')
             try:
                 with open(path) as f:
@@ -140,7 +160,12 @@ class MasterPassword:
                 except IOError as err:
                     self.logger.error('%s: %s.' % (err.filename, err.strerror))
             hash = hashlib.sha1(contents.encode('utf-8')).hexdigest()
-            if hash != self._get_field('%s_hash' % each):
+            # Check that file has not changed.
+            # If the master password file exists, then self.data['%s_hash'] will
+            # exist, and we will compare the current hash for the file against
+            # that stored in the master password file, otherwise we will compare
+            # against the one present when the program was configured.
+            if hash != self.data.get('%s_hash' % each, sha1):
                 self.logger.display("Warning: '%s' has changed." % path)
                 self.logger.display("    " + "\n    ".join(wrap(' '.join([
                     "This could result in passwords that are inconsistent",
@@ -192,7 +217,9 @@ class MasterPassword:
         return self._get_field('passwords').keys()
 
     # Generate the password for the specified account {{{2
-    def generate_password(self, account):
+    def generate_password(self, account, master_password=None):
+        # Generally you should not need to pass in the master_password. This is
+        # generally only done for testing the stateless password generation.
         # If there is an override, use it
         try:
             return self.data['password_overrides'][account.get_id()]
@@ -200,7 +227,8 @@ class MasterPassword:
             pass
 
         # Otherwise generate a pass phrase or a password as directed
-        master_password = self.get_master_password(account)
+        if not master_password:
+            master_password = self.get_master_password(account)
         password_type = account.get_password_type()
         if password_type == 'words':
             return self.passphrase.generate(

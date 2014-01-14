@@ -56,7 +56,13 @@ import os
 class PasswordGenerator:
     """Password Generator"""
     # Constructor {{{2
-    def __init__(self, settings_dir=None, init=None, logger=None, gpg_home=None):
+    def __init__(self,
+        settings_dir=None,
+        init=None,
+        logger=None,
+        gpg_home=None,
+        stateless=False
+    ):
         """Arguments:
            settings_dir
                Path to the settings directory. Generally only specified when
@@ -78,6 +84,7 @@ class PasswordGenerator:
         if not logger:
             logger = Logging(exception=PasswordError)
         self.logger = logger
+        self.stateless = stateless
         self.accounts_path = make_path(
             self.settings_dir, DEFAULT_ACCOUNTS_FILENAME)
 
@@ -97,10 +104,15 @@ class PasswordGenerator:
         if init:
             self._create_initial_settings_files(gpg_id=init)
         self.master_password = MasterPassword(
-            self.master_password_path, self.dictionary, self.gpg, self.logger)
+            self.master_password_path,
+            self.dictionary,
+            self.gpg,
+            self.logger,
+            stateless)
         try:
-            accounts_path = self.master_password.data['accounts']
-            self.accounts_path = make_path(self.settings_dir, accounts_path)
+            path = self.master_password.data['accounts']
+            if path:
+                self.accounts_path = make_path(self.settings_dir, path)
         except KeyError:
             pass
 
@@ -183,16 +195,17 @@ class PasswordGenerator:
                The template to be used if one is not found in the account.
         """
         accounts = Accounts(
-            self.accounts_path, self.logger, self.gpg, template)
+            self.accounts_path, self.logger, self.gpg, template, self.stateless)
         self.accounts = accounts
         self.all_templates = accounts.all_templates
         self.all_accounts = accounts.all_accounts
         self.find_accounts = accounts.find_accounts
         self.search_accounts = accounts.search_accounts
-        self.logger.set_logfile(
-            accounts.get_log_file(),
-            accounts.gpg,
-            accounts.get_gpg_id())
+        if not self.stateless:
+            self.logger.set_logfile(
+                accounts.get_log_file(),
+                accounts.gpg,
+                accounts.get_gpg_id())
 
     # Get account {{{2
     def get_account(self, account_id, quiet=False):
@@ -206,10 +219,10 @@ class PasswordGenerator:
         return account
 
     # Generate password or answer {{{2
-    def generate_password(self, account=None):
+    def generate_password(self, account=None, master_password=None):
         """Produce a password or passphrase and give it to the user."""
         return self.master_password.generate_password(
-            account if account else self.account)
+            account if account else self.account, master_password)
 
     def generate_answer(self, question_number, account=None):
         """Produce an answer and give it to the user."""

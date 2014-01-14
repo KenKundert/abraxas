@@ -78,16 +78,19 @@ class CommandLine:
                 "List any account that contains the given string in",
                 "%s, or its ID." % ', '.join(SEARCH_FIELDS)])))
         parser.add_argument(
+            '-S', '--stateless', action='store_true',
+            help="Do not use master password or accounts file.")
+        parser.add_argument(
+            '-T', '--template',
+            type=str, metavar='<template>', default=None,
+            help="Template to use if account is not found.")
+        parser.add_argument(
             '-b', '--default-browser', action='store_true',
             help="Open account in the default browser.")
         parser.add_argument(
             '-B', '--browser', type=str, metavar='<browser>',
             help="Open account in the specified browser (choose from %s)." %
                 ', '.join(BROWSERS))
-        parser.add_argument(
-            '-T', '--template',
-            type=str, metavar='<template>', default=None,
-            help="Template to use if account is not found.")
         parser.add_argument(
             '-l', '--list', action='store_true',
             help=(' '.join([
@@ -136,7 +139,10 @@ if __name__ == "__main__":
     cmd_line = CommandLine(sys.argv)
     try:
         with Logging(argv=sys.argv, exception=PasswordError) as logging:
-            generator = PasswordGenerator(logger=logging, init=cmd_line.init)
+            generator = PasswordGenerator(
+                logger=logging,
+                init=cmd_line.init,
+                stateless=cmd_line.stateless)
             if cmd_line.init:
                 logging.terminate()
 

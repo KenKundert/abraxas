@@ -100,7 +100,7 @@ class Logging:
                 file.write(contents)
             os.chmod(filename, 0o600)
         except IOError as err:
-            sys.stderr.write('%s: %s.' % (err.filename, err.strerror))
+            sys.stderr.write('%s: %s.\n' % (err.filename, err.strerror))
 
     # Support for the with statement
     def __enter__(self):

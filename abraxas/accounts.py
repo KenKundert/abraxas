@@ -40,20 +40,17 @@ import traceback
 # Accounts class {{{1
 class Accounts:
     # Constructor {{{2
-    def __init__(self, path, logger, gpg, template=None):
+    def __init__(self, path, logger, gpg, template=None, stateless=False):
         self.path = path
-        if not exists(path):
-            # If file does not exist, look for encrypted versions
-            for ext in ['gpg', 'asc']:
-                new_path = '.'.join([path, ext])
-                if exists(new_path):
-                    self.path = new_path
-                    break
-
         self.logger = logger
         self.gpg = gpg
+        self.stateless = stateless
         self.data = None
-        self.accounts = self._read_accounts_file()
+
+        self.accounts = {}
+        if not stateless:
+            self.accounts = self._read_accounts_file()
+
         if template:
             self.template = self.accounts.get(template, {})
             if not self.template:
@@ -148,6 +145,18 @@ class Accounts:
 
     # Read accounts file {{{2
     def _read_accounts_file(self):
+        if not self.path:
+            # There is no accounts file
+            self.data = {}
+            return self.data
+        if not exists(self.path):
+            # If file does not exist, look for encrypted versions
+            for ext in ['gpg', 'asc']:
+                new_path = '.'.join([path, ext])
+                if exists(new_path):
+                    self.path = new_path
+                    break
+
         logger = self.logger
         accounts_data = {}
         try:
@@ -231,8 +240,11 @@ class Accounts:
         try:
             return self.data['gpg_id']
         except KeyError:
-            self.logger.error(
-                "'gpg_id' missing from %s (see 'man 5 abraxas')." % self.path)
+            if self.data:
+                self.logger.error(
+                    "'gpg_id' missing from %s (see 'man 5 abraxas')." % (
+                        self.path))
+            return None
 
     # List templates {{{2
     # Templates are accounts whose ID starts with =.
@@ -456,7 +468,7 @@ class Accounts:
             logger.error("Cannot determine desired account ID.")
 
         # Validate account_id
-        if not account_id:
+        if not account_id and not self.stateless:
             # User did not specify account ID on the command line.
             account_id = find_account_id()
         try:
@@ -464,8 +476,9 @@ class Accounts:
             account = self.accounts[account_id]
         except KeyError:
             account = self.template
-            self.logger.display(
-                "Warning: account '%s' not found." % account_id)
+            if not self.stateless:
+                self.logger.display(
+                    "Warning: account '%s' not found." % account_id)
 
         # Get information from template
         template = account.get('template', None)

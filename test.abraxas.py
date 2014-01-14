@@ -205,6 +205,14 @@ testCases = [
         stimulus="pw.generate_answer(5)",
         expected="There is no security question #5.",
         expectError=True),
+
+    # Run PasswordGenerator in stateless mode
+    Case(stimulus="pw = PasswordGenerator(stateless=True)"),
+    Case(stimulus="pw.read_accounts(template=None)"),
+    Case(stimulus="account = pw.get_account('fuzzy')"),
+    Case(
+        stimulus="pw.generate_password(master_password='bottom')",
+        expected='charlatan routine stagy printout'),
 ]
 
 # Run tests {{{1

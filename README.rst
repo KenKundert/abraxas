@@ -3,7 +3,7 @@ Abraxas: A Password Generator
 
 Introduction
 ------------
-Abraxis is an alternative to the traditional password vault.  The intent is not 
+Abraxas is an alternative to the traditional password vault.  The intent is not 
 to store passwords, but rather to regenerate them as needed.  This is done with 
 the aid of two files.  The first is an accounts file that contains useful 
 information about each account along with the parameters that control how the 

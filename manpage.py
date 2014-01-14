@@ -78,12 +78,14 @@ PROGRAM_MANPAGE = {
                                 List any account that contains the given string 
                                 in {search_fields}, or its ID.
 
+        -S, --stateless         Do not use master password or accounts file.
+        -T <template>, --template <template>
+                                Template to use if account is not found.
+
         -b, --default-browser   Open account in the default browser.
         -B <browser>, --browser <browser>
                                 Open account in the specified browser.
 
-        -T <template>, --template <template>
-                                Template to use if account is not found.
         -l, --list              List available master passwords and templates 
                                 (only pure templates are listed, not accounts, 
                                 even though accounts can be used as templates)
@@ -299,6 +301,20 @@ PROGRAM_MANPAGE = {
             $ abraxas -T =anum my-secret-account
             warning: account 'my-secret-account' not found.
             PASSWORD: Rkybp9EFXLu4
+
+        It is possible to take this one step further. Specifying the ``-S`` or 
+        ``--stateless`` command line option instructs Abraxas to avoid using any 
+        saved information when generating the password.  In this situation, you 
+        must give both the account name (on the command line) and the master 
+        password. As long as you use a master password or pass phrase that is 
+        memorable for you but difficult for anyone to guess, you should be 
+        reasonable safe from someone figuring out your password even if they 
+        have full access to your private GPG keys and your Abraxas files.
+
+            $ abraxas -S my-secret-account
+            Provide master password for account 'my-secret-account'.
+            Password: my-secret-master-passphrase
+            PASSWORD: toehold physical illusion washroom
 
         GPG Security
         ++++++++++++

@@ -66,6 +66,7 @@ ZENITY = 'zenity'
 # These are used in creating the initial master password file.
 SECRETS_SHA1 = "bb7811863130f42cee268e85430f28ac888148c5"
 CHARSETS_SHA1 = "dab48b2103ebde97f78cfebd15cc1e66d6af6ed0"
+DICTIONARY_SHA1 = "d9aa1c08e08d6cacdf82819eeb5832429eadb95a"
 
 # Browsers {{{2
 # Associate a command with a browser key.
