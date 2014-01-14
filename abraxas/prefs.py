@@ -183,10 +183,21 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
             'alphabet': ALPHANUMERIC + PUNCTUATION,
             'autotype': "{username}{tab}{password}{return}",
         },
-        "=num": {  # typically used for PINs
+        "=pin": {  # typically used for PINs
             'password-type': 'chars',
             'num-chars': 4,
             'alphabet': DIGITS,
+            'autotype': "{password}{return}",
+        },
+        "=num": {  # typically used for PINs
+            'password-type': 'chars',
+            'num-chars': 8,
+            'alphabet': DIGITS,
+            'autotype': "{password}{return}",
+        },
+        "=word": {  # typically used as an alternative to a PIN
+            'password-type': 'words',
+            'num-words': 1,
             'autotype': "{password}{return}",
         },
         "=anum": {  # typically used for web passwords (contains only easily distinguished alphanumeric characters)

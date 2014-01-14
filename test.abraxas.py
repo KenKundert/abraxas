@@ -82,7 +82,7 @@ testCases = [
     Case(stimulus="pw.read_accounts()"),
     Case(
         stimulus="' '.join(sorted(pw.all_templates()))",
-        expected='=anum =chars =extreme =master =num =words'),
+        expected='=anum =chars =extreme =master =num =pin =word =words'),
     Case(stimulus="account = pw.get_account('test')"),
     Case(
         stimulus="account.get_id()",
@@ -213,6 +213,12 @@ testCases = [
     Case(
         stimulus="pw.generate_password(master_password='bottom')",
         expected='charlatan routine stagy printout'),
+    Case(stimulus="pw = PasswordGenerator(stateless=True)"),
+    Case(stimulus="pw.read_accounts(template='=anum')"),
+    Case(stimulus="account = pw.get_account('fuzzy')"),
+    Case(
+        stimulus="pw.generate_password(master_password='bottom')",
+        expected='BwHWJgh3MPDh'),
 ]
 
 # Run tests {{{1

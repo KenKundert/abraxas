@@ -182,10 +182,12 @@ class MasterPassword:
             self.logger.error("%s: cannot find '%s'" % (self.path, key))
 
     # Set the master password {{{2
-    # Get the master password associated with this account.
-    # If there is none, use the default.
-    # If there is no default, ask the user for a password.
     def get_master_password(self, account):
+        """Get the master password associated with this account.
+
+        If there is none, use the default.
+        If there is no default, ask the user for a password.
+        """
         passwords = self._get_field('passwords')
         default_password = self._get_field('default_password')
 
@@ -213,14 +215,16 @@ class MasterPassword:
                 sys.exit()
 
     def password_names(self):
-        # return a list that contains the name of the master passwords
+        """Return a list that contains the name of the master passwords."""
         return self._get_field('passwords').keys()
 
     # Generate the password for the specified account {{{2
     def generate_password(self, account, master_password=None):
-        # Generally you should not need to pass in the master_password. This is
-        # generally only done for testing the stateless password generation.
-        # If there is an override, use it
+        """Generate the password for the specified account
+
+        Generally you should not need to pass in the master_password. This is
+        only done for testing the stateless password generation.
+        """
         try:
             return self.data['password_overrides'][account.get_id()]
         except KeyError:
@@ -240,10 +244,15 @@ class MasterPassword:
                 "%s: unknown password type (expected 'words' or 'chars').")
 
     # Generate an answer to a security question {{{2
-    # Only use pass phrases as answers to security questions, not passwords.
     def generate_answer(self, account, question):
-        # question may either be the question text (a string) or it may be an
-        # index into the list of questions in the account (an integer)
+        """Generate an answer to a security question
+
+        Question may either be the question text (a string) or it may be an
+        index into the list of questions in the account (an integer).
+        """
+        # Configured to use only pass phrases as answers to security questions.
+        # This is because people doing phone support will often simply ignore
+        # those security questions that seem like gibberish to them.
         if type(question) == int:
             # question given as an index, convert it to the question text
             security_questions = account.get_security_questions()

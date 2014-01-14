@@ -24,7 +24,7 @@ from __future__ import print_function, division
 from abraxas.prefs import (
     DEFAULT_SETTINGS_DIR, DEFAULT_ARCHIVE_FILENAME, DEFAULT_LOG_FILENAME,
     STRING_FIELDS, INTEGER_FIELDS, LIST_FIELDS, LIST_OR_STRING_FIELDS,
-    ENUM_FIELDS, SEARCH_FIELDS, PREFER_HTTPS,
+    ENUM_FIELDS, SEARCH_FIELDS, PREFER_HTTPS, ACCOUNTS_FILE_INITIAL_CONTENTS,
     XDOTOOL, DEFAULT_AUTOTYPE, TITLE_PATTERNS, URL_PATTERN
 )
 from fileutils import (
@@ -47,8 +47,13 @@ class Accounts:
         self.stateless = stateless
         self.data = None
 
-        self.accounts = {}
-        if not stateless:
+        if stateless:
+            # Use initial accounts so that user has access to basic templates
+            imported_data = {}
+            exec(ACCOUNTS_FILE_INITIAL_CONTENTS, imported_data)
+            self.accounts = imported_data['accounts']
+        else:
+            # Load the user's accounts file
             self.accounts = self._read_accounts_file()
 
         if template:
@@ -58,8 +63,13 @@ class Accounts:
         else:
             self.template = {}
 
-        # Validate and repair each account, then process any aliases
-        self.aliases = {}
+        self._validate_accounts()
+        self._create_aliases()
+
+    def _validate_accounts(self):
+        """Validate and repair each account"""
+        logger = self.logger
+
         for ID in self.all_accounts(skip_templates=False):
             if type(ID) != str:
                 logger.error('%s: account ID must be a string.' % ID)
@@ -112,19 +122,25 @@ class Accounts:
                             "Ignored."]))
                     del data[key]
 
-            def addToAliases(ID, name):
-                if name in self.aliases:
-                    logger.error(
-                        ' '.join([
-                            "Alias %s" % (name),
-                            "from account %s" % (
-                                ID if name != ID else self.aliases[name]),
-                            "duplicates an account name or previous entry,",
-                            "ignoring."]))
-                else:
-                    self.aliases[name] = ID
+    def _create_aliases(self):
+        """Create dictionary of aliases"""
 
+        def addToAliases(ID, name):
+            if name in self.aliases:
+                self.logger.error(
+                    ' '.join([
+                        "Alias %s" % (name),
+                        "from account %s" % (
+                            ID if name != ID else self.aliases[name]),
+                        "duplicates an account name or previous entry,",
+                        "ignoring."]))
+            else:
+                self.aliases[name] = ID
+
+        self.aliases = {}
+        for ID in self.all_accounts(skip_templates=False):
             # add ID to the aliases and then add the actual aliases
+            data = self.accounts[ID]
             addToAliases(ID, ID)
             for alias in data.get('aliases', []):
                 addToAliases(ID, alias)

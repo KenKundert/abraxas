@@ -294,7 +294,41 @@ PROGRAM_MANPAGE = {
         password by giving the name of a template.  A template is simply a named 
         collection of attributes that specify how to generate the password. You 
         may configure as many templates as you wish.  By default, Abraxas comes 
-        with six templates, =words, =chars, =num, =anum, =master, and =extreme.  
+        with eight templates:
+
+        =words:
+            A sequence of random English words. The default is to use 4 words, 
+            which provides 53 bits of entropy.
+        =chars:
+            A sequence of random letters (upper and lower case), digits and 
+            symbols. The default is to use 12 characters, which provides 79 bits 
+            of entropy.
+        =pin:
+            A sequence of random digits. The default is to use 4 digits, which 
+            provides 13 bits of entropy.  This is typically used for PIN 
+            numbers.
+        =num:
+            A sequence of random digits. The default is to use 8 digits, which 
+            provides 26 bits of entropy.  This is also used for PIN numbers, but 
+            it provides better security.
+        =word:
+            A single random word. Chosen from a list of 10,000 words, this is 
+            equivalent to a 4 digit PIN, but is easier to remember. It provides 
+            13 bits of entropy.
+        =anum:
+            A sequence of easily distinguishable random letters. The letters may 
+            be both upper and lower case, but will not include any letters that 
+            are easily confused with other letters or digits (Il1O0). Typically 
+            used for web passwords.  The default is to use 12 characters, which 
+            provides 78 bits of entropy.
+        =master:
+            A sequence of random English words. The default is to use 8 words, 
+            which provides 106 bits of entropy.
+        =extreme:
+            A sequence of random letters (upper and lower case), digits and 
+            symbols. The default is to use 64 characters, which provides 420 
+            bits of entropy.
+
         You can generate a pass word (a collection of characters) instead of 
         a pass phrase (a collection of words) with::
 
@@ -307,14 +341,24 @@ PROGRAM_MANPAGE = {
         saved information when generating the password.  In this situation, you 
         must give both the account name (on the command line) and the master 
         password. As long as you use a master password or pass phrase that is 
-        memorable for you but difficult for anyone to guess, you should be 
-        reasonable safe from someone figuring out your password even if they 
-        have full access to your private GPG keys and your Abraxas files.
+        memorable for you but difficult for everyone else to guess, you should 
+        be reasonably safe from someone figuring out your password even if they 
+        have full access to your private GPG keys and your Abraxas files. For 
+        example::
 
-            $ abraxas -S my-secret-account
+            $ abraxas --stateless my-secret-account
             Provide master password for account 'my-secret-account'.
             Password: my-secret-master-passphrase
             PASSWORD: toehold physical illusion washroom
+
+        When running in stateless mode you do not have access to any templates 
+        you may have created in your accounts file because that file is ignored, 
+        but you have access to the six predefined templates listed above::
+
+            $ abraxas -S -T =anum my-secret-account
+            Provide master password for account 'my-secret-account'.
+            Password: my-secret-master-passphrase
+            PASSWORD: LfCkPFygucg9
 
         GPG Security
         ++++++++++++
