@@ -35,8 +35,13 @@ import sys
 import traceback
 
 # Master password class {{{1
-# Responsible for reading and managing the data from the master password file.
-class MasterPassword:
+class _MasterPassword:
+    """
+    Master password class
+
+    Responsible for reading and managing the data from the master password file.
+    """
+
     # Constructor {{{2
     def __init__(self, path, dictionary, gpg, logger, stateless):
         self.path = path
@@ -265,6 +270,5 @@ class MasterPassword:
         answer = self.passphrase.generate(
             master_password, account, self.dictionary, question)
         return (question, answer)
-
 
 # vim: set sw=4 sts=4 et:

@@ -301,5 +301,4 @@ ALL_FIELDS = (
     [each for each in ENUM_FIELDS.keys()]
 )
 
-
 # vim: set sw=4 sts=4 et:

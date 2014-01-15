@@ -39,16 +39,21 @@ def indent(text, prefix='    '):
 
 
 # PasswordWriter class {{{1
-# Used to get account information to the user.
 class PasswordWriter:
-    # PasswordWriter is responsible for sending output to the user. It has
-    # three backends, one that writes to standard out, one that writes to the
-    # clipboard, and one that autotypes. To accommodate the three backends the
-    # output is gathered up and converted into a script. That script is
-    # interpreted by the appropriate backend to produce the output. the script
-    # is a sequence of commands each with an argument. Internally the script is
-    # saved as a list of tuples. The first value in the tuple is the name of
-    # the command. Several commands are supported.
+    """
+    Abraxas Password Writer
+
+    Used to get account information to the user.
+    """
+
+    # PasswordWriter is responsible for sending output to the user. It has three
+    # backends, one that writes to standard output, one that writes to the
+    # clipboard, and one that autotypes (mimics the keyboard). To accommodate
+    # the three backends the output is gathered up and converted into a script.
+    # That script is interpreted by the appropriate backend to produce the
+    # output. The script is a sequence of commands each with an argument.
+    # Internally the script is saved as a list of tuples. The first value in the
+    # tuple is the name of the command. Several commands are supported.
     #    write_verbatim() --> ('verb', <str>)
     #        Outputs the argument verbatim.
     #    write_account_entry() --> ('interp', <label>)
@@ -73,16 +78,28 @@ class PasswordWriter:
     #        wait.
 
     # Constructor {{{2
-    def __init__(self, output, password, wait=60, logger=None):
+    def __init__(self, output, generator, wait=60, logger=None):
         """
-        output is either 'c' for clipboard, 't' for autotype, and 's' for
-        stdout.
+        Arguments:
+        output (string)
+            Specify either 'c' for clipboard, 't' for autotype, and 's' for
+            stdout.
+        generator (abraxas generator object)
+            The password generator.
+        wait (int)
+            The number of seconds to wait after offering the user the password.
+        logger (logger object)
+            Instance of class that provides display(), log(), and error()
+            methods:
+                display(msg) is called when a message is to be sent to the user.
+                log(msg) is called when a message is only to be logged.
+                error(msg) is called when an error has occurred, should not return.
         """
         assert(output in ['c', 't', 's'])
         self.output = output
         self.wait = wait
-        self.password = password
-        self.logger = logger if logger else password.logger
+        self.generator = generator
+        self.logger = logger if logger else generator.logger
         self.script = []
 
     # Is empty {{{2
@@ -91,31 +108,60 @@ class PasswordWriter:
 
     # Actions {{{2
     def write_verbatim(self, text):
+        """
+        Specify a string to output to user when output is processed.
+        """
         self.script += [('verb', text)]
 
     def write_account_entry(self, label):
+        """
+        Specify an account field to output to user when output is processed.
+        """
         self.script += [('interp', label)]
 
     def write_unknown_entries(self):
+        """
+        Specify that all unrecognized account fields should be output when
+        output is processed.
+        """
         self.script += [('unknown',)]
 
     def write_password(self):
+        """
+        Specify that the password should be output when output is processed.
+        """
         self.script += [('password',)]
 
     def write_question(self, num=None):
+        """
+        Specify that a security question should be output when output is
+        processed.
+        """
         self.script += [('question', num)]
 
     def write_answer(self, num):
+        """
+        Specify that the answer to a security question should be output when
+        output is processed.
+        """
         self.script += [('answer', num)]
 
     def sleep(self, delay):
+        """
+        Specify that <delay> seconds should pass before the next thing is sent
+        to the output.
+        """
         self.script += [('sleep', delay)]
 
     # Parse autotype script {{{2
     # User has requested autotype. Look up and parse the autotype script.
     def write_autotype(self):
+        """
+        Process the account autotype script send what ever it specifies to the
+        output when the output is processed.
+        """
         regex = re.compile(r'({\w+})')
-        for term in regex.split(self.password.account.get_autotype()):
+        for term in regex.split(self.generator.account.get_autotype()):
             if term and term[0] == '{' and term[-1] == '}':
                 cmd = term[1:-1].lower()
                 if cmd in ['username', 'account', 'url', 'email', 'remarks']:
@@ -162,6 +208,12 @@ class PasswordWriter:
 
     # Process output {{{2
     def process_output(self):
+        """
+        Process the output.
+
+        Everything that was stashed away by the various write_ methods should
+        now be sent to the user using the requested method.
+        """
         if self.output == 't':
             self._process_output_to_autotype()
         elif self.output == 'c':
@@ -208,21 +260,21 @@ class PasswordWriter:
             if action[0] == 'interp':
                 display_field(
                     action[1],
-                    self.password.account.get_field(action[1]))
+                    self.generator.account.get_field(action[1]))
             elif action[0] == 'unknown':
                 fields = sorted(
-                    set(self.password.account.get_data().keys()) -
+                    set(self.generator.account.get_data().keys()) -
                     set(ALL_FIELDS))
                 for field in fields:
                     display_field(
-                        field, self.password.account.get_field(field))
+                        field, self.generator.account.get_field(field))
             elif action[0] == 'password':
                 display_secret(
                     'PASSWORD',
-                    self.password.generate_password()
+                    self.generator.generate_password()
                 )
             elif action[0] == 'question':
-                questions = self.password.account.get_field(
+                questions = self.generator.account.get_field(
                     'security questions')
                 if questions:
                     if action[1] is None:
@@ -238,7 +290,7 @@ class PasswordWriter:
                                 'QUESTION %d' % action[1],
                                 '<not available>'))
             elif action[0] == 'answer':
-                question, answer = self.password.generate_answer(action[1])
+                question, answer = self.generator.generate_answer(action[1])
                 if answer:
                     display_secret(question, answer)
             else:
@@ -253,25 +305,25 @@ class PasswordWriter:
         # Execute the script
         for action in self.script:
             if action[0] == 'interp':
-                value = self.password.account.get_field(action[1])
+                value = self.generator.account.get_field(action[1])
                 if type(value) == list:
                     lines += ["%s: %s" % (action[1], ', '.join(value))]
                 elif value:
                     lines += ["%s: %s" % (action[1], value.rstrip())]
             elif action[0] == 'unknown':
                 fields = sorted(
-                    set(self.password.account.get_data().keys()) -
+                    set(self.generator.account.get_data().keys()) -
                     set(ALL_FIELDS))
                 for field in fields:
-                    value = self.password.account.get_field(field)
+                    value = self.generator.account.get_field(field)
                     if type(value) == list:
                         lines += ["%s: %s" % (field, ', '.join(value))]
                     elif value:
                         lines += ["%s: %s" % (field, value.rstrip())]
             elif action[0] == 'password':
-                lines += [self.password.generate_password()]
+                lines += [self.generator.generate_password()]
             elif action[0] == 'question':
-                questions = self.password.account.get_field(
+                questions = self.generator.account.get_field(
                     'security questions')
                 if questions:
                     if action[1] is None:
@@ -285,7 +337,7 @@ class PasswordWriter:
                             lines += [
                                 'question %d: <not available>' % action[1]]
             elif action[0] == 'answer':
-                question, answer = self.password.generate_answer(action[1])
+                question, answer = self.generator.generate_answer(action[1])
                 if answer:
                     lines += [answer]
             else:
@@ -294,8 +346,8 @@ class PasswordWriter:
         self.logger.log('Writing to clipboard.')
 
         # Use 'xsel' to put the information on the clipboard.
-        # This represents a vunerability, if someone were to replace xsel they
-        # could sell my passwords. This is why I use an absolute path. I tried
+        # This represents a vulnerability, if someone were to replace xsel they
+        # could steel my passwords. This is why I use an absolute path. I tried
         # to access the clipboard directly using GTK but I cannot get the code
         # to work.
         try:
@@ -362,7 +414,7 @@ class PasswordWriter:
                 sleep(action[1])
                 scrubbed += ['<sleep %s>' % action[1]]
             elif action[0] == 'interp':
-                value = self.password.account.get_field(action[1])
+                value = self.generator.account.get_field(action[1])
                 if type(value) == list:
                     value = ', '.join(value)
                 elif value:
@@ -372,10 +424,10 @@ class PasswordWriter:
                 text += [value]
                 scrubbed += [value]
             elif action[0] == 'password':
-                text += [self.password.generate_password()]
+                text += [self.generator.generate_password()]
                 scrubbed += ['<<password>>']
             elif action[0] == 'question':
-                questions = self.password.account.get_field(
+                questions = self.generator.account.get_field(
                     'security questions')
                 if questions:
                     if action[1] is None:
@@ -390,7 +442,7 @@ class PasswordWriter:
                     text += [value]
                 scrubbed += [value]
             elif action[0] == 'answer':
-                question, answer = self.password.generate_answer(action[1])
+                question, answer = self.generator.generate_answer(action[1])
                 if answer:
                     text += [answer]
                     scrubbed += ["<<answer to '%s'>>" % question]
@@ -398,6 +450,5 @@ class PasswordWriter:
                 raise NotImplementedError
         self.logger.log('Autotyping "%s".' % ''.join(scrubbed))
         autotype(''.join(text))
-
 
 # vim: set sw=4 sts=4 et:

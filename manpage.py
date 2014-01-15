@@ -702,7 +702,10 @@ API_MANPAGE = {
 
         Here is a program that mounts a series of directories. It differs from 
         the above script in that is uses autotype, which it accesses through 
-        *PasswordWriter*.
+        *PasswordWriter*. Specifically, the program never requests a password 
+        directly from Abraxas. Instead, the PasswordGenerator object is passed 
+        in when creating a PasswordWriter object. It then queries the generator 
+        directly for the password and then gets it directly to the user.
 
         Mountall uses *sudo*, which requires a password the first time it is 
         run, and it runs *mount* for each directory, which requires a password 

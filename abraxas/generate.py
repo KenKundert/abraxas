@@ -32,9 +32,8 @@ from fileutils import (
 )
 from abraxas.logger import Logging
 from abraxas.dictionary import Dictionary
-from abraxas.master import MasterPassword
-from abraxas.writer import PasswordWriter
-from abraxas.accounts import Accounts
+from abraxas.master import _MasterPassword
+from abraxas.accounts import _Accounts
 from abraxas.prefs import (
     DEFAULT_ACCOUNTS_FILENAME,
     DEFAULT_SETTINGS_DIR,
@@ -54,7 +53,11 @@ import os
 
 # PasswordGenerator class {{{1
 class PasswordGenerator:
-    """Password Generator"""
+    """
+    Abraxas Password Generator
+
+    Primary class for Abraxas Password Generator.
+    """
     # Constructor {{{2
     def __init__(self,
         settings_dir=None,
@@ -63,19 +66,32 @@ class PasswordGenerator:
         gpg_home=None,
         stateless=False
     ):
-        """Arguments:
-           settings_dir
+        """
+        Arguments:
+        settings_dir (string)
                Path to the settings directory. Generally only specified when
                testing.
-           init
-               GPG ID. When present, the settings directory is assumed not to
-               exist and so is created using the specified ID.
-           logger: Object that provides display(msg), log(msg), and error(msg)
-               methods:
-                   display() is called when a message is to be sent to the user
-                   log() is called when a message is only to be logged
-                   error() is called when an error has occurred.
-           gpg_home: path to desired home directory for gpg
+        init (string)
+               User's GPG ID. When present, the settings directory is assumed
+               not to exist and so is created using the specified ID.
+        logger (object)
+            Instance of class that provides display(), log(), debug(),
+            error(), terminate() and set_logfile() methods:
+                display(msg) is called when a message is to be sent to the user.
+                log(msg) is called when a message is only to be logged.
+                debug(msg) is called for debugging messages.
+                error(msg) is called when an error has occurred, should not return.
+                terminate() is called to indicate program has terminated normally.
+                set_logfile(logfile, gpg, gpg_id) is called to specify
+                    information about the logfile, in particular, the path to
+                    the logfile, a gnupg encryption object, and the GPG ID.
+                    The last two must be specified if the logfile has an
+                    encryption extension (.gpg or .asc).
+        gpg_home (string)
+            Path to desired home directory for gpg.
+        stateless (bool)
+            Boolean that indicates that Abraxas should operate without accessing
+            the user's master password and accounts files.
         """
 
         if not settings_dir:
@@ -103,7 +119,7 @@ class PasswordGenerator:
             self.settings_dir, MASTER_PASSWORD_FILENAME)
         if init:
             self._create_initial_settings_files(gpg_id=init)
-        self.master_password = MasterPassword(
+        self.master_password = _MasterPassword(
             self.master_password_path,
             self.dictionary,
             self.gpg,
@@ -122,10 +138,11 @@ class PasswordGenerator:
     # encrypted with the GPG ID given on the command line, which should be the
     # users.
     def _create_initial_settings_files(self, gpg_id):
-        """Create initial version of settings files for the user.
+        """
+        Create initial version of settings files for the user (PRIVATE)
 
-           Arguments:
-           Requires user's GPG ID as the only argument.
+        Arguments:
+        Requires user's GPG ID (string) as the only argument.
         """
 
         def create_file(filename, contents, encrypt=False):
@@ -187,14 +204,16 @@ class PasswordGenerator:
 
     # Open the accounts file {{{2
     def read_accounts(self, template=DEFAULT_TEMPLATE):
-        """Read accounts file.
-
-           Required before secrets can be generated or accounts can be queried.
-           Arguments:
-           template:
-               The template to be used if one is not found in the account.
         """
-        accounts = Accounts(
+        Read accounts file.
+
+        Required before secrets can be generated or accounts can be queried.
+
+        Arguments:
+        template (string)
+            The template to be used if one is not found in the account.
+        """
+        accounts = _Accounts(
             self.accounts_path, self.logger, self.gpg, template, self.stateless)
         self.accounts = accounts
         self.all_templates = accounts.all_templates
@@ -209,7 +228,20 @@ class PasswordGenerator:
 
     # Get account {{{2
     def get_account(self, account_id, quiet=False):
-        """Activate and return an account."""
+        """
+        Activate and return an account.
+
+        Arguments:
+        account_id (string)
+            The account id or alias.
+        quiet (bool)
+            If true, the use of the account is only noted in the log file if
+            DEBUG is true. This is generally set when archiving so that we do
+            not leak the names of all available accounts.
+
+        Returns:
+            Account object.
+        """
         account = self.accounts.get_account(account_id)
         self.account = account
         if quiet:
@@ -220,21 +252,50 @@ class PasswordGenerator:
 
     # Generate password or answer {{{2
     def generate_password(self, account=None, master_password=None):
-        """Produce a password or passphrase and give it to the user."""
+        """
+        Generate and return a password or passphrase.
+
+        Arguments:
+        account (object)
+            Account object.
+        master_password (string)
+            Use to override the master password associated with the account.
+            If the account does not have a master password, or if there is no
+            account, the program will interactively request if from the user. So
+            this argument is generally not needed and only used when testing the
+            program.
+
+        Returns:
+            The desired password or passphrase (string).
+        """
         return self.master_password.generate_password(
             account if account else self.account, master_password)
 
-    def generate_answer(self, question_number, account=None):
-        """Produce an answer and give it to the user."""
+    def generate_answer(self, question, account=None):
+        """
+        Generate and return an answer to a particular question.
+
+        Arguments:
+        account (object)
+            Account object.
+        question (string or integer)
+            Specifies which question is being asked. May either be the question
+            text (a string) or it may be an index into the list of questions in
+            the account (an integer).
+
+        Returns:
+            The question text and the corresponding answer (tuple of strings).
+        """
         return self.master_password.generate_answer(
-            account if account else self.account, question_number)
+            account if account else self.account, question)
 
     # Print changed secrets {{{2
     def print_changed_secrets(self):
-        """Identify updated secrets
+        """
+        Identify updated secrets
 
-           Inform the user of any secrets that have changes since they have
-           been archived.
+        Inform the user of any secrets that have changed since they have been
+        archived.
         """
         self.logger.log("Print changed secrets.")
         try:
@@ -333,9 +394,10 @@ class PasswordGenerator:
 
     # Archive secrets {{{2
     def archive_secrets(self):
-        """Archive secrets
+        """
+        Archive secrets
 
-           Save all secrets to the archive file.
+        Save all secrets to the archive file.
         """
         self.logger.log("Archive secrets.")
         try:
@@ -384,6 +446,5 @@ class PasswordError(Exception):
 
     def __str__(self):
         return self.message
-
 
 # vim: set sw=4 sts=4 et:

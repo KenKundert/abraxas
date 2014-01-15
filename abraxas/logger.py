@@ -29,7 +29,33 @@ import os
 # Logging {{{1
 # Log messages to a file
 class Logging:
+    """
+    Abraxas Logger
+
+    Handles all messaging for Abraxas. Copies all messages to the logfile while
+    sending most to standard out as well.
+    """
     def __init__(self, logfile=None, argv=None, prog_name=None, exception=None):
+        """
+        Arguments:
+        logfile (string)
+            Path to user's logfile (relative to users config directory).
+            Use set_logfile() if you do not know logfile when starting up or if
+            you need the logfile to be encrypted.
+        argv (list of strings)
+            System command line arguments (logged).
+        prog_name (string)
+            Program name, pre-pended to error messages.
+        exception (exception object)
+            This exception will be raised rather than exiting if provided when
+            an error occurs.
+
+        You generally want to invoke Logging with a 'with' statement.
+        For example:
+
+            with Logging(argv=sys.argv) as logger:
+                ...
+        """
         self.logfile = logfile
         self.exception = exception
         self.cache = []
@@ -48,35 +74,61 @@ class Logging:
 
     # Set the logfile name and gpg parameters.
     def set_logfile(self, logfile, gpg, gpg_id):
+        """
+        Set the logfile.
+
+        Arguments:
+        logfile (string)
+            Path to user's logfile (relative to users config directory).
+        gpg (gnupg object)
+            Instance of gnupg class.
+        gpg_id (string)
+            The user's GPG ID.
+        The last two must be specified if the logfile has an encryption
+        extension (.gpg or .asc).
+        """
         self.logfile = logfile if logfile else self.logfile
         self.gpg = gpg
         self.gpg_id = gpg_id
 
     # Print the messages and also send it to the logfile.
     def display(self, msg):
+        """Display the message on standard out and log it."""
         self.log(msg)
         print(msg)
 
     # Only send the message to the logfile.
     def log(self, msg):
+        """Log the message."""
         if msg:
             self.cache.append(msg)
 
     # Only send the message to the logfile.
     def debug(self, msg):
+        """Log the message if DEBUG is set."""
         if DEBUG and msg:
             self.cache.append(msg)
 
     # Log a message and then throw an exception.
     def error(self, msg):
+        """Log and display the message, then exit.
+
+        Once this method is called, execution never returns to the calling
+        program.
+        """
         self.log(msg)
         if self.exception:
             raise self.exception(msg)
         else:
-            sys.exit(msg)
+            sys.exit("%s: %s" % (self.prog_name, msg))
 
     # Exit cleanly.
     def terminate(self):
+        """Normal termination.
+
+        Call this to terminate your program normally. Once this method is
+        called, execution never returns to the calling program.
+        """
         self.log('Terminates normally.')
         sys.exit()
 

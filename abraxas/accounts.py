@@ -38,7 +38,12 @@ import traceback
 
 
 # Accounts class {{{1
-class Accounts:
+class _Accounts:
+    """
+    Abraxas Accounts
+
+    Responsible for reading and managing the data from the user's accounts file.
+    """
     # Constructor {{{2
     def __init__(self, path, logger, gpg, template=None, stateless=False):
         self.path = path
@@ -270,28 +275,47 @@ class Accounts:
                 yield key
 
     # Account class {{{2
-    # Responsible for holding all of the information for a particular account
     class Account:
+        """
+        Abraxas Account
+
+        Responsible for holding all of the information for a particular account.
+        """
+
         def __init__(self, ID, data):
             self.ID = ID
             self.data = data
 
         def get_id(self):
+            """Return account's ID."""
             return self.ID
 
         def get_data(self):
+            """Return account's data."""
             return self.data
 
         def get_field(self, field, default=None):
+            """
+            Return value of a particular account field.
+
+            Arguments:
+            field (string)
+                Name of desired field.
+            default
+                Value return if field is not present.
+            """
             return self.data.get(field, default)
 
         def get_master(self, default):
+            """Return name of account's master password."""
             return self.data.get('master', default)
 
         def get_version(self):
+            """Return value of account's version field."""
             return self.data.get('version', '')
 
         def get_security_questions(self):
+            """Return list account's security questions."""
             return self.data.get('security questions', [])
 
         def get_autotype(self):
@@ -506,7 +530,7 @@ class Accounts:
         # Override template information with that from the account
         data.update(account)
 
-        return Accounts.Account(account_id, data)
+        return _Accounts.Account(account_id, data)
 
     # Find and search utilities {{{2
     @staticmethod
@@ -558,6 +582,5 @@ class Accounts:
                     self._inAliases(pattern, acct) or
                     self._inSearchField(pattern, ID, acct)):
                 yield ID, self.accounts[ID].get('aliases', [])
-
 
 # vim: set sw=4 sts=4 et:
