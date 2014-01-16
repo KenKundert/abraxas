@@ -170,7 +170,10 @@ class PasswordGenerator:
         def generate_random_string():
             def partition(bytestr):
                 for each in bytestr:
-                    yield ord(each)
+                    try:
+                        yield ord(each)  # python2
+                    except TypeError:
+                        yield each       # python3
 
             digest = os.urandom(64)
             from string import ascii_letters, digits, punctuation

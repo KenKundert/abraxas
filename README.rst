@@ -50,6 +50,23 @@ It requires the following packages to fully function::
 
 On Redhat-based systems you can get these dependencies by running ./yum.sh.
 
+Installing Prerequisites in Arch Linux with Pacman
+--------------------------------------------------
+Abraxas requires the following Arch Linux packages to fully function::
+
+   # pacman -S git
+   # pacman -S python
+   # pacman -S python-setuptools
+   # pacman -S python-docutils
+   # pacman -S libyaml
+   # pacman -S xdotool
+   # pacman -S xsel
+   # pacman -S zenity
+   # easy_install python-gnupg
+   # easy_install PyYAML
+
+You can install these prerequisites by running ./pacman.sh.
+
 Installing Prerequisites from Source
 ------------------------------------
 Or, you can install Python from source. First get and install Python using::
