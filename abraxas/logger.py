@@ -35,7 +35,13 @@ class Logging:
     Handles all messaging for Abraxas. Copies all messages to the logfile while
     sending most to standard out as well.
     """
-    def __init__(self, logfile=None, argv=None, prog_name=None, exception=None):
+    def __init__(self,
+        logfile=None,
+        argv=None,
+        prog_name=None,
+        output_callback=None,
+        exception=None
+    ):
         """
         Arguments:
         logfile (string)
@@ -46,19 +52,27 @@ class Logging:
             System command line arguments (logged).
         prog_name (string)
             Program name, pre-pended to error messages.
+        output_callback (function)
+            This function will be called with any normal output. It takes a
+            single argument, a string, that contains the message. If not
+            provided, output will be sent to standard output.
         exception (exception object)
             This exception will be raised rather than exiting if provided when
-            an error occurs.
+            an error occurs. If not provided, program will exit. The exception
+            should take one argument, the error message.
 
-        You generally want to invoke Logging with a 'with' statement.
-        For example:
+        You generally want to invoke Logging with a 'with' statement to assure
+        that log file gets generated.  Example:
 
             with Logging(argv=sys.argv) as logger:
                 ...
         """
         self.logfile = logfile
+        self.output_callback = output_callback
         self.exception = exception
         self.cache = []
+        if not argv:
+            argv = sys.argv
         if argv:
             try:
                 from datetime import datetime
@@ -95,7 +109,10 @@ class Logging:
     def display(self, msg):
         """Display the message on standard out and log it."""
         self.log(msg)
-        print(msg)
+        if self.output_callback:
+            self.output_callback(msg)
+        else:
+            print(msg)
 
     # Only send the message to the logfile.
     def log(self, msg):
@@ -120,7 +137,10 @@ class Logging:
         if self.exception:
             raise self.exception(msg)
         else:
-            sys.exit("%s: %s" % (self.prog_name, msg))
+            if self.prog_name:
+                sys.exit("%s: %s" % (self.prog_name, msg))
+            else:
+                sys.exit(msg)
 
     # Exit cleanly.
     def terminate(self):

@@ -77,7 +77,9 @@ class _MasterPassword:
                     code = compile(decrypted.data, self.path, 'exec')
                     exec(code, data)
             except IOError as err:
-                self.logger.display('%s: %s.' % (err.filename, err.strerror))
+                self.logger.display(
+                    'Warning: could not read master password file %s: %s.' % (
+                        err.filename, err.strerror))
             except SyntaxError as err:
                 traceback.print_exc(0)
                 sys.exit()

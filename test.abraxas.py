@@ -6,7 +6,7 @@
 from __future__ import print_function, division
 from runtests import cmdLineOpts, writeSummary
 from textcolors import Colors
-from abraxas import PasswordGenerator, PasswordError
+from abraxas import PasswordGenerator, PasswordError, Logging
 from fileutils import remove
 from textwrap import dedent
 import sys
@@ -24,11 +24,33 @@ succeed = colors.colorizer('green')
 fail = colors.colorizer('red')
 info = colors.colorizer('magenta')
 status = colors.colorizer('cyan')
+warning = colors.colorizer('yellow')
 
-# Case class {{{2
+
+# Case class {{{1
 class Case():
-    def __init__(self, **kwargs):
-        self.__dict__ = kwargs
+    CONTEXT = {}
+    OUTPUT = []
+    NAMES = set()
+
+    def __init__(self, name, stimulus,
+        result=None, output=None, error=None, clean=False
+    ):
+        self.stimulus = stimulus       # python code to evaluate
+        self.name = name               # name of test case, arbitrary but should be unique
+        assert name not in Case.NAMES
+        Case.NAMES.add(name)
+        self.expected_result = result  # expected result from evaluating the stimulus
+        self.expected_output = output.strip().split('\n') if output else []
+                                       # expected output messages
+        self.expected_error = error    # expected error message
+        self.context = Case.CONTEXT
+        if clean:
+            self.context.clear()
+        self.context['logger'] = Logging(
+            output_callback=lambda msg: self.set_output(msg),
+            exception=PasswordError)
+        self.context['self'] = self
 
     def __str__(self):
         return '%s<%s>' % (self.__class__.__name__, ', '.join(
@@ -39,6 +61,47 @@ class Case():
     def __getattr__(self, name):
         return None
 
+    def is_test(self):
+        return self.expected_error or self.expected_result or self.expected_output
+
+    def run(self):
+        del Case.OUTPUT[:]
+        self.error = None
+        self.passes = None
+        self.result = None
+        try:
+            if self.expected_result:
+                self.result = eval(self.stimulus, globals(), self.context)
+            else:
+                exec(self.stimulus, globals(), self.context)
+        except PasswordError as err:
+            self.error = str(err)
+        except (SyntaxError, NameError, KeyError, AttributeError) as err:
+            print("Error found with stimulus: <%s>" % self.stimulus)
+            raise
+        except:
+            return (self.name, self.stimulus, None, None, 'exception')
+
+        self.output = Case.OUTPUT[:]
+        if self.error != self.expected_error:
+            return (self.name, self.stimulus, self.error, self.expected_error, 'error')
+        if self.result != self.expected_result:
+            return (self.name, self.stimulus, self.result, self.expected_result, 'result')
+        if self.output != self.expected_output:
+            return (self.name, self.stimulus, self.output, self.expected_output, 'output')
+        return None
+
+    def set_output(self, message):
+        Case.OUTPUT += message.split('\n')
+
+
+# Stop class {{{1
+class Exit(Case):
+    def __init__(self):
+        pass
+    def run(self):
+        sys.exit('TERMINATING TESTS UPON DEVELOPER REQUEST')
+
 # Utilities {{{1
 def create_bogus_file(filename):
     with open(filename, 'w') as f:
@@ -47,234 +110,405 @@ def create_bogus_file(filename):
 # Test cases {{{1
 testCases = [
     # Run Password with a bogus settings directory
-    Case(stimulus="pw = PasswordGenerator('/dev/null')",
-        expected="/dev/null/master.gpg: Not a directory.",
-        expectError=True,
-        isCommand=True),
+    Case(
+        name='endeavor',
+        stimulus="pw = PasswordGenerator('/dev/null', logger=logger)",
+        output="Warning: could not read master password file /dev/null/master.gpg: Not a directory.",
+        clean=True
+    ),
 
     # Run PasswordGenerator with damaged accounts file
-    Case(stimulus="pw = PasswordGenerator('./generated_settings', '4DC3AD14', None, 'test_key')"),
-    Case(stimulus="create_bogus_file('./generated_settings/accounts')"),
-    Case(stimulus="pw = PasswordGenerator('./generated_settings', gpg_home='test_key')"),
     Case(
+        name='stagnate',
+        stimulus="os.system('rm -rf generated_settings')"
+    ),
+    Case(
+        name='ascent',
+        stimulus="pw = PasswordGenerator('./generated_settings', '4DC3AD14', logger, 'test_key')",
+        output=dedent('''
+            generated_settings/master.gpg: created.
+            generated_settings/accounts: created.
+        '''),
+        clean=True
+    ),
+    Case(
+        name='quiche',
+        stimulus="create_bogus_file('./generated_settings/accounts')"
+    ),
+    Case(
+        name='mover',
+        stimulus="pw = PasswordGenerator('./generated_settings', logger=logger, gpg_home='test_key')",
+        clean=True
+    ),
+    Case(
+        name='doorbell',
         stimulus="pw.read_accounts()",
-        expected=dedent("generated_settings/accounts: defective accounts file, 'accounts' not found."),
-        expectError=True),
-    Case(stimulus="remove('./generated_settings')"),
+        error="generated_settings/accounts: defective accounts file, 'accounts' not found."
+    ),
+    Case(
+        name='compile',
+        stimulus="remove('./generated_settings')"
+    ),
 
     # Run PasswordGenerator with damaged master password file
-    Case(stimulus="pw = PasswordGenerator('./generated_settings', '4DC3AD14', None, 'test_key')"),
-    Case(stimulus="create_bogus_file('./generated_settings/master.asc')"),
-    Case(stimulus="pw = PasswordGenerator('./generated_settings', gpg_home='test_key')",
-        expected=dedent("""\
+    Case(
+        name='debut',
+        stimulus="os.system('rm -rf generated_settings')"
+    ),
+    Case(
+        name='octagon',
+        stimulus="pw = PasswordGenerator('./generated_settings', '4DC3AD14', logger, 'test_key')",
+        clean=True,
+        output=dedent('''
+            generated_settings/master.gpg: created.
+            generated_settings/accounts: created.
+        ''')),
+    Case(
+        name='entertain',
+        stimulus="create_bogus_file('./generated_settings/master.gpg')"
+    ),
+    Case(
+        name='stabbing',
+        stimulus="pw = PasswordGenerator('./generated_settings', logger=logger, gpg_home='test_key')",
+        error=dedent("""\
             generated_settings/master.gpg: unable to decrypt.
             gpg: no valid OpenPGP data found.
             [GNUPG:] NODATA 1
             [GNUPG:] NODATA 2
-            gpg: decrypt_message failed: eof
-        """),
-        expectError=True,
-        isCommand=True),
-    Case(stimulus="remove('./generated_settings')"),
+            gpg: decrypt_message failed: Unknown system error
+        """)
+    ),
+    Case(
+        name='secretary',
+        stimulus="remove('./generated_settings')"
+    ),
 
     # Run PasswordGenerator with a nonexistant settings directory
-    Case(stimulus="pw = PasswordGenerator('./generated_settings', '4DC3AD14', None, 'test_key')"),
-    Case(stimulus="pw.read_accounts()"),
     Case(
+        name='albino',
+        stimulus="os.system('rm -rf generated_settings')"
+    ),
+    Case(
+        name='crone',
+        stimulus="pw = PasswordGenerator('./generated_settings', '4DC3AD14', logger, 'test_key')",
+        output=dedent("""
+            generated_settings/master.gpg: created.
+            generated_settings/accounts: created.
+        """),
+    ),
+    Case(
+        name='airlock',
+        stimulus="pw.read_accounts()"
+    ),
+    Case(
+        name='pastiche',
         stimulus="' '.join(sorted(pw.all_templates()))",
-        expected='=anum =chars =extreme =master =num =pin =word =words'),
-    Case(stimulus="account = pw.get_account('test')"),
+        result='=anum =chars =extreme =master =num =pin =word =words'
+    ),
     Case(
+        name='corrode',
+        stimulus="account = pw.get_account('test')",
+        output="Warning: account 'test' not found.",
+    ),
+    Case(
+        name='whine',
         stimulus="account.get_id()",
-        expected='test'),
+        result='test'
+    ),
     Case(
+        name='janitor',
         stimulus="pw.generate_password()",
-        expected='postdate sprayer payment aircrew'),
-    Case(stimulus="account = pw.get_account('=chars')"),
+        result='postdate sprayer payment aircrew'
+    ),
     Case(
+        name='picture',
+        stimulus="account = pw.get_account('=chars')"
+    ),
+    Case(
+        name='narrator',
         stimulus="pw.generate_password()",
-        expected='HhqaECyF=]nt'),
-    Case(stimulus="account = pw.get_account('=words')"),
+        result='HhqaECyF=]nt'
+    ),
     Case(
+        name='bagatelle',
+        stimulus="account = pw.get_account('=words')"
+    ),
+    Case(
+        name='spellbind',
         stimulus="pw.generate_password()",
-        expected='placate embody tinker razor'),
-    Case(stimulus="account = pw.get_account('=master')"),
+        result='placate embody tinker razor'
+    ),
     Case(
+        name='poplar',
+        stimulus="account = pw.get_account('=master')"
+    ),
+    Case(
+        name='scrimmage',
         stimulus="pw.generate_password()",
-        expected='conflate orifice posting blind rookie earmark mediator impulse'),
-    Case(stimulus="account = pw.get_account('=extreme')"),
+        result='conflate orifice posting blind rookie earmark mediator impulse'
+    ),
     Case(
+        name='forswear',
+        stimulus="account = pw.get_account('=extreme')"
+    ),
+    Case(
+        name='rhesus',
         stimulus="pw.generate_password()",
-        expected='''R}-|v6IL9OQIp)U07t1OQ$jz"1qX$VLOqkSac!|b&mlc:rlD|fhKO|(O9%&oI#]J'''),
-    Case(stimulus="pw.get_account('fuzzbucket')"),
+        result='''R}-|v6IL9OQIp)U07t1OQ$jz"1qX$VLOqkSac!|b&mlc:rlD|fhKO|(O9%&oI#]J'''
+    ),
     Case(
+        name='practical',
+        stimulus="pw.get_account('fuzzbucket')",
+        output="Warning: account 'fuzzbucket' not found.",
+    ),
+    Case(
+        name='booth',
         stimulus="pw.generate_password()",
-        expected="llama libretto stump analgesic"),
+        result="llama libretto stump analgesic"
+    ),
     Case(
+        name='impeach',
         stimulus="pw.print_changed_secrets()",
-        expected="generated_settings/archive.gpg: No such file or directory.",
-        expectError=True),
-    Case(stimulus="pw.archive_secrets()"),
-    Case(stimulus="pw.print_changed_secrets()"),
+        error="generated_settings/archive.gpg: No such file or directory."
+    ),
+    Case(
+        name='daylight',
+        stimulus="pw.archive_secrets()"
+    ),
+    Case(
+        name='cattleman',
+        stimulus="pw.print_changed_secrets()"
+    ),
 
     # Run PasswordGenerator with the test settings directory
-    Case(stimulus="os.system('rm -f test_settings/master.gpg')"),
-    Case(stimulus="os.system('gpg2 --homedir test_key -r 4DC3AD14 -e test_settings/master')"),
-    Case(stimulus="os.system('rm -f test_settings/master2.gpg')"),
-    Case(stimulus="os.system('gpg2 --homedir test_key -r 4DC3AD14 -e test_settings/master2')"),
-    Case(stimulus="pw = PasswordGenerator('./test_settings', gpg_home='test_key')"),
-    Case(stimulus="pw.read_accounts()"),
     Case(
+        name='marsh',
+        stimulus="os.system('rm -f test_settings/master.gpg')"
+    ),
+    Case(
+        name='peasant',
+        stimulus="os.system('gpg2 --homedir test_key -r 4DC3AD14 -e test_settings/master')"
+    ),
+    Case(
+        name='digestion',
+        stimulus="os.system('rm -f test_settings/master2.gpg')"
+    ),
+    Case(
+        name='holocaust',
+        stimulus="os.system('gpg2 --homedir test_key -r 4DC3AD14 -e test_settings/master2')"
+    ),
+    Case(
+        name='torch',
+        stimulus="pw = PasswordGenerator('./test_settings', logger=logger, gpg_home='test_key')"
+    ),
+    Case(
+        name='crosswind',
+        stimulus="pw.read_accounts()"
+    ),
+    Case(
+        name='tablet',
         stimulus="';'.join(['%s(%s)' % (each[0], ','.join(each[1])) for each in sorted(pw.find_accounts('col'), key=lambda x: x[0])])",
-        expected='colgate(Colgate,Cg)',
+        result='colgate(Colgate,Cg)',
     ),
     Case(
+        name='restorer',
         stimulus="';'.join(['%s(%s)' % (each[0], ','.join(each[1])) for each in sorted(pw.search_accounts('smiler'), key=lambda x: x[0])])",
-        expected='crest(Crest);sensodyne()',
+        result='crest(Crest);sensodyne()',
     ),
     Case(
+        name='cosset',
         stimulus="' '.join(sorted(pw.all_accounts()))",
-        expected='aquafresh colgate crest sensodyne toms'),
+        result='aquafresh colgate crest sensodyne toms'
+    ),
     Case(
+        name='clapboard',
         stimulus="';'.join(['%s(%s)' % (each[0], ','.join(each[1])) for each in sorted(pw.find_accounts('e'), key=lambda x: x[0])])",
-        expected='aquafresh();colgate(Colgate,Cg);crest(Crest);sensodyne()'),
-    Case(stimulus="account = pw.get_account('crest')"),
+        result='aquafresh();colgate(Colgate,Cg);crest(Crest);sensodyne()'
+    ),
     Case(
+        name='meaning',
+        stimulus="account = pw.get_account('crest')"
+    ),
+    Case(
+        name='regency',
         stimulus="account.get_id()",
-        expected='crest'),
+        result='crest'
+    ),
     Case(
+        name='summons',
         stimulus="pw.generate_password()",
-        expected='crewman ledge cranny prelate'),
+        result='crewman ledge cranny prelate'
+    ),
     Case(
+        name='cougar',
         stimulus="account.get_field('username')",
-        expected='smiler'),
+        result='smiler'
+    ),
     Case(
+        name='discover',
         stimulus="account.get_field('account')",
-        expected='1234-5678'),
+        result='1234-5678'
+    ),
     Case(
+        name='larder',
         stimulus="account.get_field('email')",
-        expected='smiler@nowhere.com'),
+        result='smiler@nowhere.com'
+    ),
     Case(
+        name='amount',
         stimulus="account.get_field('url')",
-        expected='www.crest.com'),
+        result='www.crest.com'
+    ),
     Case(
+        name='talkie',
         stimulus="account.get_field('remarks')",
-        expected='Remarks about crest'),
+        result='Remarks about crest'
+    ),
     Case(
+        name='venue',
         stimulus="' '.join(pw.generate_answer(0))",
-        expected='How many teeth do you have? specify cutter sense batten'),
+        result='How many teeth do you have? specify cutter sense batten'
+    ),
     Case(
+        name='agnostic',
         stimulus="' '.join(pw.generate_answer(1))",
-        expected='How many teeth are missing? animal siege bootee entertain'),
-    Case(stimulus="account = pw.get_account('colgate')"),
+        result='How many teeth are missing? animal siege bootee entertain'
+    ),
     Case(
+        name='footplate',
+        stimulus="account = pw.get_account('colgate')"
+    ),
+    Case(
+        name='outstay',
         stimulus="account.get_id()",
-        expected='colgate'),
+        result='colgate'
+    ),
     Case(
+        name='scoundrel',
         stimulus="pw.generate_password()",
-        expected='white teeth'),
-    Case(stimulus="account = pw.get_account('sensodyne')"),
+        result='white teeth'
+    ),
     Case(
+        name='fleshy',
+        stimulus="account = pw.get_account('sensodyne')"
+    ),
+    Case(
+        name='valance',
         stimulus="account.get_id()",
-        expected='sensodyne'),
+        result='sensodyne'
+    ),
     Case(
+        name='decision',
         stimulus="pw.generate_password()",
-        expected='pre:c8c00e9ec19e:suf'),
-    Case(stimulus="account = pw.get_account('toms')"),
+        result='pre:c8c00e9ec19e:suf'
+    ),
     Case(
+        name='suspend',
+        stimulus="account = pw.get_account('toms')"
+    ),
+    Case(
+        name='earphone',
         stimulus="account.get_id()",
-        expected='toms'),
+        result='toms'
+    ),
     Case(
+        name='pride',
         stimulus="pw.generate_password()",
-        expected='tP,)olY+lA~Qt>4/APS4{C+drq$]Edg.Gs"d2]YEGnL>cP-5IYKEs_WXso*L{U z'),
-    Case(stimulus="account = pw.get_account('aquafresh')"),
+        result='tP,)olY+lA~Qt>4/APS4{C+drq$]Edg.Gs"d2]YEGnL>cP-5IYKEs_WXso*L{U z'
+    ),
     Case(
+        name='fathead',
+        stimulus="account = pw.get_account('aquafresh')"
+    ),
+    Case(
+        name='culprit',
         stimulus="account.get_id()",
-        expected='aquafresh'),
+        result='aquafresh'
+    ),
     Case(
+        name='labyrinth',
         stimulus="pw.generate_password()",
-        expected='toothpaste'),
-    Case(stimulus="account = pw.get_account('none')"),
+        result='toothpaste'
+    ),
     Case(
+        name='puree',
+        stimulus="account = pw.get_account('none')",
+        output="Warning: account 'none' not found."
+    ),
+    Case(
+        name='billion',
         stimulus="account.get_id()",
-        expected='none'),
+        result='none'
+    ),
     Case(
+        name='frizzy',
         stimulus="pw.generate_password()",
-        expected='opening herbalist ointment migrate'),
+        result='opening herbalist ointment migrate'
+    ),
     Case(
+        name='siesta',
         stimulus="pw.generate_answer(5)",
-        expected="There is no security question #5.",
-        expectError=True),
+        error="There is no security question #5."
+    ),
 
     # Run PasswordGenerator in stateless mode
-    Case(stimulus="pw = PasswordGenerator(stateless=True)"),
-    Case(stimulus="pw.read_accounts(template=None)"),
-    Case(stimulus="account = pw.get_account('fuzzy')"),
     Case(
-        stimulus="pw.generate_password(master_password='bottom')",
-        expected='charlatan routine stagy printout'),
-    Case(stimulus="pw = PasswordGenerator(stateless=True)"),
-    Case(stimulus="pw.read_accounts(template='=anum')"),
-    Case(stimulus="account = pw.get_account('fuzzy')"),
+        name='vacillate',
+        stimulus="pw = PasswordGenerator(stateless=True, logger=logger)"
+    ),
     Case(
+        name='lather',
+        stimulus="pw.read_accounts(template=None)"
+    ),
+    Case(
+        name='flashbulb',
+        stimulus="account = pw.get_account('fuzzy')"
+    ),
+    Case(
+        name='thump',
         stimulus="pw.generate_password(master_password='bottom')",
-        expected='BwHWJgh3MPDh'),
+        result='charlatan routine stagy printout'
+    ),
+    Case(
+        name='stiff',
+        stimulus="pw = PasswordGenerator(stateless=True, logger=logger)"
+    ),
+    Case(
+        name='lanyard',
+        stimulus="pw.read_accounts(template='=anum')"
+    ),
+    Case(
+        name='nibble',
+        stimulus="account = pw.get_account('fuzzy')"
+    ),
+    Case(
+        name='racialist',
+        stimulus="pw.generate_password(master_password='bottom')",
+        result='BwHWJgh3MPDh'
+    ),
 ]
 
 # Run tests {{{1
-for index, case in enumerate(testCases):
+for case in testCases:
+
     testsRun += 1
-    stimulus = case.stimulus
-    expected = case.expected
-    expectError = case.expectError
-    isCommand = case.isCommand
-    if expectError:
-        assert(expected)
-
     if printTests:
-        print(status('Trying %d:' % index), stimulus)
+        print(status('Trying %d (%s):' % (testsRun, case.name)), case.stimulus)
 
-    # If expected is not provided, then this is not a test. Rather, it is a
-    # function that must be called before the remaining tests can be run.
-    if isCommand or not expected:
-        try:
-            exec(stimulus)
-        except PasswordError as err:
-            if not expectError or expected != err.message:
-                sys.exit(
-                    "Error found when executing '%s': %s" % (stimulus, err.message))
-        continue
+    failure = case.run()
 
-    try:
-        result = eval(stimulus)
-        failure = (result != expected)
-        if failure:
-            failures += 1
-            print(fail('Failure detected (%s):' % failures))
-            print(info('    Given:'), stimulus)
-            print(info('    Result  :'), result)
-            print(info('    Expected:'), expected)
-        elif expectError:
-            failures += 1
-            print(fail('Expected error not detected (%s):' % failures))
-            print(info('    Result  :'), result)
-            print(info('    Expected:'), expected)
-        elif printResults:
-            print(succeed('    Result:'), result)
-    except PasswordError as err:
-        if not expectError or err.message != expected:
-            failures += 1
-            print(fail('Unexpected error detected (%s):' % failures))
-            print(info('    Given:'), stimulus)
-            print(info('    Result  :'), err.message)
-            print(info('    Expected:'), expected)
-
-        elif printResults:
-            print(succeed('    Expected error detected:'), err.message)
+    if failure:
+        failures += 1
+        name, stimulus, result, expected, kind = failure
+        print(fail('Unexpected %s (%s):' % (kind, failures)))
+        print(info('    Case:'), name)
+        print(info('    Given:'), stimulus)
+        print(info('    Result  :'), result)
+        print(info('    Expected:'), expected)
 
 # Print test summary {{{1
-numTests = len(testCases)
-assert testsRun == numTests, "%s of %s tests run" % (testsRun, numTests)
+numTests = 76
+assert testsRun == numTests, "Incorrect number of tests run (%s of %s)." % (testsRun, numTests)
 if printSummary:
     print('%s: %s tests run, %s failures detected.' % (
         fail('FAIL') if failures else succeed('PASS'), testsRun, failures
@@ -282,6 +516,5 @@ if printSummary:
 
 writeSummary(testsRun, failures)
 sys.exit(int(bool(failures)))
-
 
 # vim: set sw=4 sts=4 et:

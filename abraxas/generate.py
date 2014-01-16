@@ -98,7 +98,7 @@ class PasswordGenerator:
             settings_dir = DEFAULT_SETTINGS_DIR
         self.settings_dir = expand_path(settings_dir)
         if not logger:
-            logger = Logging(exception=PasswordError)
+            logger = Logging()
         self.logger = logger
         self.stateless = stateless
         self.accounts_path = make_path(

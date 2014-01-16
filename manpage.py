@@ -611,7 +611,7 @@ API_MANPAGE = {
             #!/bin/env python
 
             from __future__ import print_function, division
-            from abraxas import PasswordGenerator, PasswordError
+            from abraxas import PasswordGenerator, PasswordError, Logging
             import gnupg
             import sys
 
@@ -628,7 +628,8 @@ API_MANPAGE = {
                 ('tdwaterhouse', 'TD Waterhouse')]
 
             try:
-                pw = PasswordGenerator()
+                logger = Logging(exception=PasswordError)
+                pw = PasswordGenerator(logger=logger)
                 pw.read_accounts()
 
                 lines = []
@@ -696,6 +697,14 @@ API_MANPAGE = {
             except PasswordError, err:
                 sys.exit(str(err))
 
+        The program starts by creating a logger. Normally this is not necessary.  
+        When you run PasswordGenerator() without passing in a logger the default 
+        logger is created for you. However, the default logger does not throw 
+        exceptions. Instead, when a problem occurs an error message is printed 
+        to standard error and the program exits. However, this utility needs 
+        exceptions to be caught and handled, and so in this case a logger is 
+        explicitly created and PasswordError is passed in.  In this way, Abraxas 
+        does not exit on an error, instead it throws a PasswordError.
 
         mountall
         ++++++++
@@ -780,7 +789,7 @@ API_MANPAGE = {
             except KeyboardInterrupt:
                 exit('Killed by user')
             except ExecuteError as err:
-                exit(err.text)
+                exit(str(err))
             except PasswordError, err:
                 sys.exit(str(err))
 

@@ -6,13 +6,11 @@
 # Generates passwords and pass phrases based on stored account information.
 
 # Imports {{{1
-from abraxas.generate import PasswordGenerator, PasswordError
-from abraxas.writer import PasswordWriter
+from abraxas import PasswordGenerator, PasswordWriter, Logging
 from abraxas.prefs import (
     SEARCH_FIELDS, DEFAULT_SETTINGS_DIR, DEFAULT_ARCHIVE_FILENAME,
     BROWSERS, DEFAULT_BROWSER
 )
-from abraxas.logger import Logging
 from fileutils import (
     getTail as get_tail,
     makePath as make_path,
@@ -138,26 +136,26 @@ class CommandLine:
 if __name__ == "__main__":
     cmd_line = CommandLine(sys.argv)
     try:
-        with Logging(argv=sys.argv, exception=PasswordError) as logging:
+        with Logging(argv=sys.argv, prog_name=cmd_line.name_as_invoked()) as logger:
             generator = PasswordGenerator(
-                logger=logging,
+                logger=logger,
                 init=cmd_line.init,
                 stateless=cmd_line.stateless)
             if cmd_line.init:
-                logging.terminate()
+                logger.terminate()
 
             # Open the accounts file
             generator.read_accounts(cmd_line.template)
 
             # If requested, list the available templates and then exit
             if cmd_line.list:
-                logging.display(
+                logger.display(
                     "MASTER PASSWORDS:\n   " + '\n   '.join(
                         sorted(generator.master_password.password_names())))
-                logging.display(
+                logger.display(
                     "\nTEMPLATES:\n   " + '\n   '.join(
                         sorted(generator.all_templates())))
-                logging.terminate()
+                logger.terminate()
 
             # If requested, search the account database and exit after printing
             # results
@@ -166,24 +164,24 @@ if __name__ == "__main__":
                 for acct, aliases in search_func(search_term):
                     aliases = ' (%s)' % (', '.join(aliases)) if aliases else ''
                     to_print += [acct + aliases]
-                logging.display(search_term + ':')
-                logging.display('    ' + ('\n    '.join(sorted(to_print))))
+                logger.display(search_term + ':')
+                logger.display('    ' + ('\n    '.join(sorted(to_print))))
 
             if cmd_line.find:
                 print_search_results(cmd_line.find, generator.find_accounts)
-                logging.terminate()
+                logger.terminate()
 
             if cmd_line.search:
                 print_search_results(
                     cmd_line.search, generator.search_accounts)
-                logging.terminate()
+                logger.terminate()
 
             if cmd_line.changed:
                 generator.print_changed_secrets()
-                logging.terminate()
+                logger.terminate()
             if cmd_line.archive:
                 generator.archive_secrets()
-                logging.terminate()
+                logger.terminate()
 
             # Select the requested account
             account = generator.get_account(cmd_line.account)
@@ -197,7 +195,7 @@ if __name__ == "__main__":
                         try:
                             cmd = BROWSERS[cmd_line.browser]
                         except KeyError:
-                            logging.error(
+                            logger.error(
                                 'Unknown browser: %s, choose from %s.' % (
                                     cmd_line.browser,
                                     ', '.join(BROWSERS)))
@@ -207,18 +205,18 @@ if __name__ == "__main__":
                     if urls:
                         url = urls[0]
                             # choose first url if there are more than one
-                        logging.log("running '%s'" % (cmd % url))
+                        logger.log("running '%s'" % (cmd % url))
                         execute(cmd % url)
-                        logging.terminate()
+                        logger.terminate()
                     else:
-                        logging.error('url is unknown')
+                        logger.error('url is unknown')
                 except ExecuteError as err:
-                    logging.error(str(err))
+                    logger.error(str(err))
 
             # Create the secrets writer
             style = 'c' if cmd_line.clipboard else (
                 't' if cmd_line.autotype else 's')
-            writer = PasswordWriter(style, generator, cmd_line.wait, logging)
+            writer = PasswordWriter(style, generator, cmd_line.wait, logger)
 
             # Process the users output requests
             if cmd_line.autotype:
@@ -244,9 +242,7 @@ if __name__ == "__main__":
 
             # Output everything that the user requested.
             writer.process_output()
-            logging.terminate()
-    except PasswordError as err:
-        sys.exit('%s: %s' % (cmd_line.name_as_invoked(), str(err)))
+            logger.terminate()
     except KeyboardInterrupt:
         sys.exit('Killed by user')
 
