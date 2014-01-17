@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Installs abraxas
 #
 # Requires 2.7 or Python3.3. Also requires the following packages
@@ -45,7 +45,7 @@ rm -rf build dist abraxas.egg-info install.out
 
 # Install abraxas
 python$vers setup.py install --quiet --user >& install.out
-if [ $? != 0 ] ; then
+if [ $? -ne 0 ] ; then
     echo "Problems found, aborting (see install.out)"
     exit 1
 fi

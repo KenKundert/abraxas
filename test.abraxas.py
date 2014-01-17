@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 # Test the Password Generator
 
@@ -7,6 +7,7 @@ from __future__ import print_function, division
 from runtests import cmdLineOpts, writeSummary
 from textcolors import Colors
 from abraxas import PasswordGenerator, PasswordError, Logging
+from abraxas.prefs import GPG_BINARY
 from fileutils import remove
 from textwrap import dedent
 import sys
@@ -79,8 +80,8 @@ class Case():
         except (SyntaxError, NameError, KeyError, AttributeError) as err:
             print("Error found with stimulus: <%s>" % self.stimulus)
             raise
-        except:
-            return (self.name, self.stimulus, None, None, 'exception')
+        #except:
+        #    return (self.name, self.stimulus, None, None, 'exception')
 
         self.output = Case.OUTPUT[:]
         if self.error != self.expected_error:
@@ -287,7 +288,7 @@ testCases = [
     ),
     Case(
         name='peasant',
-        stimulus="os.system('gpg2 --homedir test_key -r 4DC3AD14 -e test_settings/master')"
+        stimulus="os.system('%s --homedir test_key -r 4DC3AD14 -e test_settings/master')" % GPG_BINARY
     ),
     Case(
         name='digestion',
@@ -295,7 +296,7 @@ testCases = [
     ),
     Case(
         name='holocaust',
-        stimulus="os.system('gpg2 --homedir test_key -r 4DC3AD14 -e test_settings/master2')"
+        stimulus="os.system('%s --homedir test_key -r 4DC3AD14 -e test_settings/master2')" % GPG_BINARY
     ),
     Case(
         name='torch',
@@ -501,8 +502,8 @@ for case in testCases:
         failures += 1
         name, stimulus, result, expected, kind = failure
         print(fail('Unexpected %s (%s):' % (kind, failures)))
-        print(info('    Case:'), name)
-        print(info('    Given:'), stimulus)
+        print(info('    Case    :'), name)
+        print(info('    Given   :'), stimulus)
         print(info('    Result  :'), result)
         print(info('    Expected:'), expected)
 

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Uninstalls abraxas
 
 # Set python to the version of python you wish to use (ex. python2 or python3)
