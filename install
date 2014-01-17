@@ -34,7 +34,7 @@ python=python
 
 # Run pylint to find egregious errors.
 # This is optional, you can delete this line if you don't have pylint.
-pylint -E --disable=no-member abraxas manpage
+#pylint -E --disable=no-member abraxas manpage
 
 # Determine the version of python we are using.
 vers=$($python -c 'import sys; print("%s.%s" % (sys.version_info[0], sys.version_info[1]))')
