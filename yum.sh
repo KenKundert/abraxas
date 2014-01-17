@@ -3,10 +3,12 @@
 # needed dependencies.
 
 sudo yum install       \
+    git                \
     python             \
     python-setuptools  \
-    libyaml-devel      \
     python-docutils    \
+    python-argparse    \
+    libyaml-devel      \
     PyYAML             \
     xdotool            \
     xsel               \

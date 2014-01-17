@@ -40,14 +40,18 @@ It requires the following packages to fully function (run these commands as
 root)::
 
    yum install python
-   yum install python-setuptools (for installation)
-   yum install libyaml-devel (password archive)
-   yum install PyYAML (password archive)
-   yum install python-docutils (for manpages)
-   yum install xdotool (autotype support)
-   yum install xsel (clipboard support)
-   yum install zenity (account selection when window title is not enough)
+   yum install python-setuptools
+   yum install libyaml-devel
+   yum install PyYAML
+   yum install python-docutils
+   yum install xdotool
+   yum install xsel
+   yum install zenity
    easy_install python-gnupg
+
+On Centos you will also need::
+
+   yum install python-argparse
 
 On Redhat-based systems you can get these dependencies by running ./yum.sh.
 

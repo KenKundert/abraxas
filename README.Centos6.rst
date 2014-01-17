@@ -23,8 +23,8 @@ root, run::
    # wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
    # rpm -Uvh epel-release-6-8.noarch.rpm
 
-   # wget http://li.nux.ro/download/nux/dextop/el6/x86_64/nux-desktop-release-0-2.ex6.nux.noarch.rpm
-   # rpm -Uvh nux-desktop-release-0-2.ex6.nux.noarch.rpm 
+   # wget http://li.nux.ro/download/nux/dextop/el6/x86_64/nux-dextop-release-0-2.el6.nux.noarch.rpm
+   # rpm -Uvh nux-dextop-release-0-2.el6.nux.noarch.rpm
 
    # yum install xdotool xsel libyaml zenity
 
@@ -100,7 +100,7 @@ with autotype). To do so, go to 'System->Preference->Startup Applications',
 click 'Add' and add the following::
 
    Name: GPG Agent
-   Command: eval `gpg-agent --daemon`
+   Command: eval $(gpg-agent --daemon)
 
 While you are at it, configure Gnome to run Abraxas when you type a special key 
 sequence. This will allow you to login to webpages and such just by typing the 
