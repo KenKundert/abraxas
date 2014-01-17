@@ -5,9 +5,17 @@ from abraxas.version import VERSION
 import manpage
 manpage.write()
 
+def get_long_description():
+    contents = []
+    for each in ['README.rst', 'CHANGES.rst']:
+        with open(each) as f:
+            contents += [f.read()]
+    return '\n\n'.join(contents)
+
 setup(
     name='abraxas',
     description="password generator",
+    long_description=get_long_description(),
     author="Kale & Ken Kundert",
     author_email='abraxas@nurdletech.com',
     version=VERSION,
@@ -22,6 +30,7 @@ setup(
         ('man/man5', ['abraxas.5']),
     ],
     license='GPLv3',
+    platforms=['linux'],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",

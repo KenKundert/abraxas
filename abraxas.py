@@ -133,117 +133,116 @@ class CommandLine:
 
 
 # Main {{{1
-if __name__ == "__main__":
-    cmd_line = CommandLine(sys.argv)
-    try:
-        with Logging(argv=sys.argv, prog_name=cmd_line.name_as_invoked()) as logger:
-            generator = PasswordGenerator(
-                logger=logger,
-                init=cmd_line.init,
-                stateless=cmd_line.stateless)
-            if cmd_line.init:
-                logger.terminate()
-
-            # Open the accounts file
-            generator.read_accounts(cmd_line.template)
-
-            # If requested, list the available templates and then exit
-            if cmd_line.list:
-                logger.display(
-                    "MASTER PASSWORDS:\n   " + '\n   '.join(
-                        sorted(generator.master_password.password_names())))
-                logger.display(
-                    "\nTEMPLATES:\n   " + '\n   '.join(
-                        sorted(generator.all_templates())))
-                logger.terminate()
-
-            # If requested, search the account database and exit after printing
-            # results
-            def print_search_results(search_term, search_func):
-                to_print = []
-                for acct, aliases in search_func(search_term):
-                    aliases = ' (%s)' % (', '.join(aliases)) if aliases else ''
-                    to_print += [acct + aliases]
-                logger.display(search_term + ':')
-                logger.display('    ' + ('\n    '.join(sorted(to_print))))
-
-            if cmd_line.find:
-                print_search_results(cmd_line.find, generator.find_accounts)
-                logger.terminate()
-
-            if cmd_line.search:
-                print_search_results(
-                    cmd_line.search, generator.search_accounts)
-                logger.terminate()
-
-            if cmd_line.changed:
-                generator.print_changed_secrets()
-                logger.terminate()
-            if cmd_line.archive:
-                generator.archive_secrets()
-                logger.terminate()
-
-            # Select the requested account
-            account = generator.get_account(cmd_line.account)
-
-            # If requested, open accounts webpage in browser and then exit.
-            if cmd_line.browser or cmd_line.default_browser:
-                try:
-                    if cmd_line.default_browser:
-                        cmd = BROWSERS[DEFAULT_BROWSER]
-                    else:
-                        try:
-                            cmd = BROWSERS[cmd_line.browser]
-                        except KeyError:
-                            logger.error(
-                                'Unknown browser: %s, choose from %s.' % (
-                                    cmd_line.browser,
-                                    ', '.join(BROWSERS)))
-                    urls = account.get_field('url', [])
-                    if type(urls) == str:
-                        urls = [urls]
-                    if urls:
-                        url = urls[0]
-                            # choose first url if there are more than one
-                        logger.log("running '%s'" % (cmd % url))
-                        execute(cmd % url)
-                        logger.terminate()
-                    else:
-                        logger.error('url is unknown')
-                except ExecuteError as err:
-                    logger.error(str(err))
-
-            # Create the secrets writer
-            style = 'c' if cmd_line.clipboard else (
-                't' if cmd_line.autotype else 's')
-            writer = PasswordWriter(style, generator, cmd_line.wait, logger)
-
-            # Process the users output requests
-            if cmd_line.autotype:
-                writer.write_autotype()
-            else:
-                if cmd_line.username or cmd_line.info or cmd_line.all:
-                    writer.write_account_entry('username')
-                if cmd_line.account_number or cmd_line.info or cmd_line.all:
-                    writer.write_account_entry('account')
-                if cmd_line.email or cmd_line.info or cmd_line.all:
-                    writer.write_account_entry('email')
-                if cmd_line.url or cmd_line.info or cmd_line.all:
-                    writer.write_account_entry('url')
-                if cmd_line.remarks or cmd_line.info or cmd_line.all:
-                    writer.write_account_entry('remarks')
-                if cmd_line.info or cmd_line.all:
-                    writer.write_question()
-                    writer.write_unknown_entries()
-                if cmd_line.question is not None:
-                    writer.write_answer(cmd_line.question)
-                if cmd_line.password or cmd_line.all or writer.is_empty():
-                    writer.write_password()
-
-            # Output everything that the user requested.
-            writer.process_output()
+cmd_line = CommandLine(sys.argv)
+try:
+    with Logging(argv=sys.argv, prog_name=cmd_line.name_as_invoked()) as logger:
+        generator = PasswordGenerator(
+            logger=logger,
+            init=cmd_line.init,
+            stateless=cmd_line.stateless)
+        if cmd_line.init:
             logger.terminate()
-    except KeyboardInterrupt:
-        sys.exit('Killed by user')
+
+        # Open the accounts file
+        generator.read_accounts(cmd_line.template)
+
+        # If requested, list the available templates and then exit
+        if cmd_line.list:
+            logger.display(
+                "MASTER PASSWORDS:\n   " + '\n   '.join(
+                    sorted(generator.master_password.password_names())))
+            logger.display(
+                "\nTEMPLATES:\n   " + '\n   '.join(
+                    sorted(generator.all_templates())))
+            logger.terminate()
+
+        # If requested, search the account database and exit after printing
+        # results
+        def print_search_results(search_term, search_func):
+            to_print = []
+            for acct, aliases in search_func(search_term):
+                aliases = ' (%s)' % (', '.join(aliases)) if aliases else ''
+                to_print += [acct + aliases]
+            logger.display(search_term + ':')
+            logger.display('    ' + ('\n    '.join(sorted(to_print))))
+
+        if cmd_line.find:
+            print_search_results(cmd_line.find, generator.find_accounts)
+            logger.terminate()
+
+        if cmd_line.search:
+            print_search_results(
+                cmd_line.search, generator.search_accounts)
+            logger.terminate()
+
+        if cmd_line.changed:
+            generator.print_changed_secrets()
+            logger.terminate()
+        if cmd_line.archive:
+            generator.archive_secrets()
+            logger.terminate()
+
+        # Select the requested account
+        account = generator.get_account(cmd_line.account)
+
+        # If requested, open accounts webpage in browser and then exit.
+        if cmd_line.browser or cmd_line.default_browser:
+            try:
+                if cmd_line.default_browser:
+                    cmd = BROWSERS[DEFAULT_BROWSER]
+                else:
+                    try:
+                        cmd = BROWSERS[cmd_line.browser]
+                    except KeyError:
+                        logger.error(
+                            'Unknown browser: %s, choose from %s.' % (
+                                cmd_line.browser,
+                                ', '.join(BROWSERS)))
+                urls = account.get_field('url', [])
+                if type(urls) == str:
+                    urls = [urls]
+                if urls:
+                    url = urls[0]
+                        # choose first url if there are more than one
+                    logger.log("running '%s'" % (cmd % url))
+                    execute(cmd % url)
+                    logger.terminate()
+                else:
+                    logger.error('url is unknown')
+            except ExecuteError as err:
+                logger.error(str(err))
+
+        # Create the secrets writer
+        style = 'c' if cmd_line.clipboard else (
+            't' if cmd_line.autotype else 's')
+        writer = PasswordWriter(style, generator, cmd_line.wait, logger)
+
+        # Process the users output requests
+        if cmd_line.autotype:
+            writer.write_autotype()
+        else:
+            if cmd_line.username or cmd_line.info or cmd_line.all:
+                writer.write_account_entry('username')
+            if cmd_line.account_number or cmd_line.info or cmd_line.all:
+                writer.write_account_entry('account')
+            if cmd_line.email or cmd_line.info or cmd_line.all:
+                writer.write_account_entry('email')
+            if cmd_line.url or cmd_line.info or cmd_line.all:
+                writer.write_account_entry('url')
+            if cmd_line.remarks or cmd_line.info or cmd_line.all:
+                writer.write_account_entry('remarks')
+            if cmd_line.info or cmd_line.all:
+                writer.write_question()
+                writer.write_unknown_entries()
+            if cmd_line.question is not None:
+                writer.write_answer(cmd_line.question)
+            if cmd_line.password or cmd_line.all or writer.is_empty():
+                writer.write_password()
+
+        # Output everything that the user requested.
+        writer.process_output()
+        logger.terminate()
+except KeyboardInterrupt:
+    sys.exit('Killed by user')
 
 # vim: set filetype=python sw=4 sts=4 et ai:
