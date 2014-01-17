@@ -80,8 +80,8 @@ class Case():
         except (SyntaxError, NameError, KeyError, AttributeError) as err:
             print("Error found with stimulus: <%s>" % self.stimulus)
             raise
-        #except:
-        #    return (self.name, self.stimulus, None, None, 'exception')
+        except:
+            return (self.name, self.stimulus, None, None, 'exception')
 
         self.output = Case.OUTPUT[:]
         if self.error != self.expected_error:

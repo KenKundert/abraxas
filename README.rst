@@ -36,36 +36,58 @@ himself and downloads the documents.
 Installing Prerequisites in Fedora with YUM
 -------------------------------------------
 Abraxas is compatible with both python 2.6 and beyond or python 3.3 and beyond.  
-It requires the following packages to fully function::
+It requires the following packages to fully function (run these commands as 
+root)::
 
-   # yum install python
-   # yum install python-setuptools (for installation)
-   # yum install libyaml-devel (password archive)
-   # yum install PyYAML (password archive)
-   # yum install python-docutils (for manpages)
-   # yum install xdotool (autotype support)
-   # yum install xsel (clipboard support)
-   # yum install zenity (account selection when window title is not enough)
-   # easy_install python-gnupg
+   yum install python
+   yum install python-setuptools (for installation)
+   yum install libyaml-devel (password archive)
+   yum install PyYAML (password archive)
+   yum install python-docutils (for manpages)
+   yum install xdotool (autotype support)
+   yum install xsel (clipboard support)
+   yum install zenity (account selection when window title is not enough)
+   easy_install python-gnupg
 
 On Redhat-based systems you can get these dependencies by running ./yum.sh.
 
 Installing Prerequisites in Arch Linux with Pacman
 --------------------------------------------------
-Abraxas requires the following Arch Linux packages to fully function::
+Abraxas requires the following Arch Linux packages to fully function (run these 
+commands as root)::
 
-   # pacman -S git
-   # pacman -S python
-   # pacman -S python-setuptools
-   # pacman -S python-docutils
-   # pacman -S libyaml
-   # pacman -S xdotool
-   # pacman -S xsel
-   # pacman -S zenity
-   # easy_install python-gnupg
-   # easy_install PyYAML
+   pacman -S git
+   pacman -S python
+   pacman -S python-setuptools
+   pacman -S python-docutils
+   pacman -S libyaml
+   pacman -S xdotool
+   pacman -S xsel
+   pacman -S zenity
+   easy_install python-gnupg
+   easy_install PyYAML
 
 You can install these prerequisites by running ./pacman.sh.
+
+Installing Prerequisites in Ubuntu with Apt-Get
+-----------------------------------------------
+Abraxas requires the following Ubuntu packages to fully function (run these 
+commands as root)::
+
+   apt-get install git
+   apt-get install libyaml-dev
+   apt-get install python3
+   apt-get install python3-setuptools
+   apt-get install python3-docutils
+   apt-get install python3-yaml
+   apt-get install xdotool
+   apt-get install xsel
+   apt-get install zenity
+   easy_install3 python-gnupg
+
+You can install these prerequisites by running ./ubuntu.sh.
+Ubuntu does not provide gpg2, so you will need to change GPG_BINARY in 
+``abraxas/prefs.py`` to ``gpg``.
 
 Installing Prerequisites from Source
 ------------------------------------

@@ -13,3 +13,8 @@ sudo yum install       \
     zenity
 
 sudo easy_install python-gnupg
+
+# Other things you may need:
+# yum install vim-enhanced vim-X11
+# yum install keychain (if you prefer keychain)
+# yum install gnome-keyring gnome-keyring-pam (if you prefer keyring)
