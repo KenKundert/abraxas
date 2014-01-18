@@ -177,9 +177,9 @@ class _MasterPassword:
                 self.logger.display("    " + "\n    ".join(wrap(' '.join([
                     "This could result in passwords that are inconsistent",
                     "with those created in the past.",
-                    "Use 'abraxas --changed' to assure that nothing has changed and",
-                    "then update the corresponding hash' in %s/%s to %s." % (
-                        DEFAULT_SETTINGS_DIR, MASTER_PASSWORD_FILENAME, hash)]))))
+                    'Update the corresponding hash in %s/%s to "%s".' % (
+                        DEFAULT_SETTINGS_DIR, MASTER_PASSWORD_FILENAME, hash),
+                    "Then use 'abraxas --changed' to assure that nothing has changed."]))))
 
     # Get field {{{2
     def _get_field(self, key):
