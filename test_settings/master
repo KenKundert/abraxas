@@ -3,7 +3,7 @@ secrets_hash = "bb7811863130f42cee268e85430f28ac888148c5"   # DO NOT CHANGE THIS
 charsets_hash = "dab48b2103ebde97f78cfebd15cc1e66d6af6ed0"  # DO NOT CHANGE THIS LINE
 
 passwords = {
-    'current': """filly meddler pivot stool""",
+    'current': "filly meddler pivot stool",
 }
 default_password = 'current'
 password_overrides = {

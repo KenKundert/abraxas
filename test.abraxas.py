@@ -219,7 +219,7 @@ testCases = [
     Case(
         name='janitor',
         stimulus="pw.generate_password()",
-        result='postdate sprayer payment aircrew'
+        result='stiffen centaur partition umbrella'
     ),
     Case(
         name='picture',
@@ -228,7 +228,7 @@ testCases = [
     Case(
         name='narrator',
         stimulus="pw.generate_password()",
-        result='HhqaECyF=]nt'
+        result='O%|wAkx2JB|S'
     ),
     Case(
         name='bagatelle',
@@ -237,7 +237,7 @@ testCases = [
     Case(
         name='spellbind',
         stimulus="pw.generate_password()",
-        result='placate embody tinker razor'
+        result='measure bulky opiate cowman'
     ),
     Case(
         name='poplar',
@@ -246,7 +246,7 @@ testCases = [
     Case(
         name='scrimmage',
         stimulus="pw.generate_password()",
-        result='conflate orifice posting blind rookie earmark mediator impulse'
+        result='quilt latchkey pedicure fuzzy collate deflate trowel victim'
     ),
     Case(
         name='forswear',
@@ -255,7 +255,7 @@ testCases = [
     Case(
         name='rhesus',
         stimulus="pw.generate_password()",
-        result='''R}-|v6IL9OQIp)U07t1OQ$jz"1qX$VLOqkSac!|b&mlc:rlD|fhKO|(O9%&oI#]J'''
+        result='''|cBZN|ha{#7#R?zb#Z8WG.P1.9Uag5C[0S4C$6[wmhL!$u!Y^b(["7m6`no[fWub'''
     ),
     Case(
         name='practical',
@@ -265,7 +265,7 @@ testCases = [
     Case(
         name='booth',
         stimulus="pw.generate_password()",
-        result="llama libretto stump analgesic"
+        result="solution meaty scatter ambition"
     ),
     Case(
         name='impeach',

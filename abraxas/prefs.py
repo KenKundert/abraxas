@@ -117,7 +117,7 @@ MASTER_PASSWORD_FILE_INITIAL_CONTENTS = dedent('''\
 
     accounts_file = "%s"
     passwords = {
-        'default': """<%s>""",  # DO NOT CHANGE THIS LINE
+        'default': "%s",  # DO NOT CHANGE THIS LINE
     }
     default_password = 'default'
     password_overrides = {

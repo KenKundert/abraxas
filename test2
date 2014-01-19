@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-# Run module self tests
+# Run module self tests using python2
 
 from runtests import runTests
 

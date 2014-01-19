@@ -168,28 +168,27 @@ class PasswordGenerator:
 
         # Generate a random long string to act as the default password
         def generate_random_string():
-            def partition(bytestr):
-                for each in bytestr:
-                    try:
-                        yield ord(each)  # python2
-                    except TypeError:
-                        yield each       # python3
-
-            digest = os.urandom(64)
             from string import ascii_letters, digits, punctuation
-            alphabet = (ascii_letters + digits + punctuation)
+            import random
+            # Create alphabet from letters, digits, and punctuation, but replace
+            # double quote with a space so password can be safely represented as
+            # a double-quoted string.
+            alphabet = (ascii_letters + digits + punctuation).replace('"', ' ')
+
+            rand = random.SystemRandom()
             password = ''
-            for index in partition(digest):
-                password += alphabet[index % len(alphabet)]
+            for i in range(64):
+                password += rand.choice(alphabet)
             return password
 
         mkdir(self.settings_dir)
-        if self.settings_dir == expand_path(DEFAULT_SETTINGS_DIR):
-            default_password = generate_random_string()
-        else:
-            # if settings_dir is not the DEFAULT_SETTINGS_DIR, then this is
-            # most probably a test, in which case we do not want to use a
+        default_password = generate_random_string()
+        if self.settings_dir != expand_path(DEFAULT_SETTINGS_DIR):
+            # If settings_dir is not the DEFAULT_SETTINGS_DIR, then this is
+            # probably a test, in which case we do not want to use a
             # random password as it would cause the test results to vary.
+            # Still want to generate the random string so that code gets
+            # tested. It has been the source of trouble in the past.
             default_password = '<< test pass phrase -- do not use >>'
         create_file(
             self.master_password_path,
