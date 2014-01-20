@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2013-14 Kenneth S. Kundert and Kale B. Kundert
 
-# License {{{1
+# License (fold)
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -16,12 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
-# Imports {{{1
+
+# Imports (fold)
 from textwrap import dedent
 import re
 
-# Globals {{{1
-# Filenames {{{2
+
+# Filenames (folds)
 DEFAULT_SETTINGS_DIR = '~/.config/abraxas'
 MASTER_PASSWORD_FILENAME = 'master.gpg'
 DEFAULT_ACCOUNTS_FILENAME = 'accounts'
@@ -31,13 +32,15 @@ DEFAULT_LOG_FILENAME = 'log'
     # log file will be encrypted if you add .gpg or .asc extension
 DEFAULT_ARCHIVE_FILENAME = 'archive.gpg'
 
-# Defaults {{{2
+
+# Defaults (folds)
 DEFAULT_TEMPLATE = "=words"
 DEFAULT_AUTOTYPE = "{username}{tab}{password}{return}"
 # Use absolute paths for xdotool and xsel
 # Makes it harder for someone to replace them so as to expose the secrets.
 
-# Settings {{{2
+
+# Settings (folds)
 LABEL_COLOR = 'yellow'
     # choose from normal, black, red, green, yellow, blue, magenta, cyan, white
 LABEL_STYLE = 'normal'
@@ -54,13 +57,14 @@ PREFER_HTTPS = True
     # When PREFER_HTTPS is false, abraxas allows the http protocol unless
     # https is explicitly specified in the url.
 
-# Utility programs {{{2
+
+# Utility programs (folds)
 XDOTOOL = '/usr/bin/xdotool'
 XSEL = '/usr/bin/xsel'
 GPG_BINARY = 'gpg2'
 ZENITY = 'zenity'
 
-# Signatures {{{2
+# Signatures (folds)
 # These signatures must be the sha1 signatures for the corresponding files
 # Regenerate them with 'sha1sum <filename>'
 # These are used in creating the initial master password file.
@@ -68,7 +72,8 @@ SECRETS_SHA1 = "bb7811863130f42cee268e85430f28ac888148c5"
 CHARSETS_SHA1 = "dab48b2103ebde97f78cfebd15cc1e66d6af6ed0"
 DICTIONARY_SHA1 = "d9aa1c08e08d6cacdf82819eeb5832429eadb95a"
 
-# Browsers {{{2
+
+# Browsers (folds)
 # Associate a command with a browser key.
 # The command must contain a single %s, which is replaced with URL.
 BROWSERS = {
@@ -77,10 +82,11 @@ BROWSERS = {
 }
 DEFAULT_BROWSER = 'f'
 
-# Account Recognition {{{2
+
+# Account Recognition (folds)
 # Title Recognition
-# Build up the regular expression used to recognize the various component of the
-# window title.
+# Build up the regular expression used to recognize the various component of 
+# the window title.
 def labelRegex(label, regex):
     return "(?P<%s>%s)" % (label, regex)
 HOST_REGEX = r'(?:[a-zA-Z0-9\-]+\.)+[a-zA-Z0-9]+'
@@ -96,7 +102,10 @@ REGEX_COMPONENTS = {
     'email': labelRegex('email', EMAIL_REGEX)}
 # Hostname in Titlebar browser title regex
 HNITB_BROWSER_TITLE_PATTERN = re.compile(
-    r'{title} - {host} \({protocol}\)(?: - {browser})?'.format(**REGEX_COMPONENTS))
+    r'{title} - {host} \({protocol}\)(?: - {browser})?'.format(
+        **REGEX_COMPONENTS
+    )
+)
 # Simple browser title regex
 SIMPLE_BROWSER_TITLE_PATTERN = re.compile(
     r'{title}(?: - {browser})?'.format(**REGEX_COMPONENTS))
@@ -109,7 +118,7 @@ TITLE_PATTERNS = [
     # Titlebar' extension to Firefox and Thunderbird
     ('simple browser title', SIMPLE_BROWSER_TITLE_PATTERN)]
 
-# Initial master password file {{{2
+# Initial master password file (folds)
 MASTER_PASSWORD_FILE_INITIAL_CONTENTS = dedent('''\
     dict_hash = "%s"      # DO NOT CHANGE THIS LINE
     secrets_hash = "%s"   # DO NOT CHANGE THIS LINE
@@ -127,7 +136,8 @@ MASTER_PASSWORD_FILE_INITIAL_CONTENTS = dedent('''\
     # vim: filetype=python sw=4 sts=4 et ai ff=unix:
 ''')
 
-# Initial accounts file {{{2
+
+# Initial accounts file (folds)
 ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
     # Account information
     #
@@ -149,9 +159,9 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
         HEXDIGITS, PUNCTUATION, WHITESPACE, PRINTABLE, DISTINGUISHABLE
     )
 
-    # The desired location of the log file (use an absolute path)
-    # Adding a suffix of .gpg or .asc causes the file to be encrypted (otherwise
-    # it can leak account names).
+    # The desired location of the log file (use an absolute path).
+    # Adding a suffix of .gpg or .asc causes the file to be encrypted 
+    # (otherwise it can leak account names).
     log_file = '%s'
 
     # The desired location of the archive file
@@ -165,48 +175,49 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
     # Add your account information here ...
     accounts = {
         # Templates
-        # The first view are intended to be templates.
-        # Any account can be used as a template for another account.
-        # Those that are designated as templates (ID starts with +) cannot be
-        # used as an actual account and will not be listed in find and search
-        # results. Feel free to modify, delete, or add your own templates.
-        # You might want to choose short names with no spaces or glob
-        # characters for those templates you plan to use from the command line.
-        "=words": {  # typically used for linux pass phrases
+        # The first few are intended to be templates.  Any account can be used 
+        # as a template for another account.  Those that are designated as 
+        # templates (ID starts with =) cannot be used as an actual account and 
+        # will not be listed in find and search results. Feel free to modify, 
+        # delete, or add your own templates.  You might want to choose short 
+        # names with no spaces or glob characters for those templates you plan 
+        # to use from the command line. 
+        "=words": {    # typically used for linux pass phrases
             'password-type': 'words',
             'num-words': 4,
             'autotype': "{password}{return}",
         },
-        "=chars": {  # typically used for web passwords
+        "=chars": {    # typically used for web passwords
             'password-type': 'chars',
             'num-chars': 12,
             'alphabet': ALPHANUMERIC + PUNCTUATION,
             'autotype': "{username}{tab}{password}{return}",
         },
-        "=pin": {  # typically used for PINs
+        "=pin": {      # typically used for PINs
             'password-type': 'chars',
             'num-chars': 4,
             'alphabet': DIGITS,
             'autotype': "{password}{return}",
         },
-        "=num": {  # typically used for PINs
+        "=num": {      # typically used for PINs
             'password-type': 'chars',
             'num-chars': 8,
             'alphabet': DIGITS,
             'autotype': "{password}{return}",
         },
-        "=word": {  # typically used as an alternative to a PIN
+        "=word": {     # typically used as an alternative to a PIN
             'password-type': 'words',
             'num-words': 1,
             'autotype': "{password}{return}",
         },
-        "=anum": {  # typically used for web passwords (contains only easily distinguished alphanumeric characters)
+        "=anum": {     # typically used for web passwords,  contains only 
+                       # easily distinguished alphanumeric characters.
             'password-type': 'chars',
             'num-chars': 12,
             'alphabet': DISTINGUISHABLE,
             'autotype': "{username}{tab}{password}{return}",
         },
-        "=master": {  # typically used to generate master passwords for abraxas
+        "=master": {   # used to generate master passwords for abraxas
             'password-type': 'words',
             'num-words': 8,
         },
@@ -260,13 +271,14 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
         #       ],
         #       'remarks': """<remarks>""",
         #       'version': "<version>",
-        #       'window': [],       # a glob string or list of glob strings that
-        #                           # are used to match window titles to this
-        #                           # account
+        #       'window': [],       # a glob string or list of glob strings 
+        #                           # that are used to match window titles to 
+        #                           # this account
         #       'autotype': "{username}{tab}{password}{return}",
         #       'template': "<an account id>",
         #       'master': "<a master password id>",
-        #       'password-type': 'words',    # choose between "words" and "chars"
+        #       'password-type': 'words',
+        #                           # choose between "words" and "chars"
         #       'num-words': <int>, # number of words in passphrases
         #       'separator': ' ',   # separates words in passphrases
         #       'num-chars': <int>, # number of characters in passwords
@@ -282,7 +294,8 @@ ACCOUNTS_FILE_INITIAL_CONTENTS = dedent('''\
     # vim: filetype=python sw=4 sts=4 et ai ff=unix:
 ''')
 
-# Fields {{{1
+
+# Fields (folds)
 # Do not change these (not user configurable)
 SEARCH_FIELDS = ['username', 'account', 'email', 'url', 'remarks']
 STRING_FIELDS = [

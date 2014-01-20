@@ -1,11 +1,11 @@
 # Abraxas Password Writer
 #
-# Given a secret (password or passphrase) the password writer is responsible for
-# getting it to the user in reasonably secure manners.
+# Given a secret (password or passphrase) the password writer is responsible 
+# for getting it to the user in reasonably secure manners.
 #
 # Copyright (C) 2013-14 Kenneth S. Kundert and Kale B. Kundert
 
-# License {{{1
+# License (fold)
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
-# Imports {{{1
+# Imports (fold)
 from __future__ import print_function, division
 import abraxas.cursor as cursor
 from abraxas.prefs import (
@@ -30,15 +30,14 @@ from time import sleep
 import re
 
 
-# Utilities {{{1
-# Indent a string {{{2
-# This should be provided by textwrap, but is not available from older versions
 def indent(text, prefix='    '):
+    # Indent a string
+    # This should be provided by textwrap, but is not available from older 
+    # versions of python.
     return '\n'.join(
         [prefix + line if line else line for line in text.split('\n')])
 
 
-# PasswordWriter class {{{1
 class PasswordWriter:
     """
     Abraxas Password Writer
@@ -46,14 +45,15 @@ class PasswordWriter:
     Used to get account information to the user.
     """
 
-    # PasswordWriter is responsible for sending output to the user. It has three
-    # backends, one that writes to standard output, one that writes to the
-    # clipboard, and one that autotypes (mimics the keyboard). To accommodate
-    # the three backends the output is gathered up and converted into a script.
-    # That script is interpreted by the appropriate backend to produce the
-    # output. The script is a sequence of commands each with an argument.
-    # Internally the script is saved as a list of tuples. The first value in the
-    # tuple is the name of the command. Several commands are supported.
+    # PasswordWriter is responsible for sending output to the user. It has 
+    # three backends, one that writes to standard output, one that writes to 
+    # the clipboard, and one that autotypes (mimics the keyboard). To 
+    # accommodate the three backends the output is gathered up and converted 
+    # into a script.  That script is interpreted by the appropriate backend to 
+    # produce the output. The script is a sequence of commands each with an 
+    # argument.  Internally the script is saved as a list of tuples. The first 
+    # value in the tuple is the name of the command. Several commands are 
+    # supported.
     #    write_verbatim() --> ('verb', <str>)
     #        Outputs the argument verbatim.
     #    write_account_entry() --> ('interp', <label>)
@@ -77,7 +77,6 @@ class PasswordWriter:
     #        Waits before continuing. The argument is the number of seconds to
     #        wait.
 
-    # Constructor {{{2
     def __init__(self, output, generator, wait=60, logger=None):
         """
         Arguments:
@@ -91,9 +90,10 @@ class PasswordWriter:
         logger (logger object)
             Instance of class that provides display(), log(), and error()
             methods:
-                display(msg) is called when a message is to be sent to the user.
+                display(msg): called when a message is to be sent to the user.
                 log(msg) is called when a message is only to be logged.
-                error(msg) is called when an error has occurred, should not return.
+                error(msg): called when an error has occurred,
+                            should not return.
         """
         assert(output in ['c', 't', 's'])
         self.output = output
@@ -102,11 +102,9 @@ class PasswordWriter:
         self.logger = logger if logger else generator.logger
         self.script = []
 
-    # Is empty {{{2
     def is_empty(self):
         return not self.script
 
-    # Actions {{{2
     def write_verbatim(self, text):
         """
         Specify a string to output to user when output is processed.
@@ -153,8 +151,6 @@ class PasswordWriter:
         """
         self.script += [('sleep', delay)]
 
-    # Parse autotype script {{{2
-    # User has requested autotype. Look up and parse the autotype script.
     def write_autotype(self):
         """
         Process the account autotype script send what ever it specifies to the
@@ -206,7 +202,6 @@ class PasswordWriter:
                 if (term):
                     self.write_verbatim(term)
 
-    # Process output {{{2
     def process_output(self):
         """
         Process the output.
@@ -221,17 +216,16 @@ class PasswordWriter:
         else:
             self._process_output_to_stdout()
 
-    # Process output to standard output {{{3
     def _process_output_to_stdout(self):
         label_password = len(self.script) > 1
 
-        # Attach color label to a value
         def highlight(label, value):
+            # Attach color label to a value
             return (cursor.color(
                 label.upper() + ':', LABEL_COLOR, LABEL_STYLE) + ' ' + value)
 
-        # Send output to stdout with the labels.
         def display_secret(label, secret):
+            # Send output to stdout with the labels.
             if self.wait:
                 text = highlight(label, secret)
                 try:
@@ -245,8 +239,8 @@ class PasswordWriter:
             else:
                 print(secret)
 
-        # Send field to stdout with the labels.
         def display_field(label, value):
+            # Send field to stdout with the labels.
             if value:
                 if type(value) == list:
                     print(highlight(label, '\n    '+',\n    '.join(value)))
@@ -297,7 +291,6 @@ class PasswordWriter:
                 raise NotImplementedError
         self.logger.log('Writing to stdout.')
 
-    # Process output to clipboard {{{3
     def _process_output_to_clipboard(self):
         # Send output to clipboard without the labels.
         lines = []
@@ -376,7 +369,6 @@ class PasswordWriter:
         #except ImportError:
         #    error('Clipboard is not supported.')
 
-    # Process output to autotype {{{3
     def _process_output_to_autotype(self):
         # Mimic a keyboard to send output to the active window.
 

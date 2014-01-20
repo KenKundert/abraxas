@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2013-14 Kenneth S. Kundert and Kale B. Kundert
 
-# License {{{1
+# License (fold)
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
-# Imports {{{1
+# Imports (fold)
 from __future__ import print_function, division
 from fileutils import expandPath as expand_path, getExt as get_extension
 from abraxas.prefs import DEBUG
@@ -26,8 +26,6 @@ import sys
 import os
 
 
-# Logging {{{1
-# Log messages to a file
 class Logging:
     """
     Abraxas Logger
@@ -35,11 +33,9 @@ class Logging:
     Handles all messaging for Abraxas. Copies all messages to the logfile while
     sending most to standard out as well.
     """
-    def __init__(self,
-        logfile=None,
-        argv=None,
-        prog_name=None,
-        output_callback=None,
+
+    def __init__(
+        self, logfile=None, argv=None, prog_name=None, output_callback=None,
         exception=None
     ):
         """
@@ -61,8 +57,12 @@ class Logging:
             an error occurs. If not provided, program will exit. The exception
             should take one argument, the error message.
 
-        You generally want to invoke Logging with a 'with' statement to assure
-        that log file gets generated.  Example:
+        Messages are cached until the logger terminates (this is because the 
+        logfile may not be known before the first messages need to be logged).  
+        The messages are only written to the logfile upon termination of the 
+        logger.  As such, the logger must be terminated properly for the 
+        logfile to be created. To assure this happens, you to create the logger 
+        using a with statement.  Example:
 
             with Logging(argv=sys.argv) as logger:
                 ...
@@ -86,10 +86,9 @@ class Logging:
         if argv and not prog_name:
             self.prog_name = argv[0]
 
-    # Set the logfile name and gpg parameters.
     def set_logfile(self, logfile, gpg, gpg_id):
         """
-        Set the logfile.
+        Set the logfile name and GPG parameters.
 
         Arguments:
         logfile (string)
@@ -105,7 +104,6 @@ class Logging:
         self.gpg = gpg
         self.gpg_id = gpg_id
 
-    # Print the messages and also send it to the logfile.
     def display(self, msg):
         """Display the message on standard out and log it."""
         self.log(msg)
@@ -114,19 +112,16 @@ class Logging:
         else:
             print(msg)
 
-    # Only send the message to the logfile.
     def log(self, msg):
         """Log the message."""
         if msg:
             self.cache.append(msg)
 
-    # Only send the message to the logfile.
     def debug(self, msg):
         """Log the message if DEBUG is set."""
         if DEBUG and msg:
             self.cache.append(msg)
 
-    # Log a message and then throw an exception.
     def error(self, msg):
         """Log and display the message, then exit.
 
@@ -142,7 +137,6 @@ class Logging:
             else:
                 sys.exit(msg)
 
-    # Exit cleanly.
     def terminate(self):
         """Normal termination.
 
@@ -152,7 +146,6 @@ class Logging:
         self.log('Terminates normally.')
         sys.exit()
 
-    # Close the logfile.
     def _terminate(self):
         if not self.logfile:
             return
@@ -165,7 +158,8 @@ class Logging:
             )
             if not encrypted.ok:
                 sys.stderr.write(
-                    "%s: unable to encrypt.\n%s" % (filename, encrypted.stderr))
+                    "%s: unable to encrypt.\n%s" % (filename, encrypted.stderr)
+                )
             contents = str(encrypted)
         try:
             with open(filename, 'w') as file:
@@ -174,7 +168,6 @@ class Logging:
         except IOError as err:
             sys.stderr.write('%s: %s.\n' % (err.filename, err.strerror))
 
-    # Support for the with statement
     def __enter__(self):
         return self
 

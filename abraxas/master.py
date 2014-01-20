@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2013-14 Kenneth S. Kundert and Kale B. Kundert
 
-# License {{{1
+# License (fold)
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -18,7 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
-# Imports {{{1
+
+# Imports (fold)
 import abraxas.secrets as secrets
 import hashlib
 from fileutils import (
@@ -34,15 +35,15 @@ from textwrap import wrap
 import sys
 import traceback
 
-# Master password class {{{1
+
 class _MasterPassword:
     """
     Master password class
 
-    Responsible for reading and managing the data from the master password file.
+    Responsible for reading and managing the data from the master password 
+    file.
     """
 
-    # Constructor {{{2
     def __init__(self, path, dictionary, gpg, logger, stateless):
         self.path = path
         self.dictionary = dictionary
@@ -56,7 +57,6 @@ class _MasterPassword:
             lambda text: logger.display(text))
         self._validate_assumptions()
 
-    # Read master password file {{{2
     def _read_master_password_file(self):
         data = {
             'accounts': None,
@@ -141,13 +141,12 @@ class _MasterPassword:
 
         return data
 
-    # Validate program assumptions {{{2
     def _validate_assumptions(self):
         # Check that dictionary has not changed.
-        # If the master password file exists, then self.data['dict_hash'] will
-        # exist, and we will compare the current hash for the dictionary against
-        # that stored in the master password file, otherwise we will compare
-        # against the one present when the program was configured.
+        # If the master password file exists, then self.data['dict_hash'] will 
+        # exist, and we will compare the current hash for the dictionary 
+        # against that stored in the master password file, otherwise we will 
+        # compare against the one present when the program was configured.
         self.dictionary.validate(self.data.get('dict_hash', DICTIONARY_SHA1))
 
         # Check that secrets.py and charset.py have not changed
@@ -168,10 +167,11 @@ class _MasterPassword:
                     self.logger.error('%s: %s.' % (err.filename, err.strerror))
             hash = hashlib.sha1(contents.encode('utf-8')).hexdigest()
             # Check that file has not changed.
-            # If the master password file exists, then self.data['%s_hash'] will
-            # exist, and we will compare the current hash for the file against
-            # that stored in the master password file, otherwise we will compare
-            # against the one present when the program was configured.
+            # If the master password file exists, then self.data['%s_hash'] 
+            # will exist, and we will compare the current hash for the file 
+            # against that stored in the master password file, otherwise we 
+            # will compare against the one present when the program was 
+            # configured.
             if hash != self.data.get('%s_hash' % each, sha1):
                 self.logger.display("Warning: '%s' has changed." % path)
                 self.logger.display("    " + "\n    ".join(wrap(' '.join([
@@ -179,16 +179,16 @@ class _MasterPassword:
                     "with those created in the past.",
                     'Update the corresponding hash in %s/%s to "%s".' % (
                         DEFAULT_SETTINGS_DIR, MASTER_PASSWORD_FILENAME, hash),
-                    "Then use 'abraxas --changed' to assure that nothing has changed."]))))
+                    "Then use 'abraxas --changed' to assure that nothing has",
+                    "changed."
+                ]))))
 
-    # Get field {{{2
     def _get_field(self, key):
         try:
             return self.data[key]
         except KeyError:
             self.logger.error("%s: cannot find '%s'" % (self.path, key))
 
-    # Set the master password {{{2
     def get_master_password(self, account):
         """Get the master password associated with this account.
 
@@ -225,7 +225,6 @@ class _MasterPassword:
         """Return a list that contains the name of the master passwords."""
         return self._get_field('passwords').keys()
 
-    # Generate the password for the specified account {{{2
     def generate_password(self, account, master_password=None):
         """Generate the password for the specified account
 
@@ -250,7 +249,6 @@ class _MasterPassword:
             self.logger.error(
                 "%s: unknown password type (expected 'words' or 'chars').")
 
-    # Generate an answer to a security question {{{2
     def generate_answer(self, account, question):
         """Generate an answer to a security question
 

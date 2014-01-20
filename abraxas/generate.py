@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2013-14 Kenneth S. Kundert and Kale B. Kundert
 
-# License {{{1
+# License (fold)
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
-# Imports {{{1
+# Imports (fold)
 from __future__ import print_function, division
 from fileutils import (
     makePath as make_path,
@@ -51,19 +51,16 @@ import gnupg
 import hashlib
 import os
 
-# PasswordGenerator class {{{1
+
 class PasswordGenerator:
     """
     Abraxas Password Generator
 
     Primary class for Abraxas Password Generator.
     """
-    # Constructor {{{2
-    def __init__(self,
-        settings_dir=None,
-        init=None,
-        logger=None,
-        gpg_home=None,
+
+    def __init__(
+        self, settings_dir=None, init=None, logger=None, gpg_home=None,
         stateless=False
     ):
         """
@@ -77,21 +74,23 @@ class PasswordGenerator:
         logger (object)
             Instance of class that provides display(), log(), debug(),
             error(), terminate() and set_logfile() methods:
-                display(msg) is called when a message is to be sent to the user.
-                log(msg) is called when a message is only to be logged.
-                debug(msg) is called for debugging messages.
-                error(msg) is called when an error has occurred, should not return.
-                terminate() is called to indicate program has terminated normally.
-                set_logfile(logfile, gpg, gpg_id) is called to specify
-                    information about the logfile, in particular, the path to
-                    the logfile, a gnupg encryption object, and the GPG ID.
-                    The last two must be specified if the logfile has an
-                    encryption extension (.gpg or .asc).
+
+            display(msg) is called when a message is to be sent to the user.
+            log(msg) is called when a message is only to be logged.
+            debug(msg) is called for debugging messages.
+            error(msg) is called when an error has occurred, should not return.
+            terminate() is called to indicate program has terminated normally.
+            set_logfile(logfile, gpg, gpg_id) is called to specify
+                information about the logfile, in particular, the path to
+                the logfile, a gnupg encryption object, and the GPG ID.
+                The last two must be specified if the logfile has an
+                encryption extension (.gpg or .asc).
+
         gpg_home (string)
             Path to desired home directory for gpg.
         stateless (bool)
-            Boolean that indicates that Abraxas should operate without accessing
-            the user's master password and accounts files.
+            Boolean that indicates that Abraxas should operate without 
+            accessing the user's master password and accounts files.
         """
 
         if not settings_dir:
@@ -132,14 +131,14 @@ class PasswordGenerator:
         except KeyError:
             pass
 
-    # Create initial settings files {{{2
-    # Will create initial versions of the master password file and the accounts
-    # file, but only if they do not already exist. The master password file is
-    # encrypted with the GPG ID given on the command line, which should be the
-    # users.
     def _create_initial_settings_files(self, gpg_id):
         """
         Create initial version of settings files for the user (PRIVATE)
+
+        Will create initial versions of the master password file and the 
+        accounts file, but only if they do not already exist. The master 
+        password file is encrypted with the GPG ID given on the command line, 
+        which should be the users.
 
         Arguments:
         Requires user's GPG ID (string) as the only argument.
@@ -166,13 +165,14 @@ class PasswordGenerator:
                 except IOError as err:
                     self.logger.error('%s: %s.' % (err.filename, err.strerror))
 
-        # Generate a random long string to act as the default password
         def generate_random_string():
+            # Generate a random long string to act as the default password
+
             from string import ascii_letters, digits, punctuation
             import random
-            # Create alphabet from letters, digits, and punctuation, but replace
-            # double quote with a space so password can be safely represented as
-            # a double-quoted string.
+            # Create alphabet from letters, digits, and punctuation, but 
+            # replace double quote with a space so password can be safely 
+            # represented as a double-quoted string.
             alphabet = (ascii_letters + digits + punctuation).replace('"', ' ')
 
             rand = random.SystemRandom()
@@ -204,7 +204,6 @@ class PasswordGenerator:
                 gpg_id),
             encrypt=(get_extension(self.accounts_path) in ['gpg', 'asc']))
 
-    # Open the accounts file {{{2
     def read_accounts(self, template=DEFAULT_TEMPLATE):
         """
         Read accounts file.
@@ -216,7 +215,8 @@ class PasswordGenerator:
             The template to be used if one is not found in the account.
         """
         accounts = _Accounts(
-            self.accounts_path, self.logger, self.gpg, template, self.stateless)
+            self.accounts_path, self.logger, self.gpg, template, self.stateless
+        )
         self.accounts = accounts
         self.all_templates = accounts.all_templates
         self.all_accounts = accounts.all_accounts
@@ -228,7 +228,6 @@ class PasswordGenerator:
                 accounts.gpg,
                 accounts.get_gpg_id())
 
-    # Get account {{{2
     def get_account(self, account_id, quiet=False):
         """
         Activate and return an account.
@@ -252,7 +251,6 @@ class PasswordGenerator:
             self.logger.log('Using account: %s' % account.get_id())
         return account
 
-    # Generate password or answer {{{2
     def generate_password(self, account=None, master_password=None):
         """
         Generate and return a password or passphrase.
@@ -263,9 +261,9 @@ class PasswordGenerator:
         master_password (string)
             Use to override the master password associated with the account.
             If the account does not have a master password, or if there is no
-            account, the program will interactively request if from the user. So
-            this argument is generally not needed and only used when testing the
-            program.
+            account, the program will interactively request if from the user. 
+            So this argument is generally not needed and only used when testing 
+            the program.
 
         Returns:
             The desired password or passphrase (string).
@@ -291,7 +289,6 @@ class PasswordGenerator:
         return self.master_password.generate_answer(
             account if account else self.account, question)
 
-    # Print changed secrets {{{2
     def print_changed_secrets(self):
         """
         Identify updated secrets
@@ -377,7 +374,7 @@ class PasswordGenerator:
                         if archived[1] != new[1]:
                             self.logger.display(
                                 "ANSWER TO QUESTION %d DIFFERS: %s (%s)." % (
-                                i, account_id, new[0]))
+                                    i, account_id, new[0]))
                         else:
                             self.logger.debug(
                                 "    Answer %d matches (%s)." % (i, new[0]))
@@ -394,7 +391,6 @@ class PasswordGenerator:
         else:
             self.logger.log("No accounts with changed questions")
 
-    # Archive secrets {{{2
     def archive_secrets(self):
         """
         Archive secrets
@@ -441,8 +437,15 @@ class PasswordGenerator:
             self.logger.error('%s: %s.' % (err.filename, err.strerror))
 
 
-# PasswordError class {{{1
 class PasswordError(Exception):
+    """Password Error
+
+    Not actually used by Abraxas directly. Rather, it made available by Abraxas 
+    to the user. If it is passed into the logger, Abraxas will generate 
+    PasswordError exceptions when there is an error rather than printing error 
+    messages directly to the user and exiting.
+    """
+
     def __init__(self, message):
         self.message = message
 

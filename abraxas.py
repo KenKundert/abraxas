@@ -5,7 +5,7 @@
 #
 # Generates passwords and pass phrases based on stored account information.
 
-# Imports {{{1
+# Imports (fold)
 from abraxas import PasswordGenerator, PasswordWriter, Logging
 from abraxas.prefs import (
     SEARCH_FIELDS, DEFAULT_SETTINGS_DIR, DEFAULT_ARCHIVE_FILENAME,
@@ -19,9 +19,10 @@ from fileutils import (
 import argparse
 import sys
 
-# CommandLine class {{{1
+
 class CommandLine:
     def __init__(self, argv):
+        """Read the Command Line"""
         self.prog_name = get_tail(argv[0])
         parser = argparse.ArgumentParser(
             add_help=False, description="Generate strong and unique password.")
@@ -132,10 +133,12 @@ class CommandLine:
         return self.prog_name
 
 
-# Main {{{1
+# Main (fold)
 cmd_line = CommandLine(sys.argv)
 try:
-    with Logging(argv=sys.argv, prog_name=cmd_line.name_as_invoked()) as logger:
+    with Logging(
+            argv=sys.argv, prog_name=cmd_line.name_as_invoked()
+    ) as logger:
         generator = PasswordGenerator(
             logger=logger,
             init=cmd_line.init,

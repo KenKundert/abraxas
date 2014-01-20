@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2013-14 Kenneth S. Kundert and Kale B. Kundert
 
-# License {{{1
+# License (fold)
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -19,7 +19,7 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
 
-# Imports {{{1
+# Imports (fold)
 from __future__ import print_function, division
 from abraxas.prefs import (
     DEFAULT_SETTINGS_DIR, DEFAULT_ARCHIVE_FILENAME, DEFAULT_LOG_FILENAME,
@@ -28,8 +28,8 @@ from abraxas.prefs import (
     XDOTOOL, DEFAULT_AUTOTYPE, TITLE_PATTERNS, URL_PATTERN
 )
 from fileutils import (
-    exists, getExt as get_extension, makePath as make_path, getHead as get_head,
-    execute, pipe, ExecuteError
+    exists, getExt as get_extension, makePath as make_path,
+    getHead as get_head, execute, pipe, ExecuteError
 )
 import re
 import sys
@@ -37,14 +37,14 @@ import fnmatch
 import traceback
 
 
-# Accounts class {{{1
 class _Accounts:
     """
     Abraxas Accounts
 
-    Responsible for reading and managing the data from the user's accounts file.
+    Responsible for reading and managing the data from the user's accounts 
+    file.
     """
-    # Constructor {{{2
+
     def __init__(self, path, logger, gpg, template=None, stateless=False):
         self.path = path
         self.logger = logger
@@ -150,21 +150,20 @@ class _Accounts:
             for alias in data.get('aliases', []):
                 addToAliases(ID, alias)
 
-    # Get a dictionary of all the fields for each account {{{2
     def all_accounts(self, skip_templates=True):
+        # Get a dictionary of all the fields for each account {{{2
         for ID in self.accounts:
             if skip_templates and ID[0] == '=':
                 pass
             else:
                 yield ID
 
-    # Get a particular field from each account {{{2
     def get_fields(self, field):
+        # Get a particular field from each account {{{2
         for ID, data in self.accounts.items():
             if field in data and data[field]:
                 yield (ID, data[field])
 
-    # Read accounts file {{{2
     def _read_accounts_file(self):
         if not self.path:
             # There is no accounts file
@@ -242,21 +241,20 @@ class _Accounts:
             return accounts_data['accounts']
         except KeyError:
             logger.error(
-                "%s: defective accounts file, 'accounts' not found." % self.path)
+                "%s: defective accounts file, 'accounts' not found." %
+                    self.path
+            )
 
-    # Get log file {{{2
     def get_log_file(self):
         return self.data.get(
             'log_file',
             make_path(DEFAULT_SETTINGS_DIR, DEFAULT_LOG_FILENAME))
 
-    # Get archive file {{{2
     def get_archive_file(self):
         return self.data.get(
             'archive_file',
             make_path(DEFAULT_SETTINGS_DIR, DEFAULT_ARCHIVE_FILENAME))
 
-    # Get gpg id {{{2
     def get_gpg_id(self):
         try:
             return self.data['gpg_id']
@@ -267,19 +265,19 @@ class _Accounts:
                         self.path))
             return None
 
-    # List templates {{{2
-    # Templates are accounts whose ID starts with =.
     def all_templates(self):
+        # Iterate through  templates
+        # Templates are accounts whose ID starts with =.
         for key in self.accounts:
             if key[0] == '=':
                 yield key
 
-    # Account class {{{2
     class Account:
         """
         Abraxas Account
 
-        Responsible for holding all of the information for a particular account.
+        Responsible for holding all of the information for a particular 
+        account.
         """
 
         def __init__(self, ID, data):
@@ -342,7 +340,6 @@ class _Accounts:
         def get_suffix(self):
             return self.data.get('suffix', '')
 
-    # Get account {{{2
     def get_account(self, account_id, level=0):
         if level > 20:
             self.logger.error(
@@ -365,7 +362,8 @@ class _Accounts:
             logger.log('Focused window title: %s' % title)
 
             # Look through fields in each account and see if any match.
-            #   Title information is separated into components. Title matches if
+            #   Title information is separated into components.
+            #   Title matches if
             #   - title component matches if given
             #   - host component matches if given
             #   - email component matches if given
@@ -381,8 +379,11 @@ class _Accounts:
                 if match:
                     fields = match.groupdict()
                     logger.debug(
-                        'Title components:\n    %s' % '\n    '.join(
-                            ['%s: %s' % (key, val) for key, val in fields.items()]))
+                        'Title components:\n    %s' % '\n    '.join([
+                            '%s: %s' % (key, val)
+                            for key, val in fields.items()
+                        ])
+                    )
                     required_protocol = None
                     for ID, account in self.accounts.items():
                         logger.debug('Trying account: %s' % ID)
@@ -392,9 +393,11 @@ class _Accounts:
 
                         match_found = False
                         reasons = []
-                        for key in sorted(fields.keys(), key=lambda x: x == 'protocol'):
-                            # the above has a special sort that assures protocol
-                            # is processed last
+                        for key in sorted(
+                            fields.keys(), key=lambda x: x == 'protocol'
+                        ):
+                            # The above has a special sort that assures 
+                            # protocol is processed last.
                             value = fields[key]
                             if key == 'title':
                                 for each in windows:
@@ -417,17 +420,24 @@ class _Accounts:
                                     if match:
                                         url = match.groupdict()
                                         logger.debug(
-                                            '    url components:\n        %s' % '\n        '.join(
-                                            ['%s: %s' % (k, v) for k, v in url.items()]))
+                                            '    url components:\n        %s' %
+                                                '\n        '.join([
+                                                    '%s: %s' % (k, v)
+                                                    for k, v in url.items()
+                                                ])
+                                        )
                                     else:
                                         url = {}
-                                    if fnmatch.fnmatch(value, url.get('host', '')):
+                                    if fnmatch.fnmatch(
+                                        value, url.get('host', '')
+                                    ):
                                         match_found = True
                                         logger.debug('    host matches')
                                         reasons += ['host matches']
                                         required_protocol = url['protocol']
                                         if required_protocol:
-                                            required_protocol = required_protocol.lower()
+                                            required_protocol = (
+                                                required_protocol.lower())
                                         break
                                 else:
                                     logger.debug('    host mismatch')
@@ -466,14 +476,15 @@ class _Accounts:
                                     logger.debug('    protocol mismatch')
                                     if match_found:
                                         if required_protocol == 'https':
-                                            # this is the last test, and if a
-                                            # match is found but rejected
-                                            # because we are expecting https,
-                                            # warn the user that the page is not
-                                            # encrypted
-                                            from abraxas.dialog import messageDialog
-                                            messageDialog(
-                                                "Account '%s' expects page to be encrypted." % ID)
+                                            # this is the last test, and if 
+                                            # a match is found but rejected 
+                                            # because we are expecting https, 
+                                            # warn the user that the page is 
+                                            # not encrypted
+                                            import abraxas.dialog
+                                            abraxas.dialog.messageDialog(
+                                                "Account '%s' expects page "
+                                                + "to be encrypted." % ID)
                                     break
                         else:
                             if match_found:
@@ -532,7 +543,6 @@ class _Accounts:
 
         return _Accounts.Account(account_id, data)
 
-    # Find and search utilities {{{2
     @staticmethod
     def _inID(pattern, ID):
         return bool(pattern.search(ID))
@@ -561,9 +571,12 @@ class _Accounts:
 
         return False
 
-    # Find accounts {{{2
     def find_accounts(self, target):
-        # look for target in account ID and aliases only
+        """Iterate through accounts that match target.
+
+        Look for target in account ID and aliases only.
+        """
+
         pattern = re.compile(target, re.I)
         for ID in self.all_accounts():
             if (
@@ -573,7 +586,10 @@ class _Accounts:
 
     # Search accounts {{{2
     def search_accounts(self, target):
-        # look for target in account ID, aliases, and various fields
+        """Iterate through accounts that match target.
+
+        Look for target in account ID, aliases, and various fields.
+        """
         pattern = re.compile(target, re.I)
         for ID in self.all_accounts():
             acct = self.accounts[ID]
