@@ -62,7 +62,7 @@ do
 done
 
 # Rename the executable to abraxas.
-mv ~/.local/bin/abraxas.py ~/.local/bin/abraxas
+mv ~/.local/bin/main.py ~/.local/bin/abraxas
 
 # Remove build directories, because I like a clean directory.
 rm -rf build dist abraxas.egg-info
