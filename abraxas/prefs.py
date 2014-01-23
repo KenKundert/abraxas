@@ -62,7 +62,6 @@ PREFER_HTTPS = True
 XDOTOOL = '/usr/bin/xdotool'
 XSEL = '/usr/bin/xsel'
 GPG_BINARY = 'gpg2'
-ZENITY = 'zenity'
 
 # Signatures (folds)
 # These signatures must be the sha1 signatures for the corresponding files

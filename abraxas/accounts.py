@@ -18,7 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
-
 # Imports (fold)
 from __future__ import print_function, division
 from abraxas.prefs import (
@@ -482,7 +481,7 @@ class _Accounts:
                                             # warn the user that the page is 
                                             # not encrypted
                                             import abraxas.dialog
-                                            abraxas.dialog.messageDialog(
+                                            abraxas.dialog.show_error(
                                                 "Account '%s' expects page "
                                                 + "to be encrypted." % ID)
                                     break
@@ -508,8 +507,8 @@ class _Accounts:
                         match, ', '.join(successful_reasons)))
                 return match
             elif matches:
-                from abraxas.dialog import accountSelectDialog
-                accounts = accountSelectDialog(sorted(matches))
+                from abraxas.dialog import show_account_list
+                accounts = show_account_list(sorted(matches))
                 try:
                     logger.log(
                         "User selected '%s' account." % accounts[0])
