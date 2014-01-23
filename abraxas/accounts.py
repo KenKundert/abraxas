@@ -481,7 +481,7 @@ class _Accounts:
                                             # warn the user that the page is 
                                             # not encrypted
                                             import abraxas.dialog
-                                            abraxas.dialog.show_error(
+                                            abraxas.dialog.show_error_dialog(
                                                 "Account '%s' expects page "
                                                 + "to be encrypted." % ID)
                                     break
@@ -507,8 +507,8 @@ class _Accounts:
                         match, ', '.join(successful_reasons)))
                 return match
             elif matches:
-                from abraxas.dialog import show_account_list
-                account = show_account_list(sorted(matches))
+                from abraxas.dialog import show_list_dialog
+                account = show_list_dialog(sorted(matches))
                 if account:
                     logger.log("User selected '%s' account." % account)
                     return account

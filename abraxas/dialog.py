@@ -5,7 +5,7 @@
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
 
-class AccountList (gtk.Window):
+class ListDialog (gtk.Window):
 
     def __init__(self, accounts):
         gtk.Window.__init__(self)
@@ -83,10 +83,10 @@ class ErrorDialog (gtk.MessageDialog):
 
 
 
-def show_account_list(accounts):
-    dialog = AccountList(accounts)
+def show_list_dialog(accounts):
+    dialog = ListDialog(accounts)
     return dialog.run()
 
-def show_error(message):
+def show_error_dialog(message):
     dialog = ErrorDialog(message)
     return dialog.run()
