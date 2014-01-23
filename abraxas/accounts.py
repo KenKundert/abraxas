@@ -508,13 +508,10 @@ class _Accounts:
                 return match
             elif matches:
                 from abraxas.dialog import show_account_list
-                accounts = show_account_list(sorted(matches))
-                try:
-                    logger.log(
-                        "User selected '%s' account." % accounts[0])
-                    return accounts[0]
-                except TypeError:
-                    pass
+                account = show_account_list(sorted(matches))
+                if account:
+                    logger.log("User selected '%s' account." % account)
+                    return account
             logger.error("Cannot determine desired account ID.")
 
         # Validate account_id
@@ -566,8 +563,8 @@ class _Accounts:
                     if pattern.search(value):
                         return True
             except TypeError:
-                print("%s %s: field is of wrong type" % (ID, each))
-
+                self.logger.display(
+                    "%s %s: field is of wrong type" % (ID, each))
         return False
 
     def find_accounts(self, target):

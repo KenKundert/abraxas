@@ -46,7 +46,7 @@ class AccountList (gtk.Window):
         path = self.model.get_path(iter)
 
         scroll = lambda path, dx: (path[0] + dx) % len(self.accounts)
-        print(self.view.has_focus())
+        #print(self.view.has_focus())
 
         if key == 'j':
             #path = scroll(path, 1)
