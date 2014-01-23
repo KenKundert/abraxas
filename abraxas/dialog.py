@@ -12,7 +12,7 @@ class ListDialog (gtk.Window):
         self.set_type_hint(gdk.WindowTypeHint.DIALOG)
         #self.add_events(gdk.KEY_PRESS_MASK)
         self.connect('key_press_event', self.on_hotkey)
-        self.connect("destroy", self.cancel)
+        self.connect("destroy", self.close)
 
         self.model = gtk.ListStore(str)
         self.view = gtk.TreeView(self.model)
@@ -35,8 +35,11 @@ class ListDialog (gtk.Window):
         gtk.main()
         return self.choice
 
-    def cancel(self, *args):
-        self.choice = None
+    def close(self, *args):
+        self.destroy()
+        # Consume all pending events - include the window destroy
+        while gtk.events_pending():
+            gtk.main_iteration()
         gtk.main_quit()
 
     def on_hotkey(self, widget, event):
@@ -63,9 +66,9 @@ class ListDialog (gtk.Window):
         elif key == 'Return':
             iter = self.model.get_iter(path[0])
             self.choice = self.model.get_value(iter, 0)
-            gtk.main_quit()
+            self.close()
         elif key == 'Escape':
-            self.cancel()
+            self.close()
 
         return True
 
