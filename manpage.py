@@ -38,12 +38,12 @@ PROGRAM_MANPAGE = {
         password generator
         ------------------
 
-        :Author: Ken Kundert <abraxas@nurdletech.com>
+        :Author: Kale and Ken Kundert <abraxas@nurdletech.com>
         :Date: {date}
         :Version: {version}
         :Manual section: 1
 
-        .. :Copyright: Ken Kundert
+        .. :Copyright: Kale and Ken Kundert
         .. :Manual group: Utilities
 
         SYNOPSIS
@@ -250,9 +250,9 @@ PROGRAM_MANPAGE = {
         protocol in the title bar.
 
         If the title matches multiple accounts, a dialog box opens with the list 
-        of each of those accounts. Use the *j* and *k* keys to navigate to the 
-        account you want and select it with *Enter* or *Return*. You can cancel 
-        using *Esc*.
+        of each of those accounts. Use the up or *k* and down or *j* keys to 
+        navigate to the account you want and select it with *Enter* or *Return*.  
+        You can cancel using *Esc*.
 
         The combination of autotype and account discovery is very powerful if 
         you configure your window manager to run Abraxas because it makes it 
@@ -334,7 +334,7 @@ PROGRAM_MANPAGE = {
             bits of entropy.
 
         You can generate a pass word (a collection of characters) instead of 
-        a pass phrase (a collection of words) with::
+        a pass phrase (a collection of words) for a stealth account with::
 
             $ abraxas -T =anum my-secret-account
             warning: account 'my-secret-account' not found.
@@ -357,7 +357,7 @@ PROGRAM_MANPAGE = {
 
         When running in stateless mode you do not have access to any templates 
         you may have created in your accounts file because that file is ignored, 
-        but you have access to the six predefined templates listed above::
+        but you have access to the predefined templates described above::
 
             $ abraxas -S -T =anum my-secret-account
             Provide master password for account 'my-secret-account'.
@@ -395,12 +395,12 @@ PROGRAM_MANPAGE = {
 
         The resulting archive is encrypted and saved in your settings directory 
         (~/.config/abraxas/archive.gpg). In addition, you can check your current 
-        list of secrets against those in the archive with
+        list of secrets against those in the archive with::
 
             abraxas --changed
 
-        It is a good idea to do this after you have changed your master password 
-        or accounts files and after you have updated your version of Abraxas.  
+        It is a good idea to do this when you have change your master password 
+        or accounts files and when you have update your version of Abraxas.  
         Doing so will alert you to any unexpected changes. It is also 
         recommended that you always confirm you only see the changes you expect 
         before updating the archive.
@@ -588,12 +588,12 @@ API_MANPAGE = {
         password generator
         ------------------
 
-        :Author: Kale Kundert, Ken Kundert <abraxas@nurdletech.com>
+        :Author: Kale and Ken Kundert <abraxas@nurdletech.com>
         :Date: {date}
         :Version: {version}
         :Manual section: 3
 
-        .. :Copyright: Ken Kundert
+        .. :Copyright: Kale and Ken Kundert
         .. :Manual group: Utilities
 
         DESCRIPTION
@@ -824,12 +824,12 @@ CONFIG_MANPAGE = {
         password generator
         ------------------
 
-        :Author: Ken Kundert <abraxas@nurdletech.com>
+        :Author: Kale and Ken Kundert <abraxas@nurdletech.com>
         :Date: {date}
         :Version: {version}
         :Manual section: 5
 
-        .. :Copyright: Ken Kundert
+        .. :Copyright: Kale and Ken Kundert
         .. :Manual group: Utilities
 
         DESCRIPTION

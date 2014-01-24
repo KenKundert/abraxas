@@ -42,6 +42,9 @@ echo "Installing abraxas to ~/.local/bin (Python$vers)."
 # Remove build directories from a previous install to assure a clean install.
 rm -rf build dist abraxas.egg-info install.out
 
+# Remove any previously installed versions
+./uninstall
+
 # Install abraxas
 python$vers setup.py install --quiet --user >& install.out
 if [ $? -ne 0 ] ; then
