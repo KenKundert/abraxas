@@ -7,24 +7,24 @@ from gi.repository import Gdk as gdk
 
 class ListDialog (gtk.Window):
 
-    def __init__(self, accounts):
+    def __init__(self, options):
         gtk.Window.__init__(self)
         self.set_type_hint(gdk.WindowTypeHint.DIALOG)
-        #self.add_events(gdk.KEY_PRESS_MASK)
         self.connect('key_press_event', self.on_hotkey)
-        self.connect("destroy", self.close)
+        self.connect('destroy', self.close)
 
         self.model = gtk.ListStore(str)
         self.view = gtk.TreeView(self.model)
+        self.view.connect('button_press_event', self.on_mouse)
 
         cell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Account", cell, text=0)
         self.view.append_column(column)
 
         self.choice = None
-        self.accounts = accounts
+        self.options = options
 
-        for account in accounts:
+        for account in options:
             row = self.model.append()
             self.model.set(row, 0, account)
 
@@ -34,6 +34,12 @@ class ListDialog (gtk.Window):
         self.show_all()
         gtk.main()
         return self.choice
+
+    def accept(self):
+        path, column = self.view.get_cursor()
+        iter = self.model.get_iter(path[0])
+        self.choice = self.model.get_value(iter, 0)
+        self.close()
 
     def close(self, *args):
         self.destroy()
@@ -48,29 +54,22 @@ class ListDialog (gtk.Window):
         model, iter = selection.get_selected()
         path = self.model.get_path(iter)
 
-        scroll = lambda path, dx: (path[0] + dx) % len(self.accounts)
-        #print(self.view.has_focus())
+        scroll = lambda path, dx: (path[0] + dx) % len(self.options)
 
         if key == 'j':
-            #path = scroll(path, 1)
-            #iter = self.model.get_iter(path)
-            #selection.select_iter(iter)
             self.view.set_cursor(scroll(path, 1))
-            self.view.grab_focus()
         elif key == 'k':
-            #path = scroll(path, 1)
-            #iter = self.model.get_iter(path)
-            #selection.select_iter(iter)
             self.view.set_cursor(scroll(path, -1))
-            self.view.grab_focus()
         elif key == 'Return':
-            iter = self.model.get_iter(path[0])
-            self.choice = self.model.get_value(iter, 0)
-            self.close()
+            self.accept()
         elif key == 'Escape':
             self.close()
 
         return True
+
+    def on_mouse(self, widget, event):
+        if event.type == gdk.EventType._2BUTTON_PRESS:
+            self.accept()
 
 
 class ErrorDialog (gtk.MessageDialog):
@@ -86,10 +85,14 @@ class ErrorDialog (gtk.MessageDialog):
 
 
 
-def show_list_dialog(accounts):
-    dialog = ListDialog(accounts)
+def show_list_dialog(options):
+    dialog = ListDialog(options)
     return dialog.run()
 
 def show_error_dialog(message):
     dialog = ErrorDialog(message)
     return dialog.run()
+
+
+if __name__ == '__main__':
+    print show_list_dialog(['primary', 'secondary'])
