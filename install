@@ -10,7 +10,6 @@
 #     # easy_install argparse
 #     # yum install xdotool (autotype support)
 #     # yum install xsel (clipboard support)
-#     # yum install zenity (account selection when window title is not enough)  
 #
 # Alternatively, you can install Python from source. First get and install 
 # Python using::

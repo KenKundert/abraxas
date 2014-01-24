@@ -11,8 +11,7 @@ sudo yum install       \
     libyaml-devel      \
     PyYAML             \
     xdotool            \
-    xsel               \
-    zenity
+    xsel
 
 sudo easy_install python-gnupg
 

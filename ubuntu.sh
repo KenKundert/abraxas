@@ -9,7 +9,6 @@ apt-get install python3-docutils
 apt-get install python3-yaml
 apt-get install xdotool
 apt-get install xsel
-apt-get install zenity
 easy_install3 python-gnupg
 
 # Other things you may need:

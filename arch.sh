@@ -9,7 +9,6 @@ pacman -S python-docutils
 pacman -S libyaml
 pacman -S xdotool
 pacman -S xsel
-pacman -S zenity
 easy_install python-gnupg
 easy_install PyYAML
 

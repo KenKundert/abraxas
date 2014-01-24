@@ -46,7 +46,6 @@ root)::
    yum install python-docutils
    yum install xdotool
    yum install xsel
-   yum install zenity
    easy_install python-gnupg
 
 On Centos you will also need::
@@ -67,7 +66,6 @@ commands as root)::
    pacman -S libyaml
    pacman -S xdotool
    pacman -S xsel
-   pacman -S zenity
    easy_install python-gnupg
    easy_install PyYAML
 
@@ -86,7 +84,6 @@ commands as root)::
    apt-get install python3-yaml
    apt-get install xdotool
    apt-get install xsel
-   apt-get install zenity
    easy_install3 python-gnupg
 
 You can install these prerequisites by running ./ubuntu.sh.

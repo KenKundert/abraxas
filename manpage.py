@@ -244,11 +244,15 @@ PROGRAM_MANPAGE = {
         each account, and those strings support globbing. In addition, Abraxas 
         can sometimes recognize components of the window title, components such 
         as the URL, the protocol, etc., and it can compare those component to 
-        fields in the account to determine which account to use.
+        fields in the account to determine which account to use.  In particular, 
+        Abraxas comes with the ability to recognize the title components created 
+        by 'Hostname in Titlebar', an add-on to Firefox that puts the URL and 
+        protocol in the title bar.
 
-        In particular, Abraxas comes with the ability to recognize the title 
-        components created by 'Hostname in Titlebar', an add-on to Firefox that 
-        puts the URL and protocol in the title bar.
+        If the title matches multiple accounts, a dialog box opens with the list 
+        of each of those accounts. Use the *j* and *k* keys to navigate to the 
+        account you want and select it with *Enter* or *Return*. You can cancel 
+        using *Esc*.
 
         The combination of autotype and account discovery is very powerful if 
         you configure your window manager to run Abraxas because it makes it 
