@@ -2,6 +2,7 @@
 
 # Requires the python bindings for the GTK3 library.
 
+from __future__ import print_function
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
 
@@ -56,9 +57,9 @@ class ListDialog (gtk.Window):
 
         scroll = lambda path, dx: (path[0] + dx) % len(self.options)
 
-        if key == 'j':
+        if key in ['j', 'Down']:
             self.view.set_cursor(scroll(path, 1))
-        elif key == 'k':
+        elif key in ['k', 'Up']:
             self.view.set_cursor(scroll(path, -1))
         elif key == 'Return':
             self.accept()
@@ -95,4 +96,4 @@ def show_error_dialog(message):
 
 
 if __name__ == '__main__':
-    print show_list_dialog(['primary', 'secondary'])
+    print(show_list_dialog(['primary', 'secondary']))
