@@ -482,8 +482,11 @@ class _Accounts:
                                             # not encrypted
                                             import abraxas.dialog
                                             abraxas.dialog.show_error_dialog(
-                                                "Account '%s' expects page "
-                                                + "to be encrypted." % ID)
+                                                ' '.join([
+                                                    "Account '%s' expects" % ID,
+                                                    "page to be encrypted."
+                                                ])
+                                            )
                                     break
                         else:
                             if match_found:
@@ -550,8 +553,7 @@ class _Accounts:
                 return True
         return False
 
-    @staticmethod
-    def _inSearchField(pattern, ID, acct):
+    def _inSearchField(self, pattern, ID, acct):
         for each in SEARCH_FIELDS:
             try:
                 value = acct.get(each, '')
