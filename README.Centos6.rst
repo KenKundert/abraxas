@@ -48,6 +48,7 @@ Install argparse and docutils::
 
 Install PyYAML. Again, running the command 'easy_install PyYAML' terminated in 
 an error. To overcome this I manually downloaded and installed PyYAML::
+
    # wget --no-check-certificate https://pypi.python.org/packages/source/P/PyYAML/PyYAML-3.10.zip
    # unzip PyYAML-3.10.zip
    # cd PyYAML-3.10

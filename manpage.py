@@ -130,7 +130,7 @@ PROGRAM_MANPAGE = {
         see 'How Much Entropy is Enough' below.
 
         For another perspective on the attractiveness of pass phrases, see 
-        http://xkcd.com/936/.
+        `<http://xkcd.com/936/>`_.
 
         Unlike password vaults, Abraxas produces a highly unpredictable password 
         from a master password and the name of the account for which the 

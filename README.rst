@@ -33,7 +33,7 @@ several documents.  Without actually sharing the password, Bob uses the shared
 master password and the account name to regenerate the account's password 
 himself and downloads the documents.
 
-Installing Prerequisites in Fedora with YUM
+Installing Prerequisites in Fedora with Yum
 -------------------------------------------
 Abraxas is compatible with both python 2.6 and beyond or python 3.3 and beyond.  
 It requires the following packages to fully function (run these commands as 

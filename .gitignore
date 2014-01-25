@@ -13,6 +13,7 @@ abraxas.5
 abraxas.5.rst
 abraxas.5.pdf
 install.out
+release
 
 # Packages
 *.egg
