@@ -6,6 +6,7 @@ apt-get install libyaml-dev
 apt-get install python3
 apt-get install python3-setuptools
 apt-get install python3-docutils
+apt-get install python3-gi
 apt-get install python3-yaml
 apt-get install xdotool
 apt-get install xsel

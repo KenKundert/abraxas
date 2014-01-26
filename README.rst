@@ -43,6 +43,7 @@ root)::
    yum install python-setuptools
    yum install libyaml-devel
    yum install PyYAML
+   yum install pygobject3
    yum install python-docutils
    yum install xdotool
    yum install xsel
@@ -63,6 +64,7 @@ commands as root)::
    pacman -S python
    pacman -S python-setuptools
    pacman -S python-docutils
+   pacman -S python-gobject
    pacman -S libyaml
    pacman -S xdotool
    pacman -S xsel
@@ -81,6 +83,7 @@ commands as root)::
    apt-get install python3
    apt-get install python3-setuptools
    apt-get install python3-docutils
+   apt-get install python3-gi
    apt-get install python3-yaml
    apt-get install xdotool
    apt-get install xsel

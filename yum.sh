@@ -3,10 +3,10 @@
 # needed dependencies.
 
 sudo yum install       \
-    git                \
     python             \
     python-setuptools  \
     python-docutils    \
+    pygobject3         \
     python-argparse    \
     libyaml-devel      \
     PyYAML             \
@@ -16,6 +16,7 @@ sudo yum install       \
 sudo easy_install python-gnupg
 
 # Other things you may need:
+# yum install git
 # yum install vim-enhanced vim-X11
 # yum install keychain (if you prefer keychain)
 # yum install gnome-keyring gnome-keyring-pam (if you prefer keyring)
