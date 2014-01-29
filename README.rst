@@ -1,8 +1,13 @@
-Abraxas: A Password Generator
-=============================
+Abraxas Collaborative Password Utility
+======================================
 
 Introduction
 ------------
+Abraxas is powerful password utility that can store or generate your passwords 
+and produce them from the command line. It can also be configured to 
+autotype your username and password into the current window so that you can log 
+in with a simple keystroke.
+
 Abraxas is an alternative to the traditional password vault.  The intent is not 
 to store passwords, but rather to regenerate them as needed.  This is done with 
 the aid of two files.  The first is an accounts file that contains useful 
