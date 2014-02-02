@@ -31,14 +31,14 @@ class CommandLine:
             'account', nargs='?', default='',
             help="Generate password specific to this account.")
         parser.add_argument(
-            '-q', '--question', type=int, metavar='<N>',
-            default=None, help="Output security question N.")
-        parser.add_argument(
             '-P', '--password', action='store_true',
             help="Output the password (default if nothing else is requested).")
         parser.add_argument(
             '-N', '--username', action='store_true',
             help="Output the username.")
+        parser.add_argument(
+            '-Q', '--question', type=int, metavar='<N>',
+            default=None, help="Output security question N.")
         parser.add_argument(
             '-A', '--account-number', action='store_true',
             help="Output the account number.")
@@ -56,6 +56,9 @@ class CommandLine:
             '-a', '--all', action='store_true',
             help="Output everything, including the password.")
         group = parser.add_mutually_exclusive_group()
+        group.add_argument(
+            '-q', '--quiet', action='store_true',
+            help="Disable all non-essential output.")
         group.add_argument(
             '-c', '--clipboard', action='store_true',
             help="Write output to clipboard rather than stdout.")
@@ -216,8 +219,10 @@ try:
                 logger.error(str(err))
 
         # Create the secrets writer
-        style = 'c' if cmd_line.clipboard else (
-            't' if cmd_line.autotype else 's')
+        style = (
+            'clipboard' if cmd_line.clipboard else
+            'autotype' if cmd_line.autotype else
+            'quiet' if cmd_line.quiet else 'standard')
         writer = PasswordWriter(style, generator, cmd_line.wait, logger)
 
         # Process the users output requests

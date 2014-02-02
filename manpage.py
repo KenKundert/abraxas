@@ -52,10 +52,10 @@ PROGRAM_MANPAGE = {
 
         OPTIONS
         =======
-        -q <N>, --question <N>  Output the answer to security question *N*.
         -P, --password          Output the password (default if nothing else is 
                                 specified).
         -N, --username          Output the username.
+        -Q <N>, --question <N>  Output the answer to security question *N*.
         -A, --account-number    Output the account number.
         -E, --email             Output the email associated with this account.
         -U, --url               Output the website address.
@@ -65,6 +65,7 @@ PROGRAM_MANPAGE = {
                                 security questions).
         -a, --all               Same as --info except also output the password.
 
+        -q, --quiet             Disable all non-essential output.
         -c, --clipboard         Write output to clipboard rather than stdout.
         -t, --autotype          Mimic a keyboard to send output to the active 
                                 window rather than stdout. In this case any 

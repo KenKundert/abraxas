@@ -45,15 +45,15 @@ class PasswordWriter:
     Used to get account information to the user.
     """
 
-    # PasswordWriter is responsible for sending output to the user. It has 
-    # three backends, one that writes to standard output, one that writes to 
-    # the clipboard, and one that autotypes (mimics the keyboard). To 
-    # accommodate the three backends the output is gathered up and converted 
-    # into a script.  That script is interpreted by the appropriate backend to 
-    # produce the output. The script is a sequence of commands each with an 
-    # argument.  Internally the script is saved as a list of tuples. The first 
-    # value in the tuple is the name of the command. Several commands are 
-    # supported.
+    # PasswordWriter is responsible for sending output to the user. It has four 
+    # backends, one that writes verbosely to standard output, one that writes 
+    # quietly to standard output, one that writes to the clipboard, and one 
+    # that autotypes (mimics the keyboard).  To accommodate the three backends 
+    # the output is gathered up and converted into a script.  That script is 
+    # interpreted by the appropriate backend to produce the output.  The script 
+    # is a sequence of commands each with an argument.  Internally the script 
+    # is saved as a list of tuples. The first value in the tuple is the name of 
+    # the command.  Several commands are supported.
     #    write_verbatim() --> ('verb', <str>)
     #        Outputs the argument verbatim.
     #    write_account_entry() --> ('interp', <label>)
@@ -81,8 +81,7 @@ class PasswordWriter:
         """
         Arguments:
         output (string)
-            Specify either 'c' for clipboard, 't' for autotype, and 's' for
-            stdout.
+            Specify either 'clipboard', 'autotype', 'quiet', or 'standard'.
         generator (abraxas generator object)
             The password generator.
         wait (int)
@@ -95,7 +94,6 @@ class PasswordWriter:
                 error(msg): called when an error has occurred,
                             should not return.
         """
-        assert(output in ['c', 't', 's'])
         self.output = output
         self.wait = wait
         self.generator = generator
@@ -209,12 +207,17 @@ class PasswordWriter:
         Everything that was stashed away by the various write_ methods should
         now be sent to the user using the requested method.
         """
-        if self.output == 't':
+        if self.output == 'autotype':
             self._process_output_to_autotype()
-        elif self.output == 'c':
+        elif self.output == 'clipboard':
             self._process_output_to_clipboard()
-        else:
+        elif self.output == 'quiet':
+            self._process_output_to_quiet()
+        elif self.output == 'standard':
             self._process_output_to_stdout()
+        else:
+            raise NotImplementedError
+
 
     def _process_output_to_stdout(self):
         label_password = len(self.script) > 1
@@ -444,3 +447,23 @@ class PasswordWriter:
         autotype(''.join(text))
 
 # vim: set sw=4 sts=4 et:
+    def _process_output_to_quiet(self):
+        # Write only essential information to stdout.  This is meant to 
+        # facilitate scripting with abraxas.
+
+        for action in self.script:
+            if action[0] == 'interp':
+                print(self.generator.account.get_field(action[1]))
+
+            elif action[0] == 'password':
+                print(self.generator.generate_password())
+
+            elif action[0] == 'answer':
+                print(self.generator.generate_answer(action[1])[1])
+
+            else:
+                pass
+
+        self.logger.log(
+                'Writing quietly to stdout.  Some output may be ignored.')
+
