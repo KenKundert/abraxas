@@ -28,7 +28,7 @@ from abraxas.prefs import (
 )
 from fileutils import (
     exists, getExt as get_extension, makePath as make_path,
-    getHead as get_head, execute, pipe, ExecuteError
+    getHead as get_head, Execute, ExecuteError
 )
 import re
 import sys
@@ -352,11 +352,10 @@ class _Accounts:
             # Try to determine it from title of active window.
             # First get the title from the active window.
             try:
-                status, title = pipe(
-                    '%s getactivewindow getwindowname' % XDOTOOL)
+                xdotool = Execute([XDOTOOL, 'getactivewindow', 'getwindowname'])
             except ExecuteError as err:
                 logger.error(str(err))
-            title = title.strip()
+            title = xdotool.stdout.strip()
             logger.log('Account Discovery ...')
             logger.log('Focused window title: %s' % title)
 

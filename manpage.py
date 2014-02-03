@@ -735,7 +735,7 @@ API_MANPAGE = {
             #!/bin/env python
 
             from __future__ import print_function, division
-            from fileutils import expandPath, makePath, execute, pipe, ExecuteError
+            from fileutils import expandPath, makePath, ShellExecute as Execute, ExecuteError
             from sys import exit
             from os import fork
             from time import sleep
@@ -755,7 +755,7 @@ API_MANPAGE = {
             def run_cmd_with_password(cmd, pw_writer):
                 try:
                     if (fork()):
-                        execute(cmd)
+                        Execute(cmd)
                     else:
                         sleep(1)
                         pw_writer.write_autotype()
@@ -773,7 +773,7 @@ API_MANPAGE = {
                 # Clear out any saved sudo credentials. This is needed so that 
                 # we can be sure the next run of sudo requests a password.  
                 # Without this, the password that is autotyped may be exposed.
-                execute('sudo -K')
+                Execute('sudo -K')
 
                 # Get the login password
                 pw.get_account('login')
@@ -790,8 +790,8 @@ API_MANPAGE = {
                     if dest == True:
                         dest = src
                     absdest = expandPath(makePath('~', dest))
-                    status, stdout = pipe('mountpoint -q %s' % absdest, accept=(0,1))
-                    if status:
+                    mountpoint = pipe('mountpoint -q %s' % absdest, accept=(0,1))
+                    if mountpoint.status:
                         print("Mounting %s to %s" % (src, absdest))
                         run_cmd_with_password('sudo mount %s' % (absdest), writer)
                     else:

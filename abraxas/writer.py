@@ -25,7 +25,7 @@ import abraxas.cursor as cursor
 from abraxas.prefs import (
     LABEL_COLOR, LABEL_STYLE, XDOTOOL, XSEL, ALL_FIELDS, INITIAL_AUTOTYPE_DELAY
 )
-from fileutils import execute, pipe, ExecuteError
+from fileutils import Execute, ExecuteError
 from time import sleep
 import re
 
@@ -47,13 +47,13 @@ class PasswordWriter:
 
     # PasswordWriter is responsible for sending output to the user. It has four 
     # backends, one that writes verbosely to standard output, one that writes 
-    # quietly to standard output, one that writes to the clipboard, and one 
-    # that autotypes (mimics the keyboard).  To accommodate the three backends 
-    # the output is gathered up and converted into a script.  That script is 
+    # quietly to standard output, one that writes to the clipboard, and one that 
+    # autotypes (mimics the keyboard).  To accommodate the three backends the 
+    # output is gathered up and converted into a script.  That script is 
     # interpreted by the appropriate backend to produce the output.  The script 
-    # is a sequence of commands each with an argument.  Internally the script 
-    # is saved as a list of tuples. The first value in the tuple is the name of 
-    # the command.  Several commands are supported.
+    # is a sequence of commands each with an argument.  Internally the script is 
+    # saved as a list of tuples. The first value in the tuple is the name of the 
+    # command.  Several commands are supported.
     #    write_verbatim() --> ('verb', <str>)
     #        Outputs the argument verbatim.
     #    write_account_entry() --> ('interp', <label>)
@@ -347,7 +347,7 @@ class PasswordWriter:
         # to access the clipboard directly using GTK but I cannot get the code
         # to work.
         try:
-            pipe('%s -b -i' % XSEL, text)
+            Execute([XSEL, '-b', '-i'], stdin=text)
         except ExecuteError as err:
             self.logger.error(str(err))
         try:
@@ -355,7 +355,7 @@ class PasswordWriter:
         except KeyboardInterrupt:
             pass
         try:
-            execute("%s -b -c" % XSEL)
+            Execute([XSEL, '-b', '-c'])
         except ExecuteError as err:
             self.logger.error(str(err))
 
@@ -385,13 +385,14 @@ class PasswordWriter:
             try:
                 for segment in segments:
                     if segment == '\n':
-                        execute('%s key Return' % XDOTOOL)
+                        Execute([XDOTOOL, 'key', 'Return'])
                     elif segment != '':
                         # send text to xdotool through stdin so it cannot be
                         # seen with ps
-                        pipe(
-                            '%s -' % XDOTOOL,
-                            'getactivewindow type "%s"' % segment)
+                        Execute(
+                            [XDOTOOL, '-'],
+                            stdin='getactivewindow type "%s"' % segment
+                        )
             except ExecuteError as err:
                 self.logger.error(str(err))
 
@@ -446,7 +447,6 @@ class PasswordWriter:
         self.logger.log('Autotyping "%s".' % ''.join(scrubbed))
         autotype(''.join(text))
 
-# vim: set sw=4 sts=4 et:
     def _process_output_to_quiet(self):
         # Write only essential information to stdout.  This is meant to 
         # facilitate scripting with abraxas.
@@ -467,3 +467,4 @@ class PasswordWriter:
         self.logger.log(
                 'Writing quietly to stdout.  Some output may be ignored.')
 
+# vim: set sw=4 sts=4 et:

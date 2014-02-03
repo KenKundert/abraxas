@@ -14,7 +14,7 @@ from abraxas.prefs import (
 from fileutils import (
     getTail as get_tail,
     makePath as make_path,
-    execute, ExecuteError
+    ShellExecute as Execute, ExecuteError
 )
 import argparse
 import sys
@@ -211,7 +211,7 @@ try:
                     url = urls[0]
                         # choose first url if there are more than one
                     logger.log("running '%s'" % (cmd % url))
-                    execute(cmd % url)
+                    Execute(cmd % url)
                     logger.terminate()
                 else:
                     logger.error('url is unknown')
