@@ -453,7 +453,9 @@ class PasswordWriter:
 
         for action in self.script:
             if action[0] == 'interp':
-                print(self.generator.account.get_field(action[1]))
+                action = self.generator.account.get_field(action[1])
+                if action:
+                    print(action)
 
             elif action[0] == 'password':
                 print(self.generator.generate_password())
