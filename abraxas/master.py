@@ -2,7 +2,7 @@
 #
 # Responsible for reading and managing the data from the master password file.
 #
-# Copyright (C) 2013-14 Kenneth S. Kundert and Kale B. Kundert
+# Copyright (C) 2013-14 Kenneth S. Kundert and Kale Kundert
 
 # License (fold)
 # This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
-
 
 # Imports (fold)
 import abraxas.secrets as secrets

@@ -1,6 +1,6 @@
 # Abraxas Password Generator Preferences
 #
-# Copyright (C) 2013-14 Kenneth S. Kundert and Kale B. Kundert
+# Copyright (C) 2013-14 Kenneth S. Kundert and Kale Kundert
 
 # License (fold)
 # This program is free software: you can redistribute it and/or modify

@@ -2,7 +2,7 @@
 #
 # Responsible for reading and managing the data from the user's accounts file.
 #
-# Copyright (C) 2013-14 Kenneth S. Kundert and Kale B. Kundert
+# Copyright (C) 2013-14 Kenneth S. Kundert and Kale Kundert
 
 # License (fold)
 # This program is free software: you can redistribute it and/or modify
