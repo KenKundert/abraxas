@@ -28,7 +28,6 @@ from fileutils import (
     isFile as is_file,
     expandPath as expand_path,
     mkdir, exists,
-    execute, pipe, ExecuteError
 )
 from abraxas.logger import Logging
 from abraxas.dictionary import Dictionary
