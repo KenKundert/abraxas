@@ -62,7 +62,8 @@ class Passphrase():
             # word from the dictionary.
             index = int(chunk, 16) % len(words)
             phrase += [words[index]]
-        return separator.join(phrase)
+        passphrase = separator.join(phrase)
+        return account.get_prefix() + passphrase + account.get_suffix()
 
 # Password class {{{1
 # Generates a password from an alphabet.
