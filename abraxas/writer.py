@@ -1,7 +1,7 @@
-# Abraxas Password Writer
+# Abraxas Password Writers
 #
-# Given a secret (password or passphrase) the password writer is responsible 
-# for getting it to the user in reasonably secure manners.
+# Given a secret (password or passphrase) the writer is responsible for getting 
+# it to the user in a reasonably secure manner.
 #
 # Copyright (C) 2013-14 Kenneth S. Kundert and Kale Kundert
 
@@ -203,6 +203,7 @@ class Writer:
                 if (term):
                     self.write_verbatim(term)
 
+
 class TTY_Writer(Writer):
     """
     Writes output to a TTY.
@@ -291,6 +292,7 @@ class TTY_Writer(Writer):
                 raise NotImplementedError
         self.logger.log('Writing to stdout.')
 
+
 class ClipboardWriter(Writer):
     """
     Writes output to the system clipboard.
@@ -352,7 +354,7 @@ class ClipboardWriter(Writer):
 
         # Use 'xsel' to put the information on the clipboard.
         # This represents a vulnerability, if someone were to replace xsel they
-        # could steel my passwords. This is why I use an absolute path. I tried
+        # could steal my passwords. This is why I use an absolute path. I tried
         # to access the clipboard directly using GTK but I cannot get the code
         # to work.
         try:
@@ -380,6 +382,7 @@ class ClipboardWriter(Writer):
         #    clipboard.clear()
         #except ImportError:
         #    error('Clipboard is not supported.')
+
 
 class AutotypeWriter(Writer):
     """
@@ -468,6 +471,7 @@ class AutotypeWriter(Writer):
         self.logger.log('Autotyping "%s".' % ''.join(scrubbed))
         autotype(''.join(text))
 
+
 class StdoutWriter(Writer):
     """
     Writes output to the standard output. Suppresses everything except the 
@@ -503,6 +507,6 @@ class StdoutWriter(Writer):
                 pass
 
         self.logger.log(
-                'Writing quietly to stdout.  Some output may be suppressed.')
+            'Writing quietly to stdout.  Some output may be suppressed.')
 
 # vim: set sw=4 sts=4 et:
