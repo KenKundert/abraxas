@@ -38,22 +38,22 @@ def indent(text, prefix='    '):
         [prefix + line if line else line for line in text.split('\n')])
 
 
-class PasswordWriter:
+class Writer:
     """
-    Abraxas Password Writer
-
-    Used to get account information to the user.
+    Abraxas Password Writer Base Class
     """
 
     # PasswordWriter is responsible for sending output to the user. It has four 
-    # backends, one that writes verbosely to standard output, one that writes 
-    # quietly to standard output, one that writes to the clipboard, and one that 
-    # autotypes (mimics the keyboard).  To accommodate the three backends the 
-    # output is gathered up and converted into a script.  That script is 
-    # interpreted by the appropriate backend to produce the output.  The script 
-    # is a sequence of commands each with an argument.  Internally the script is 
-    # saved as a list of tuples. The first value in the tuple is the name of the 
-    # command.  Several commands are supported.
+    # backends, one that writes verbosely to standard output assuming it is 
+    # a TTY (TTY_Writer), one that writes quietly to standard output assuming 
+    # the output is being fed another program (StdoutWriter), one that writes to 
+    # the clipboard (ClipboardWriter), and one that mimics the keyboard 
+    # (AutotypeWriter).  To accommodate the four backends the output is gathered 
+    # up and converted into a script.  That script is interpreted by the 
+    # appropriate backend to produce the output.  The script is a sequence of 
+    # commands each with an argument.  Internally the script is saved as a list 
+    # of tuples. The first value in the tuple is the name of the command.  
+    # Several commands are supported.
     #    write_verbatim() --> ('verb', <str>)
     #        Outputs the argument verbatim.
     #    write_account_entry() --> ('interp', <label>)
@@ -73,15 +73,18 @@ class PasswordWriter:
     #        Outputs the answer to a security question as a secret (the output
     #        does its best to keep it secure).  The argument is the index
     #        of the question.
-    #    sleep() --> ('sleep', <real>)
+    #    write_sleep() --> ('sleep', <real>)
     #        Waits before continuing. The argument is the number of seconds to
     #        wait.
 
-    def __init__(self, output, generator, wait=60, logger=None):
+    def __init__(self):
+        # Do not use this class directly.
+        # Use one of the subclasses instead
+        raise NotImplementedError
+
+    def constructor(self, generator, wait=60, logger=None):
         """
         Arguments:
-        output (string)
-            Specify either 'clipboard', 'autotype', 'quiet', or 'standard'.
         generator (abraxas generator object)
             The password generator.
         wait (int)
@@ -94,7 +97,6 @@ class PasswordWriter:
                 error(msg): called when an error has occurred,
                             should not return.
         """
-        self.output = output
         self.wait = wait
         self.generator = generator
         self.logger = logger if logger else generator.logger
@@ -142,7 +144,7 @@ class PasswordWriter:
         """
         self.script += [('answer', num)]
 
-    def sleep(self, delay):
+    def write_sleep(self, delay):
         """
         Specify that <delay> seconds should pass before the next thing is sent
         to the output.
@@ -151,8 +153,9 @@ class PasswordWriter:
 
     def write_autotype(self):
         """
-        Process the account autotype script send what ever it specifies to the
-        output when the output is processed.
+        Specify that account's autotype entry should be processed and the 
+        resulting output requests be placed in the writer script. Those requests 
+        are honored during process_output() when the script is executed.
         """
         regex = re.compile(r'({\w+})')
         for term in regex.split(self.generator.account.get_autotype()):
@@ -200,26 +203,20 @@ class PasswordWriter:
                 if (term):
                     self.write_verbatim(term)
 
+class TTY_Writer(Writer):
+    """
+    Writes output to a TTY.
+    """
+    def __init__(self, *args, **kwargs):
+        self.constructor(*args, **kwargs)
+
     def process_output(self):
         """
         Process the output.
 
         Everything that was stashed away by the various write_ methods should
-        now be sent to the user using the requested method.
+        now be sent to the user.
         """
-        if self.output == 'autotype':
-            self._process_output_to_autotype()
-        elif self.output == 'clipboard':
-            self._process_output_to_clipboard()
-        elif self.output == 'quiet':
-            self._process_output_to_quiet()
-        elif self.output == 'standard':
-            self._process_output_to_stdout()
-        else:
-            raise NotImplementedError
-
-
-    def _process_output_to_stdout(self):
         label_password = len(self.script) > 1
 
         def highlight(label, value):
@@ -294,8 +291,20 @@ class PasswordWriter:
                 raise NotImplementedError
         self.logger.log('Writing to stdout.')
 
-    def _process_output_to_clipboard(self):
-        # Send output to clipboard without the labels.
+class ClipboardWriter(Writer):
+    """
+    Writes output to the system clipboard.
+    """
+    def __init__(self, *args, **kwargs):
+        self.constructor(*args, **kwargs)
+
+    def process_output(self):
+        """
+        Process the output.
+
+        Everything that was stashed away by the various write_ methods should
+        now be sent to the user. The labels are suppressed.
+        """
         lines = []
 
         # Execute the script
@@ -372,8 +381,20 @@ class PasswordWriter:
         #except ImportError:
         #    error('Clipboard is not supported.')
 
-    def _process_output_to_autotype(self):
-        # Mimic a keyboard to send output to the active window.
+class AutotypeWriter(Writer):
+    """
+    Writes output via autotype (it appears to be coming from the keyboard).
+    """
+    def __init__(self, *args, **kwargs):
+        self.constructor(*args, **kwargs)
+
+    def process_output(self):
+        """
+        Process the output.
+
+        Everything that was stashed away by the various write_ methods should
+        now be sent to the user.
+        """
 
         def autotype(text):
             # Use 'xdotool' to mimic the keyboard.
@@ -447,9 +468,24 @@ class PasswordWriter:
         self.logger.log('Autotyping "%s".' % ''.join(scrubbed))
         autotype(''.join(text))
 
-    def _process_output_to_quiet(self):
-        # Write only essential information to stdout.  This is meant to 
-        # facilitate scripting with abraxas.
+class StdoutWriter(Writer):
+    """
+    Writes output to the standard output. Suppresses everything except the 
+    password.
+    """
+    def __init__(self, *args, **kwargs):
+        self.constructor(*args, **kwargs)
+
+    def process_output(self):
+        """
+        Process the output.
+
+        Everything that was stashed away by the various write_ methods should
+        now be sent to the user.
+
+        Writes only essential information (the secret) to stdout.  This is meant 
+        to facilitate scripting with abraxas.
+        """
 
         for action in self.script:
             if action[0] == 'interp':
@@ -467,6 +503,6 @@ class PasswordWriter:
                 pass
 
         self.logger.log(
-                'Writing quietly to stdout.  Some output may be ignored.')
+                'Writing quietly to stdout.  Some output may be suppressed.')
 
 # vim: set sw=4 sts=4 et:

@@ -244,8 +244,8 @@ PROGRAM_MANPAGE = {
         Account Discovery
         +++++++++++++++++
         If no account is specified, Abraxas examines the window title and from 
-        it try to determine which account to use. In its most simple form window 
-        titles can be specified in the accounts, and the account with the 
+        it tries to determine which account to use. In its most simple form 
+        window titles can be specified in the accounts, and the account with the 
         matching title is used. Multiple title strings can be associated with 
         each account, and those strings support globbing. In addition, Abraxas 
         can sometimes recognize components of the window title, components such 
@@ -440,7 +440,7 @@ PROGRAM_MANPAGE = {
 
             $ abraxas -I derrickAsh@gmail.com
 
-        The creates two files if they do not already exist, 
+        This creates two files if they do not already exist, 
         ~/.config/abraxas/master.gpg and ~/.config/abraxas/accounts. Of the two, 
         the master.gpg file is encrypted. If you would like the accounts file to 
         be encrypted as well, encrypt it now using::
@@ -618,10 +618,11 @@ API_MANPAGE = {
 
         Here is the *archive* script::
 
-            #!/bin/env python
+            #!/bin/env python3
 
             from __future__ import print_function, division
             from abraxas import PasswordGenerator, PasswordError, Logging
+            from textwrap import indent
             import gnupg
             import sys
 
@@ -704,7 +705,7 @@ API_MANPAGE = {
 
             except KeyboardInterrupt:
                 sys.exit('Killed by user')
-            except PasswordError, err:
+            except PasswordError as err:
                 sys.exit(str(err))
 
         The program starts by creating a logger. Normally this is not necessary.  
@@ -721,9 +722,9 @@ API_MANPAGE = {
 
         Here is a program that mounts a series of directories. It differs from 
         the above script in that is uses autotype, which it accesses through 
-        *PasswordWriter*. Specifically, the program never requests a password 
+        *AutotypeWriter*. Specifically, the program never requests a password 
         directly from Abraxas. Instead, the PasswordGenerator object is passed 
-        in when creating a PasswordWriter object. It then queries the generator 
+        in when creating a AutotypeWriter object. It then queries the generator 
         directly for the password and then gets it directly to the user.
 
         Mountall uses *sudo*, which requires a password the first time it is 
@@ -739,7 +740,7 @@ API_MANPAGE = {
             from sys import exit
             from os import fork
             from time import sleep
-            from abraxas import PasswordGenerator, PasswordWriter, PasswordError
+            from abraxas import PasswordGenerator, AutotypeWriter, PasswordError
 
             shares = {{
                 'music': 'audio',
@@ -768,7 +769,7 @@ API_MANPAGE = {
                 # Open the password generator
                 pw = PasswordGenerator()
                 pw.read_accounts()
-                writer = PasswordWriter('t', pw)
+                writer = AutotypeWriter(pw)
 
                 # Clear out any saved sudo credentials. This is needed so that 
                 # we can be sure the next run of sudo requests a password.  
@@ -804,12 +805,11 @@ API_MANPAGE = {
                 sys.exit(str(err))
 
         The program starts by instantiating both the *PasswordGenerator* and the 
-        *PasswordWriter* class. The *PasswordGenerator* class is responsible for 
-        generating the password and *PasswordWriter* gets it to the user. In 
-        this case the autotype facility of *PasswordWriter* is used to mimic the 
-        keyboard.  When instantiating the *PasswordWriter* you must specify the 
-        intended output. Use ``output='t'`` for autotype, ``output='c'`` for 
-        clipboard, and ``output='s'`` for standard output.
+        *AutotypeWriter* class. The *PasswordGenerator* class is responsible for 
+        generating the password and *AutotypeWriter* gets it to the user. In 
+        this case the autotype facility is used to mimic the keyboard. There are 
+        other writers available for writing to a TTY, to stdout, and to the 
+        system clipboard.
 
         SEE ALSO
         ========
@@ -1267,13 +1267,13 @@ CONFIG_MANPAGE = {
 
         prefix
         ~~~~~~
-        A string whose contents are added to the beginning of a password when 
-        'type' is 'chars'.
+        A string whose contents are added to the beginning of a password or 
+        passphrase.
 
         suffix
         ~~~~~~
-        A string whose contents are added to the end of a password when 'type' 
-        is 'chars'.
+        A string whose contents are added to the end of a password or 
+        passphrase.
 
         aliases
         ~~~~~~~

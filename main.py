@@ -6,16 +6,16 @@
 # Generates passwords and pass phrases based on stored account information.
 
 # Imports (fold)
-from abraxas import PasswordGenerator, PasswordWriter, Logging
+from abraxas import (
+    PasswordGenerator, TTY_Writer, ClipboardWriter, AutotypeWriter,
+    StdoutWriter, Logging)
 from abraxas.prefs import (
     SEARCH_FIELDS, DEFAULT_SETTINGS_DIR, DEFAULT_ARCHIVE_FILENAME,
-    BROWSERS, DEFAULT_BROWSER
-)
+    BROWSERS, DEFAULT_BROWSER)
 from fileutils import (
     getTail as get_tail,
     makePath as make_path,
-    ShellExecute as Execute, ExecuteError
-)
+    ShellExecute as Execute, ExecuteError)
 import argparse
 import sys
 
@@ -162,8 +162,7 @@ try:
                     sorted(generator.all_templates())))
             logger.terminate()
 
-        # If requested, search the account database and exit after printing
-        # results
+        # If requested, search the account database, print results, and exit
         def print_search_results(search_term, search_func):
             to_print = []
             for acct, aliases in search_func(search_term):
@@ -181,6 +180,7 @@ try:
                 cmd_line.search, generator.search_accounts)
             logger.terminate()
 
+        # If requested, update or compare against archive
         if cmd_line.changed:
             generator.print_changed_secrets()
             logger.terminate()
@@ -193,23 +193,27 @@ try:
 
         # If requested, open accounts webpage in browser and then exit.
         if cmd_line.browser or cmd_line.default_browser:
+            # determine which browser to use
+            if cmd_line.default_browser:
+                cmd = BROWSERS[DEFAULT_BROWSER]
+            else:
+                try:
+                    cmd = BROWSERS[cmd_line.browser]
+                except KeyError:
+                    logger.error(
+                        'Unknown browser: %s, choose from %s.' % (
+                            cmd_line.browser,
+                            ', '.join(BROWSERS)))
+
+            # get the url
+            urls = account.get_field('url', [])
+            if type(urls) == str:
+                urls = [urls]
+
+            # run the browser
             try:
-                if cmd_line.default_browser:
-                    cmd = BROWSERS[DEFAULT_BROWSER]
-                else:
-                    try:
-                        cmd = BROWSERS[cmd_line.browser]
-                    except KeyError:
-                        logger.error(
-                            'Unknown browser: %s, choose from %s.' % (
-                                cmd_line.browser,
-                                ', '.join(BROWSERS)))
-                urls = account.get_field('url', [])
-                if type(urls) == str:
-                    urls = [urls]
                 if urls:
-                    url = urls[0]
-                        # choose first url if there are more than one
+                    url = urls[0]  # choose first url if there is more than one
                     logger.log("running '%s'" % (cmd % url))
                     Execute(cmd % url)
                     logger.terminate()
@@ -219,11 +223,14 @@ try:
                 logger.error(str(err))
 
         # Create the secrets writer
-        style = (
-            'clipboard' if cmd_line.clipboard else
-            'autotype' if cmd_line.autotype else
-            'quiet' if cmd_line.quiet else 'standard')
-        writer = PasswordWriter(style, generator, cmd_line.wait, logger)
+        if cmd_line.clipboard:
+            writer = ClipboardWriter(generator, cmd_line.wait, logger)
+        elif cmd_line.autotype:
+            writer = AutotypeWriter(generator, cmd_line.wait, logger)
+        elif cmd_line.quiet:
+            writer = StdoutWriter(generator, cmd_line.wait, logger)
+        else:
+            writer = TTY_Writer(generator, cmd_line.wait, logger)
 
         # Process the users output requests
         if cmd_line.autotype:

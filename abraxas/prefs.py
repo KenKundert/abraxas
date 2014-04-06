@@ -67,7 +67,7 @@ GPG_BINARY = 'gpg2'
 # These signatures must be the sha1 signatures for the corresponding files
 # Regenerate them with 'sha1sum <filename>'
 # These are used in creating the initial master password file.
-SECRETS_SHA1 = "bb7811863130f42cee268e85430f28ac888148c5"
+SECRETS_SHA1 = "5d1c97a0fb699241fca5d50a7ad0508047990510"
 CHARSETS_SHA1 = "dab48b2103ebde97f78cfebd15cc1e66d6af6ed0"
 DICTIONARY_SHA1 = "d9aa1c08e08d6cacdf82819eeb5832429eadb95a"
 
