@@ -150,7 +150,7 @@ class _Accounts:
                 addToAliases(ID, alias)
 
     def all_accounts(self, skip_templates=True):
-        # Get a dictionary of all the fields for each account {{{2
+        # Get a dictionary of all the fields for each account
         for ID in self.accounts:
             if skip_templates and ID[0] == '=':
                 pass
@@ -158,7 +158,7 @@ class _Accounts:
                 yield ID
 
     def get_fields(self, field):
-        # Get a particular field from each account {{{2
+        # Get a particular field from each account
         for ID, data in self.accounts.items():
             if field in data and data[field]:
                 yield (ID, data[field])
@@ -581,7 +581,7 @@ class _Accounts:
                     self._inAliases(pattern, self.accounts[ID])):
                 yield ID, self.accounts[ID].get('aliases', [])
 
-    # Search accounts {{{2
+    # Search accounts
     def search_accounts(self, target):
         """Iterate through accounts that match target.
 
