@@ -47,7 +47,7 @@ LABEL_STYLE = 'normal'
     # choose from normal, bright, reverse, dim, underline, blink, reverse,
     # invisible (these need to be implemented by underlying terminal, and some
     # are not (such a blink and dim)
-INITIAL_AUTOTYPE_DELAY = 0.5
+INITIAL_AUTOTYPE_DELAY = 0.0
 DEBUG = False
     # Turns on the logging of extra information, but may expose sensitive
     # account information in the log file.
@@ -78,6 +78,7 @@ DICTIONARY_SHA1 = "d9aa1c08e08d6cacdf82819eeb5832429eadb95a"
 BROWSERS = {
     'f': 'firefox -new-tab %s > /dev/null',
     'v': 'vimprobable2 %s',
+    't': 'tor-browser %s > /dev/null',
 }
 DEFAULT_BROWSER = 'f'
 
