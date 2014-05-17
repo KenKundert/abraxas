@@ -76,11 +76,12 @@ DICTIONARY_SHA1 = "d9aa1c08e08d6cacdf82819eeb5832429eadb95a"
 # Associate a command with a browser key.
 # The command must contain a single %s, which is replaced with URL.
 BROWSERS = {
+    'd': 'xdg-open %s > /dev/null', # system default browser
     'f': 'firefox -new-tab %s > /dev/null',
     'v': 'vimprobable2 %s',
     't': 'tor-browser %s > /dev/null',
 }
-DEFAULT_BROWSER = 'f'
+DEFAULT_BROWSER = 'd'
 
 
 # Account Recognition (folds)

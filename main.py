@@ -88,7 +88,7 @@ class CommandLine:
             help="Template to use if account is not found.")
         parser.add_argument(
             '-b', '--default-browser', action='store_true',
-            help="Open account in the default browser.")
+            help="Open account in the default browser (%s)." % DEFAULT_BROWSER)
         parser.add_argument(
             '-B', '--browser', type=str, metavar='<browser>',
             help="Open account in the specified browser (choose from %s)." %

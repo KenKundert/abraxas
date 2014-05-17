@@ -174,7 +174,7 @@ class Writer:
                     try:
                         assert cmd[0] == 'sleep'
                         assert len(cmd) == 2
-                        self.sleep(float(cmd[1]))
+                        self.write_sleep(float(cmd[1]))
                     except (AssertionError, TypeError):
                         self.logger.display("ERROR in autotype: %s" % term)
                         return
