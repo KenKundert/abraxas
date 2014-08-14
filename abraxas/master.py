@@ -69,10 +69,9 @@ class _MasterPassword:
                 with open(self.path, 'rb') as f:
                     decrypted = self.gpg.decrypt_file(f)
                     if not decrypted.ok:
-                        self.logger.error("%s\n%s" % (
+                        self.logger.error("%s" %
                             "%s: unable to decrypt." % (self.path),
-                            decrypted.stderr
-                        ))
+                        )
                     code = compile(decrypted.data, self.path, 'exec')
                     exec(code, data)
             except IOError as err:
@@ -103,10 +102,9 @@ class _MasterPassword:
                     with open(path, 'rb') as f:
                         decrypted = self.gpg.decrypt_file(f)
                         if not decrypted.ok:
-                            self.logger.error("%s\n%s" % (
+                            self.logger.error("%s" %
                                 "%s: unable to decrypt." % (path),
-                                decrypted.stderr
-                            ))
+                            )
                         code = compile(decrypted.data, path, 'exec')
                         exec(code, more_data)
                 except IOError as err:

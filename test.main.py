@@ -171,13 +171,7 @@ testCases = [
     Case(
         name='stabbing',
         stimulus="pw = PasswordGenerator('./generated_settings', logger=logger, gpg_home='test_key')",
-        error=dedent("""\
-            generated_settings/master.gpg: unable to decrypt.
-            gpg: no valid OpenPGP data found.
-            [GNUPG:] NODATA 1
-            [GNUPG:] NODATA 2
-            gpg: decrypt_message failed: Unknown system error
-        """)
+        error=dedent("generated_settings/master.gpg: unable to decrypt.")
     ),
     Case(
         name='secretary',

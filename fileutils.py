@@ -169,7 +169,7 @@ def splitPath(path):
 # Return normalized path
 def normPath(path):
     """
-    Convert to an normalized path (remove redundant separators and up-level references).
+    Convert to a normalized path (remove redundant separators and up-level references).
     """
     return os.path.normpath(path)
 
@@ -330,7 +330,7 @@ class Execute():
         and self.stderr.
         The default is to not use a shell to execute a command (safer).
         If stdin is None, no connection is made to the standard input, otherwise 
-        stdin is expected to be a string and that string.
+        stdin is expected to be a string and that string is sent to stdin.
         """
         self._run(cmd, accept, stdin, shell)
 
@@ -372,6 +372,8 @@ class ShellExecute(Execute):
         All output is captured and is available from self.status, self.stdout, 
         and self.stderr.
         The default is to use a shell to execute a command (more convenient).
+        If stdin is None, no connection is made to the standard input, otherwise 
+        stdin is expected to be a string and that string is sent to stdin.
         """
         self._run(cmd, accept, stdin, True)
 
