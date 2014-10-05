@@ -87,6 +87,8 @@ PROGRAM_MANPAGE = {
         -B <browser>, --browser <browser>
                                 Open account in the specified browser.
 
+        -n, --notify            Output messages to notifier.
+
         -l, --list              List available master passwords and templates 
                                 (only pure templates are listed, not accounts, 
                                 even though accounts can be used as templates)

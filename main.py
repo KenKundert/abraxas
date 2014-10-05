@@ -91,8 +91,11 @@ class CommandLine:
             help="Open account in the default browser (%s)." % DEFAULT_BROWSER)
         parser.add_argument(
             '-B', '--browser', type=str, metavar='<browser>',
-            help="Open account in the specified browser (choose from %s)." %
-                ', '.join(BROWSERS))
+            help="Open account in the specified browser (choose from %s)." % (
+                ', '.join(BROWSERS)))
+        parser.add_argument(
+            '-n', '--notify', action='store_true',
+            help="Output messages to notifier.")
         parser.add_argument(
             '-l', '--list', action='store_true',
             help=(' '.join([
@@ -140,7 +143,8 @@ class CommandLine:
 cmd_line = CommandLine(sys.argv)
 try:
     with Logging(
-            argv=sys.argv, prog_name=cmd_line.name_as_invoked()
+            argv=sys.argv, prog_name=cmd_line.name_as_invoked(),
+            use_notifier=cmd_line.notify
     ) as logger:
         generator = PasswordGenerator(
             logger=logger,

@@ -62,6 +62,8 @@ PREFER_HTTPS = True
 XDOTOOL = '/usr/bin/xdotool'
 XSEL = '/usr/bin/xsel'
 GPG_BINARY = 'gpg2'
+NOTIFIER_NORMAL = ['notify-send', '--urgency=low']
+NOTIFIER_ERROR = ['notify-send', '--urgency=normal']
 
 # Signatures (folds)
 # These signatures must be the sha1 signatures for the corresponding files
@@ -103,7 +105,7 @@ REGEX_COMPONENTS = {
     'email': labelRegex('email', EMAIL_REGEX)}
 # Hostname in Titlebar browser title regex
 HNITB_BROWSER_TITLE_PATTERN = re.compile(
-    r'{title} - {host} \({protocol}\)(?: - {browser})?'.format(
+    r'(?:{title} - )?{host} \({protocol}\)(?: - {browser})?'.format(
         **REGEX_COMPONENTS
     )
 )
