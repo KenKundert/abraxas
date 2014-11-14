@@ -110,7 +110,7 @@ HNITB_BROWSER_TITLE_PATTERN = re.compile(
     )
 )
 # This is for version 3 and beyond; requires that preferences in HNINTB be set 
-# to at least 'show the short URL' with a separator of '-'.
+# to 'show the short URL' with a separator of '-'.
 HNITBv3_BROWSER_TITLE_PATTERN = re.compile(
     r'(?:{title} - ){protocol}?://{host}(?: - {browser})?'.format(
         **REGEX_COMPONENTS
