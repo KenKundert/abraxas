@@ -109,6 +109,13 @@ HNITB_BROWSER_TITLE_PATTERN = re.compile(
         **REGEX_COMPONENTS
     )
 )
+# This is for version 3 and beyond; requires that preferences in HNINTB be set 
+# to at least 'show the short URL' with a separator of '-'.
+HNITBv3_BROWSER_TITLE_PATTERN = re.compile(
+    r'(?:{title} - ){protocol}?://{host}(?: - {browser})?'.format(
+        **REGEX_COMPONENTS
+    )
+)
 # Simple browser title regex
 SIMPLE_BROWSER_TITLE_PATTERN = re.compile(
     r'{title}(?: - {browser})?'.format(**REGEX_COMPONENTS))
@@ -116,6 +123,7 @@ SIMPLE_BROWSER_TITLE_PATTERN = re.compile(
 URL_PATTERN = re.compile(
     r'(?:{protocol}://)?{host}(?:/.*)?'.format(**REGEX_COMPONENTS))
 TITLE_PATTERNS = [
+    ('hostname-in-titlebar-browser-v3', HNITBv3_BROWSER_TITLE_PATTERN),
     ('hostname-in-titlebar-browser', HNITB_BROWSER_TITLE_PATTERN),
     # You can comment out the entry above if you are not using 'Hostname in
     # Titlebar' extension to Firefox and Thunderbird

@@ -397,7 +397,9 @@ class _Accounts:
                             # The above has a special sort that assures 
                             # protocol is processed last.
                             value = fields[key]
-                            if key == 'title':
+                            if not value:
+                                continue
+                            elif key == 'title':
                                 for each in windows:
                                     if fnmatch.fnmatch(value, each):
                                         match_found = True

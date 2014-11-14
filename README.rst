@@ -48,7 +48,8 @@ root)::
    yum install python-setuptools
    yum install libyaml-devel
    yum install PyYAML
-   yum install pygobject3
+   yum install pygobject3 (if using python2)
+   yum install python3-gobject (if using python3)
    yum install python-docutils
    yum install xdotool
    yum install xsel
