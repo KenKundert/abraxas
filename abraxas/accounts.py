@@ -516,7 +516,11 @@ class _Accounts:
                 if account:
                     logger.log("User selected '%s' account." % account)
                     return account
-            logger.error("Cannot determine desired account ID.")
+            logger.error("Cannot determine desired account ID.%s" % (
+                ("\nExamine '%s' for the details." % logger.logfile)
+                if logger.logfile
+                else ""
+            ))
 
         # Validate account_id
         if not account_id and not self.stateless:

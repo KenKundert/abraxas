@@ -124,7 +124,7 @@ URL_PATTERN = re.compile(
     r'(?:{protocol}://)?{host}(?:/.*)?'.format(**REGEX_COMPONENTS))
 TITLE_PATTERNS = [
     ('hostname-in-titlebar-browser-v3', HNITBv3_BROWSER_TITLE_PATTERN),
-    ('hostname-in-titlebar-browser', HNITB_BROWSER_TITLE_PATTERN),
+    #('hostname-in-titlebar-browser', HNITB_BROWSER_TITLE_PATTERN),
     # You can comment out the entry above if you are not using 'Hostname in
     # Titlebar' extension to Firefox and Thunderbird
     ('simple browser title', SIMPLE_BROWSER_TITLE_PATTERN)]

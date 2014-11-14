@@ -85,6 +85,7 @@ class Logging:
             except:
                 now = ""
             self.log("Invoked as '%s'%s." % (' '.join(argv), now))
+        self.log("Set DEBUG=True in abraxas/prefs.py to enable a detailed log.")
         self.debug("Debug logging is on (should be off in normal operation).")
         self.prog_name = prog_name
         if argv and not prog_name:
