@@ -153,6 +153,25 @@ modify your .xinitrc or .xsession file to add the following::
     # Set ssh and gpg agent environment variables
     export $(gnome-keyring-daemon --start)
 
+GnuPG Issues
+''''''''''''
+
+If abraxas crashes with the message::
+
+    ValueError: Unknown status message: u'PROGRESS'
+
+you have encountered a bug in python-gnupg. I can be resolved by adding 
+"PROGRESS" to line 219 of gnupg.py in the python-gnupg install (the path varies 
+based on the version and where you install it, but you might try something like:
+/usr/lib/python3.3/site-packages/python_gnupg-0.3.6-py3.3.egg/gnupg.py).
+
+If you use Gnome Keyring, you should be aware the Werner Koch is very annoyed at 
+it and the latest versions of gnupg will emit a warning that Gnome Keyring has 
+hijacked the GnuPG agent if you try to use Gnome Keyring as the GnuPG agent. You 
+can safely ignore this message. The only way to use Gnome Keyring and avoid the 
+message is to download the GnuPG source, delete the message, and compile it by 
+hand.
+
 Installing
 ----------
 To test the program, run::
