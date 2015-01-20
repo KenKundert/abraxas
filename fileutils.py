@@ -157,7 +157,10 @@ def makePath(*args):
     """
     Join the arguments together into a filesystem path.
     """
-    return os.path.join(*args)
+    if len(args):
+        return os.path.join(*args)
+    else:
+        return ''
 
 # Splits path at directory boundaries into its component pieces
 def splitPath(path):
@@ -328,7 +331,10 @@ class Execute():
         shell=False, showCmd=False
     ):
         """
-        Execute a command and capture its output
+        Execute a command and capture its output.
+
+        cmd may be a list of strings (preferred) or a string. Ex: ['rm' '-f' 
+        'core'] or 'rm -f core'.
 
         Raise an ExecuteError if return status is not in accept unless accept
         is set to True. By default, only a status of 0 is accepted.
@@ -337,13 +343,13 @@ class Execute():
         stdin is expected to be a string and that string is sent to stdin.
 
         If stdout / stderr is true, stdout / stderr is captured and made 
-        avilable from self.stdout / self.stderr.
+        available from self.stdout / self.stderr.
 
         If wait is true, the run method does not return until the process ends.  
-        In this case run() does not return the status. Instead, calling wait() 
-        return the status.
-
-        Once the process is finished, the status is also available from 
+        In this case run() returns the status. Otherwise it return None and 
+        instead calling wait() waits for the process to end and returns the 
+        status.  Once wait() returns, either by calling constructor with 
+        wait=True, or by calling wait(), the status is also available from 
         self.status,
 
         The default is to not use a shell to execute a command (safer).
@@ -411,7 +417,7 @@ class ShellExecute(Execute):
         Execute a command in a shell and capture its output
 
         This class is the same as Execute, except that by default it runs the 
-        given command in a shell, which is less safe but more convenient.
+        given command in a shell, which is less safe but often more convenient.
         """
         self.cmd = cmd
         self.accept = accept

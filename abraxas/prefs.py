@@ -81,7 +81,7 @@ BROWSERS = {
     'd': 'xdg-open %s > /dev/null', # system default browser
     'f': 'firefox -new-tab %s > /dev/null',
     'v': 'vimprobable2 %s',
-    't': 'tor-browser %s > /dev/null',
+    't': 'torbrowser %s > /dev/null',
 }
 DEFAULT_BROWSER = 'd'
 
