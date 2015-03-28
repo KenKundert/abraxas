@@ -408,6 +408,15 @@ class AutotypeWriter(Writer):
             segments = regex.split(text)
             try:
                 for segment in segments:
+                    # KSK: probably want to rewrite this. I think it is only 
+                    # necessary to have one call to xdotool, where each segment 
+                    # is passed as a separate line in a script sent to stdin.  
+                    # One curveball that must be accounted for is that xdotool 
+                    # interprets $ as an environment variable, and there 
+                    # appears to be no way to turn that off (sigh), so $ must 
+                    # be escaped (quotes might also be a problem, but I have 
+                    # not explored the depth of that one, might need 
+                    # pipes.quote().
                     if segment == '\n':
                         Execute([XDOTOOL, 'key', 'Return'])
                     elif segment != '':
@@ -415,7 +424,7 @@ class AutotypeWriter(Writer):
                         # seen with ps
                         Execute(
                             [XDOTOOL, '-'],
-                            stdin='getactivewindow type "%s"' % segment
+                            stdin="getactivewindow type '%s'" % segment.replace('$', r'\$')
                         )
             except ExecuteError as err:
                 self.logger.error(str(err))

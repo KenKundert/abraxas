@@ -813,6 +813,59 @@ API_MANPAGE = {
         other writers available for writing to a TTY, to stdout, and to the 
         system clipboard.
 
+        addkeys
+        +++++++
+
+        This script is used to pre-load a series of SSH keys into the SSH 
+        agent. It is stimilar to the above script, except it uses pexpect 
+        rather than autotype. This makes it a bit safer because pexpect waits 
+        for the expected prompt from ssh-add, and so will not blindly spew out 
+        the password if things go wrong::
+        
+            #!/usr/bin/python3
+
+            import pexpect
+            from abraxas import PasswordGenerator, PasswordError
+            import sys
+
+            keys = [
+                # description       keyfile         abraxas account name
+                ('primary rsa',     'id-rsa',       'ssh'              ),
+                ('primary ed25519', 'id-ed25519',   'ssh'              ),
+                ('digitalocean',    'digitalocean', 'do-ssh'           ),
+                ('tunnelr',         'tunnelr',      'tunnelr-ssh'      ),
+                ('dumper',          'dumper',       'dumper'           ),
+                ('github',          'github',       'github-ssh'       ),
+            ]
+            ssh_dir = '/home/toby/.ssh'
+
+            try:
+                pw = PasswordGenerator()
+                pw.read_accounts()
+            except PasswordError as error:
+                sys.exit(str(error))
+
+            for desc, name, acct in keys:
+                print('Adding %s ssh key' % desc)
+                try:
+                    acct = pw.get_account(acct)
+                    password = pw.generate_password()
+                    sshadd = pexpect.spawn('ssh-add %s/%s' % (ssh_dir, name))
+                    sshadd.expect(
+                        'Enter passphrase for %s/%s: ' % (ssh_dir, name),
+                        timeout=4
+                    )
+                    sshadd.sendline(password)
+                except PasswordError as error:
+                    sys.exit(str(error))
+                except (pexpect.EOF, pexpect.TIMEOUT):
+                    sys.exit('addkeys: unexpected prompt from ssh-add: %s' % (
+                        sshadd.before.decode('utf8')
+                    ))
+                except KeyboardInterrupt:
+                    exit('Killed by user')
+
+
         SEE ALSO
         ========
         abraxas(1), abraxas(5)
