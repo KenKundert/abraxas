@@ -821,7 +821,7 @@ API_MANPAGE = {
         rather than autotype. This makes it a bit safer because pexpect waits 
         for the expected prompt from ssh-add, and so will not blindly spew out 
         the password if things go wrong::
-        
+
             #!/usr/bin/python3
 
             import pexpect
@@ -856,6 +856,10 @@ API_MANPAGE = {
                         timeout=4
                     )
                     sshadd.sendline(password)
+                    sshadd.expect(pexpect.EOF)
+                    sshadd.close()
+                    if sshadd.exitstatus:
+                        print('addkeys: ssh-add: unexpected exit status:', sshadd.exitstatus)
                 except PasswordError as error:
                     sys.exit(str(error))
                 except (pexpect.EOF, pexpect.TIMEOUT):
@@ -864,7 +868,6 @@ API_MANPAGE = {
                     ))
                 except KeyboardInterrupt:
                     exit('Killed by user')
-
 
         SEE ALSO
         ========
