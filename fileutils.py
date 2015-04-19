@@ -395,8 +395,10 @@ class Execute():
         else:
              self.stderr = None
         self.status = self.process.wait()
-        self.process.stdout.close()
-        self.process.stderr.close()
+        if self.process.stdout:
+            self.process.stdout.close()
+        if self.process.stderr:
+            self.process.stderr.close()
         if self.accept is not True and self.status not in self.accept:
             if self.stderr:
                 raise ExecuteError(self.cmd, self.stderr, showCmd=self.showCmd)
