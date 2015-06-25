@@ -108,7 +108,10 @@ class _MasterPassword:
                         code = compile(decrypted.data, path, 'exec')
                         exec(code, more_data)
                 except IOError as err:
-                    self.logger.error('%s: %s.' % (err.filename, err.strerror))
+                    self.logger.display('%s: %s.  Ignored.' % (
+                        err.filename, err.strerror
+                    ))
+                    continue
             else:
                 self.logger.error(
                     "%s: must have .gpg or .asc extension" % (path))

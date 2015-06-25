@@ -131,7 +131,7 @@ class _Accounts:
 
         def addToAliases(ID, name):
             if name in self.aliases:
-                self.logger.error(
+                self.logger.display(
                     ' '.join([
                         "Alias %s" % (name),
                         "from account %s" % (
@@ -200,24 +200,27 @@ class _Accounts:
             more_accounts = {}
             for each in additional_accounts:
                 path = make_path(get_head(self.path), each)
-                if get_extension(path) in ['gpg', 'asc']:
-                    # Accounts file is GPG encrypted, decrypt it
-                    try:
-                        with open(path, 'rb') as f:
-                            decrypted = self.gpg.decrypt_file(f)
-                            if not decrypted.ok:
-                                logger.error("%s\n%s" % (
-                                    "%s: unable to decrypt." % (path),
-                                    decrypted.stderr))
-                            code = compile(decrypted.data, path, 'exec')
+                try:
+                    if get_extension(path) in ['gpg', 'asc']:
+                        # Accounts file is GPG encrypted, decrypt it
+                            with open(path, 'rb') as f:
+                                decrypted = self.gpg.decrypt_file(f)
+                                if not decrypted.ok:
+                                    logger.error("%s\n%s" % (
+                                        "%s: unable to decrypt." % (path),
+                                        decrypted.stderr))
+                                code = compile(decrypted.data, path, 'exec')
+                                exec(code, more_accounts)
+                    else:
+                        # Accounts file is not encrypted
+                        with open(path) as f:
+                            code = compile(f.read(), path, 'exec')
                             exec(code, more_accounts)
-                    except IOError as err:
-                        logger.error('%s: %s.' % (err.filename, err.strerror))
-                else:
-                    # Accounts file is not encrypted
-                    with open(path) as f:
-                        code = compile(f.read(), path, 'exec')
-                        exec(code, more_accounts)
+                except IOError as err:
+                    logger.display('%s: %s.  Ignored' % (
+                        err.filename, err.strerror
+                    ))
+                    continue
                 existing_accounts = set(accounts_data['accounts'].keys())
                 new_accounts = set(more_accounts['accounts'].keys())
                 keys_in_common = sorted(

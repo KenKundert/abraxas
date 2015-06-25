@@ -89,10 +89,14 @@ class CommandLine:
         parser.add_argument(
             '-b', '--default-browser', action='store_true',
             help="Open account in the default browser (%s)." % DEFAULT_BROWSER)
+        browsers = [
+            '%s (%s)' % (k, BROWSERS[k].split()[0])
+            for k in sorted(BROWSERS)
+        ]
         parser.add_argument(
             '-B', '--browser', type=str, metavar='<browser>',
             help="Open account in the specified browser (choose from %s)." % (
-                ', '.join(BROWSERS)))
+                ', '.join(browsers)))
         parser.add_argument(
             '-n', '--notify', action='store_true',
             help="Output messages to notifier.")
