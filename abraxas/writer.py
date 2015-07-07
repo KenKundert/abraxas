@@ -401,15 +401,18 @@ class AutotypeWriter(Writer):
 
         def autotype(text):
             # Use 'xdotool' to mimic the keyboard.
-            # For reasons I do not understand, sending a newline to xdotool
-            # does not always result in a newline coming out.  Separate out
-            # the newlines and send them using as an explicit 'key' stroke.
-            # A dollar sign in the argument to 'type' is treated as 
-            # a environment variable, so it must also be separated out and sent 
-            # as a explicit key stroke as well. Finally, 'type' must be the 
-            # last action on a xdotool command line, so special characters 
-            # (newline, dollar sign) following text demands another invocation 
-            # of xdotool.
+            # A dollar sign in the argument to 'type' is treated as an 
+            # environment variable, so it must also be separated out and sent 
+            # as a explicit 'key' stroke.
+            # type' must be the last action on a xdotool command line, so 
+            # special characters (dollar sign) following text demands another 
+            # invocation of xdotool.
+            # It is desirable to pump the actions into standard in rather than 
+            # place them on the command line so no part of the password is 
+            # visible using ps, however this mode seems flaky in xdotool. So 
+            # I have compromised and only send the individual 'key' strokes on 
+            # the command line and send the 'type' text through stdin. Still 
+            # seems flaky though, especially with Firefox.
             regex = re.compile(r'([\n$]+)')
 
             def add_action(action, arg):
@@ -428,15 +431,19 @@ class AutotypeWriter(Writer):
                         add_action('type', segment)
                         break
 
-            def run_xdotool(args):
-                if args:
-                    try:
+            def run_xdotool(args, text=None):
+                try:
+                    if args:
+                        Execute(
+                            [XDOTOOL, 'getactivewindow'] + args,
+                        )
+                    if text:
                         Execute(
                             [XDOTOOL, '-'],
-                            stdin="getactivewindow %s" % ' '.join(args)
+                            stdin="getactivewindow type '%s'" % text
                         )
-                    except ExecuteError as err:
-                        self.logger.error(str(err))
+                except ExecuteError as err:
+                    self.logger.error(str(err))
 
             # gather keys until 'type' is found, and then output gathered keys 
             # and type string all at once; this minimizes the number of times 
@@ -444,8 +451,7 @@ class AutotypeWriter(Writer):
             args = []
             for action, arg in actions:
                 if action == 'type':
-                    args += [action, arg]
-                    run_xdotool(args)
+                    run_xdotool(args, arg)
                     args = []
                 else:
                     args += [action, arg]

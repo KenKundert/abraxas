@@ -81,6 +81,7 @@ BROWSERS = {
     'x': 'xdg-open %s > /dev/null', # system default browser
     'f': 'firefox -new-tab %s > /dev/null',
     'd': 'dwb %s',
+    'c': 'google-chrome %s',
     't': 'torbrowser %s > /dev/null',
 }
 DEFAULT_BROWSER = 'x'
