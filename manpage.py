@@ -266,6 +266,14 @@ PROGRAM_MANPAGE = {
         you configure your window manager to run Abraxas because it makes it 
         possible to login to websites and such with a single keystroke.
 
+        Autotype can sometimes be a bit problematic. Some programs can 
+        occasionally stubbornly ignore particular autotyped characters, 
+        particularly $ and newline. This can occur with Firefox, whereas in 
+        those cases it did not occur with Chrome. If this affects you, you 
+        might want to simply remove $ from your character set for your 
+        passwords (newline is not as problematic as it generally occurs last, 
+        and so can be added by hand).
+
         Security
         ++++++++
         The accounts file can be a simple ASCII file that contains somewhat 

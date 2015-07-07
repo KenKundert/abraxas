@@ -402,32 +402,54 @@ class AutotypeWriter(Writer):
         def autotype(text):
             # Use 'xdotool' to mimic the keyboard.
             # For reasons I do not understand, sending a newline to xdotool
-            # does not always result in a newline coming out. So separate out
+            # does not always result in a newline coming out.  Separate out
             # the newlines and send them using as an explicit 'key' stroke.
-            regex = re.compile(r'(\n)')
+            # A dollar sign in the argument to 'type' is treated as 
+            # a environment variable, so it must also be separated out and sent 
+            # as a explicit key stroke as well. Finally, 'type' must be the 
+            # last action on a xdotool command line, so special characters 
+            # (newline, dollar sign) following text demands another invocation 
+            # of xdotool.
+            regex = re.compile(r'([\n$]+)')
+
+            def add_action(action, arg):
+                actions.append((action, arg))
+
+            # split string so that special characters are isolated
+            actions = []
             segments = regex.split(text)
-            try:
-                for segment in segments:
-                    # KSK: probably want to rewrite this. I think it is only 
-                    # necessary to have one call to xdotool, where each segment 
-                    # is passed as a separate line in a script sent to stdin.  
-                    # One curveball that must be accounted for is that xdotool 
-                    # interprets $ as an environment variable, and there 
-                    # appears to be no way to turn that off (sigh), so $ must 
-                    # be escaped (quotes might also be a problem, but I have 
-                    # not explored the depth of that one, might need 
-                    # pipes.quote().
-                    if segment == '\n':
-                        Execute([XDOTOOL, 'key', 'Return'])
-                    elif segment != '':
-                        # send text to xdotool through stdin so it cannot be
-                        # seen with ps
+            for segment in segments:
+                for char in segment:
+                    if char == '\n':
+                        add_action('key', 'Return')
+                    elif char == '$':
+                        add_action('key', 'dollar')
+                    else:
+                        add_action('type', segment)
+                        break
+
+            def run_xdotool(args):
+                if args:
+                    try:
                         Execute(
                             [XDOTOOL, '-'],
-                            stdin="getactivewindow type '%s'" % segment.replace('$', r'\$')
+                            stdin="getactivewindow %s" % ' '.join(args)
                         )
-            except ExecuteError as err:
-                self.logger.error(str(err))
+                    except ExecuteError as err:
+                        self.logger.error(str(err))
+
+            # gather keys until 'type' is found, and then output gathered keys 
+            # and type string all at once; this minimizes the number of times 
+            # xdotool must be called.
+            args = []
+            for action, arg in actions:
+                if action == 'type':
+                    args += [action, arg]
+                    run_xdotool(args)
+                    args = []
+                else:
+                    args += [action, arg]
+            run_xdotool(args)
 
         # Execute the script
         text = []
