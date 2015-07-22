@@ -222,6 +222,8 @@ try:
             try:
                 if urls:
                     url = urls[0]  # choose first url if there is more than one
+                    if '://' not in url:
+                        url = 'https://' + url
                     logger.log("running '%s'" % (cmd % url))
                     Execute(cmd % url)
                     logger.terminate()

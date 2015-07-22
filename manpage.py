@@ -255,7 +255,7 @@ PROGRAM_MANPAGE = {
         fields in the account to determine which account to use.  In particular, 
         Abraxas comes with the ability to recognize the title components created 
         by 'Hostname in Titlebar', an add-on to Firefox that puts the URL and 
-        protocol in the title bar.
+        protocol in the title bar (with Chrome, use 'Url in Title').
 
         If the title matches multiple accounts, a dialog box opens with the list 
         of each of those accounts. Use the up or *k* and down or *j* keys to 
@@ -1478,11 +1478,12 @@ CONFIG_MANPAGE = {
         Generally the window feature works well with web browsers, though some 
         sites neglect to put identifying information in the title bar of their 
         login page.  This can be addressed in Firefox and Thunderbird by 
-        installing the 'Hostname in Titlebar' add on. It adds the URL to the 
-        title bar, making it available to be matched with a window glob string.
-        This add on also adds the protocol to the title as well. That allows you 
-        to key the password in such a way that it will not autotype unless the 
-        connection is encrypted (the protocol is https).
+        installing the 'Hostname in Titlebar' add on. In Chrome, use 'Url in 
+        Title'. They add the URL to the title bar, making it available to be 
+        matched with a window glob string.  This add on also adds the protocol 
+        to the title as well. That allows you to key the password in such a way 
+        that it will not autotype unless the connection is encrypted (the 
+        protocol is https).
 
         In its default configuration, Abraxas recognizes the components 
         in a 'Hostname in Titlebar' title. Those components, which include the 
