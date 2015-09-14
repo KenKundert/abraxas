@@ -29,7 +29,7 @@
 # PyYAML as above.
 
 # Set python to the version of python you wish to use (ex. python2 or python3).
-python=python
+python=/bin/python2
 
 # Run pylint to find egregious errors.
 # This is optional, you can delete this line if you don't have pylint.
@@ -46,7 +46,7 @@ rm -rf build dist abraxas.egg-info install.out
 ./uninstall
 
 # Install abraxas
-python$vers setup.py install --quiet --user >& install.out
+$python setup.py install --quiet --user >& install.out
 if [ $? -ne 0 ] ; then
     echo "Problems found, aborting (see install.out)"
     exit 1
