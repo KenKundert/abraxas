@@ -8,6 +8,7 @@ sudo yum install       \
     python-docutils    \
     pygobject3         \
     python-argparse    \
+    pinentry-gtk       \
     libyaml-devel      \
     PyYAML             \
     xdotool            \
