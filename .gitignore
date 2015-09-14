@@ -14,6 +14,7 @@ abraxas.5.rst
 abraxas.5.pdf
 install.out
 release
+test
 
 # Packages
 *.egg

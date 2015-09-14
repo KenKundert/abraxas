@@ -21,7 +21,8 @@
 # Imports (fold)
 from __future__ import print_function, division
 from fileutils import expandPath as expand_path, getExt as get_extension
-from abraxas.prefs import DEBUG
+from fileutils import Execute, ExecuteError
+from abraxas.prefs import DEBUG, NOTIFIER_NORMAL, NOTIFIER_ERROR
 import sys
 import os
 
@@ -35,8 +36,8 @@ class Logging:
     """
 
     def __init__(
-        self, logfile=None, argv=None, prog_name=None, output_callback=None,
-        exception=None
+        self, logfile=None, argv=None, prog_name=None, use_notifier=False,
+        output_callback=None, exception=None
     ):
         """
         Arguments:
@@ -48,6 +49,8 @@ class Logging:
             System command line arguments (logged).
         prog_name (string)
             Program name, pre-pended to error messages.
+        use_notifier (bool)
+            Send messages to notifier rather than stdout.
         output_callback (function)
             This function will be called with any normal output. It takes a
             single argument, a string, that contains the message. If not
@@ -68,6 +71,7 @@ class Logging:
                 ...
         """
         self.logfile = logfile
+        self.use_notifier = use_notifier
         self.output_callback = output_callback
         self.exception = exception
         self.cache = []
@@ -81,6 +85,7 @@ class Logging:
             except:
                 now = ""
             self.log("Invoked as '%s'%s." % (' '.join(argv), now))
+        self.log("Set DEBUG=True in abraxas/prefs.py to enable a detailed log.")
         self.debug("Debug logging is on (should be off in normal operation).")
         self.prog_name = prog_name
         if argv and not prog_name:
@@ -109,6 +114,11 @@ class Logging:
         self.log(msg)
         if self.output_callback:
             self.output_callback(msg)
+        elif self.use_notifier and NOTIFIER_NORMAL:
+            try:
+                Execute(NOTIFIER_NORMAL + [msg])
+            except ExecuteError as err:
+                self.error('Failed to run notifier: %s' % str(err))
         else:
             print(msg)
 
@@ -132,10 +142,13 @@ class Logging:
         if self.exception:
             raise self.exception(msg)
         else:
-            if self.prog_name:
-                sys.exit("%s: %s" % (self.prog_name, msg))
-            else:
-                sys.exit(msg)
+            msg = [self.prog_name, msg] if self.prog_name else [msg]
+            if self.use_notifier and NOTIFIER_ERROR:
+                try:
+                    Execute(NOTIFIER_ERROR + msg)
+                except ExecuteError as err:
+                    sys.exit('Failed to run notifier: %s' % str(err))
+            sys.exit(': '.join(msg))
 
     def terminate(self):
         """Normal termination.

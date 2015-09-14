@@ -87,6 +87,8 @@ PROGRAM_MANPAGE = {
         -B <browser>, --browser <browser>
                                 Open account in the specified browser.
 
+        -n, --notify            Output messages to notifier.
+
         -l, --list              List available master passwords and templates 
                                 (only pure templates are listed, not accounts, 
                                 even though accounts can be used as templates)
@@ -244,8 +246,8 @@ PROGRAM_MANPAGE = {
         Account Discovery
         +++++++++++++++++
         If no account is specified, Abraxas examines the window title and from 
-        it try to determine which account to use. In its most simple form window 
-        titles can be specified in the accounts, and the account with the 
+        it tries to determine which account to use. In its most simple form 
+        window titles can be specified in the accounts, and the account with the 
         matching title is used. Multiple title strings can be associated with 
         each account, and those strings support globbing. In addition, Abraxas 
         can sometimes recognize components of the window title, components such 
@@ -253,7 +255,7 @@ PROGRAM_MANPAGE = {
         fields in the account to determine which account to use.  In particular, 
         Abraxas comes with the ability to recognize the title components created 
         by 'Hostname in Titlebar', an add-on to Firefox that puts the URL and 
-        protocol in the title bar.
+        protocol in the title bar (with Chrome, use 'Url in Title').
 
         If the title matches multiple accounts, a dialog box opens with the list 
         of each of those accounts. Use the up or *k* and down or *j* keys to 
@@ -263,6 +265,14 @@ PROGRAM_MANPAGE = {
         The combination of autotype and account discovery is very powerful if 
         you configure your window manager to run Abraxas because it makes it 
         possible to login to websites and such with a single keystroke.
+
+        Autotype can sometimes be a bit problematic. Some programs can 
+        occasionally stubbornly ignore particular autotyped characters, 
+        particularly $ and newline. This can occur with Firefox, whereas in 
+        those cases it did not occur with Chrome. If this affects you, you 
+        might want to simply remove $ from your character set for your 
+        passwords (newline is not as problematic as it generally occurs last, 
+        and so can be added by hand).
 
         Security
         ++++++++
@@ -440,7 +450,7 @@ PROGRAM_MANPAGE = {
 
             $ abraxas -I derrickAsh@gmail.com
 
-        The creates two files if they do not already exist, 
+        This creates two files if they do not already exist, 
         ~/.config/abraxas/master.gpg and ~/.config/abraxas/accounts. Of the two, 
         the master.gpg file is encrypted. If you would like the accounts file to 
         be encrypted as well, encrypt it now using::
@@ -618,10 +628,11 @@ API_MANPAGE = {
 
         Here is the *archive* script::
 
-            #!/bin/env python
+            #!/bin/env python3
 
             from __future__ import print_function, division
             from abraxas import PasswordGenerator, PasswordError, Logging
+            from textwrap import indent
             import gnupg
             import sys
 
@@ -704,7 +715,7 @@ API_MANPAGE = {
 
             except KeyboardInterrupt:
                 sys.exit('Killed by user')
-            except PasswordError, err:
+            except PasswordError as err:
                 sys.exit(str(err))
 
         The program starts by creating a logger. Normally this is not necessary.  
@@ -721,9 +732,9 @@ API_MANPAGE = {
 
         Here is a program that mounts a series of directories. It differs from 
         the above script in that is uses autotype, which it accesses through 
-        *PasswordWriter*. Specifically, the program never requests a password 
+        *AutotypeWriter*. Specifically, the program never requests a password 
         directly from Abraxas. Instead, the PasswordGenerator object is passed 
-        in when creating a PasswordWriter object. It then queries the generator 
+        in when creating a AutotypeWriter object. It then queries the generator 
         directly for the password and then gets it directly to the user.
 
         Mountall uses *sudo*, which requires a password the first time it is 
@@ -735,11 +746,11 @@ API_MANPAGE = {
             #!/bin/env python
 
             from __future__ import print_function, division
-            from fileutils import expandPath, makePath, execute, pipe, ExecuteError
+            from fileutils import expandPath, makePath, ShellExecute as Execute, ExecuteError
             from sys import exit
             from os import fork
             from time import sleep
-            from abraxas import PasswordGenerator, PasswordWriter, PasswordError
+            from abraxas import PasswordGenerator, AutotypeWriter, PasswordError
 
             shares = {{
                 'music': 'audio',
@@ -755,7 +766,7 @@ API_MANPAGE = {
             def run_cmd_with_password(cmd, pw_writer):
                 try:
                     if (fork()):
-                        execute(cmd)
+                        Execute(cmd)
                     else:
                         sleep(1)
                         pw_writer.write_autotype()
@@ -768,12 +779,12 @@ API_MANPAGE = {
                 # Open the password generator
                 pw = PasswordGenerator()
                 pw.read_accounts()
-                writer = PasswordWriter('t', pw)
+                writer = AutotypeWriter(pw)
 
                 # Clear out any saved sudo credentials. This is needed so that 
                 # we can be sure the next run of sudo requests a password.  
                 # Without this, the password that is autotyped may be exposed.
-                execute('sudo -K')
+                Execute('sudo -K')
 
                 # Get the login password
                 pw.get_account('login')
@@ -790,8 +801,8 @@ API_MANPAGE = {
                     if dest == True:
                         dest = src
                     absdest = expandPath(makePath('~', dest))
-                    status, stdout = pipe('mountpoint -q %s' % absdest, accept=(0,1))
-                    if status:
+                    mountpoint = pipe('mountpoint -q %s' % absdest, accept=(0,1))
+                    if mountpoint.status:
                         print("Mounting %s to %s" % (src, absdest))
                         run_cmd_with_password('sudo mount %s' % (absdest), writer)
                     else:
@@ -804,12 +815,67 @@ API_MANPAGE = {
                 sys.exit(str(err))
 
         The program starts by instantiating both the *PasswordGenerator* and the 
-        *PasswordWriter* class. The *PasswordGenerator* class is responsible for 
-        generating the password and *PasswordWriter* gets it to the user. In 
-        this case the autotype facility of *PasswordWriter* is used to mimic the 
-        keyboard.  When instantiating the *PasswordWriter* you must specify the 
-        intended output. Use ``output='t'`` for autotype, ``output='c'`` for 
-        clipboard, and ``output='s'`` for standard output.
+        *AutotypeWriter* class. The *PasswordGenerator* class is responsible for 
+        generating the password and *AutotypeWriter* gets it to the user. In 
+        this case the autotype facility is used to mimic the keyboard. There are 
+        other writers available for writing to a TTY, to stdout, and to the 
+        system clipboard.
+
+        addkeys
+        +++++++
+
+        This script is used to pre-load a series of SSH keys into the SSH 
+        agent. It is stimilar to the above script, except it uses pexpect 
+        rather than autotype. This makes it a bit safer because pexpect waits 
+        for the expected prompt from ssh-add, and so will not blindly spew out 
+        the password if things go wrong::
+
+            #!/usr/bin/python3
+
+            import pexpect
+            from abraxas import PasswordGenerator, PasswordError
+            import sys
+
+            keys = [
+                # description       keyfile         abraxas account name
+                ('primary rsa',     'id-rsa',       'ssh'              ),
+                ('primary ed25519', 'id-ed25519',   'ssh'              ),
+                ('digitalocean',    'digitalocean', 'do-ssh'           ),
+                ('tunnelr',         'tunnelr',      'tunnelr-ssh'      ),
+                ('dumper',          'dumper',       'dumper'           ),
+                ('github',          'github',       'github-ssh'       ),
+            ]
+            ssh_dir = '/home/toby/.ssh'
+
+            try:
+                pw = PasswordGenerator()
+                pw.read_accounts()
+            except PasswordError as error:
+                sys.exit(str(error))
+
+            for desc, name, acct in keys:
+                print('Adding %s ssh key' % desc)
+                try:
+                    acct = pw.get_account(acct)
+                    password = pw.generate_password()
+                    sshadd = pexpect.spawn('ssh-add %s/%s' % (ssh_dir, name))
+                    sshadd.expect(
+                        'Enter passphrase for %s/%s: ' % (ssh_dir, name),
+                        timeout=4
+                    )
+                    sshadd.sendline(password)
+                    sshadd.expect(pexpect.EOF)
+                    sshadd.close()
+                    if sshadd.exitstatus:
+                        print('addkeys: ssh-add: unexpected exit status:', sshadd.exitstatus)
+                except PasswordError as error:
+                    sys.exit(str(error))
+                except (pexpect.EOF, pexpect.TIMEOUT):
+                    sys.exit('addkeys: unexpected prompt from ssh-add: %s' % (
+                        sshadd.before.decode('utf8')
+                    ))
+                except KeyboardInterrupt:
+                    exit('Killed by user')
 
         SEE ALSO
         ========
@@ -1267,13 +1333,13 @@ CONFIG_MANPAGE = {
 
         prefix
         ~~~~~~
-        A string whose contents are added to the beginning of a password when 
-        'type' is 'chars'.
+        A string whose contents are added to the beginning of a password or 
+        passphrase.
 
         suffix
         ~~~~~~
-        A string whose contents are added to the end of a password when 'type' 
-        is 'chars'.
+        A string whose contents are added to the end of a password or 
+        passphrase.
 
         aliases
         ~~~~~~~
@@ -1412,11 +1478,12 @@ CONFIG_MANPAGE = {
         Generally the window feature works well with web browsers, though some 
         sites neglect to put identifying information in the title bar of their 
         login page.  This can be addressed in Firefox and Thunderbird by 
-        installing the 'Hostname in Titlebar' add on. It adds the URL to the 
-        title bar, making it available to be matched with a window glob string.
-        This add on also adds the protocol to the title as well. That allows you 
-        to key the password in such a way that it will not autotype unless the 
-        connection is encrypted (the protocol is https).
+        installing the 'Hostname in Titlebar' add on. In Chrome, use 'Url in 
+        Title'. They add the URL to the title bar, making it available to be 
+        matched with a window glob string.  This add on also adds the protocol 
+        to the title as well. That allows you to key the password in such a way 
+        that it will not autotype unless the connection is encrypted (the 
+        protocol is https).
 
         In its default configuration, Abraxas recognizes the components 
         in a 'Hostname in Titlebar' title. Those components, which include the 

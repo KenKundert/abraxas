@@ -77,7 +77,7 @@ class Dictionary:
                     DEFAULT_SETTINGS_DIR, MASTER_PASSWORD_FILENAME, self.hash)
             ]))))
 
-    # get_words {{{2
+    # get_words
     def get_words(self):
         """Get the Words"""
         return self.words

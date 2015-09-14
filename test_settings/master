@@ -1,5 +1,5 @@
 dict_hash = "d9aa1c08e08d6cacdf82819eeb5832429eadb95a"      # DO NOT CHANGE THIS LINE
-secrets_hash = "bb7811863130f42cee268e85430f28ac888148c5"   # DO NOT CHANGE THIS LINE
+secrets_hash = "5d1c97a0fb699241fca5d50a7ad0508047990510"   # DO NOT CHANGE THIS LINE
 charsets_hash = "dab48b2103ebde97f78cfebd15cc1e66d6af6ed0"  # DO NOT CHANGE THIS LINE
 
 passwords = {

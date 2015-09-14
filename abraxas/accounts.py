@@ -28,7 +28,7 @@ from abraxas.prefs import (
 )
 from fileutils import (
     exists, getExt as get_extension, makePath as make_path,
-    getHead as get_head, execute, pipe, ExecuteError
+    getHead as get_head, Execute, ExecuteError
 )
 import re
 import sys
@@ -131,7 +131,7 @@ class _Accounts:
 
         def addToAliases(ID, name):
             if name in self.aliases:
-                self.logger.error(
+                self.logger.display(
                     ' '.join([
                         "Alias %s" % (name),
                         "from account %s" % (
@@ -150,7 +150,7 @@ class _Accounts:
                 addToAliases(ID, alias)
 
     def all_accounts(self, skip_templates=True):
-        # Get a dictionary of all the fields for each account {{{2
+        # Get a dictionary of all the fields for each account
         for ID in self.accounts:
             if skip_templates and ID[0] == '=':
                 pass
@@ -158,7 +158,7 @@ class _Accounts:
                 yield ID
 
     def get_fields(self, field):
-        # Get a particular field from each account {{{2
+        # Get a particular field from each account
         for ID, data in self.accounts.items():
             if field in data and data[field]:
                 yield (ID, data[field])
@@ -200,24 +200,27 @@ class _Accounts:
             more_accounts = {}
             for each in additional_accounts:
                 path = make_path(get_head(self.path), each)
-                if get_extension(path) in ['gpg', 'asc']:
-                    # Accounts file is GPG encrypted, decrypt it
-                    try:
-                        with open(path, 'rb') as f:
-                            decrypted = self.gpg.decrypt_file(f)
-                            if not decrypted.ok:
-                                logger.error("%s\n%s" % (
-                                    "%s: unable to decrypt." % (path),
-                                    decrypted.stderr))
-                            code = compile(decrypted.data, path, 'exec')
+                try:
+                    if get_extension(path) in ['gpg', 'asc']:
+                        # Accounts file is GPG encrypted, decrypt it
+                            with open(path, 'rb') as f:
+                                decrypted = self.gpg.decrypt_file(f)
+                                if not decrypted.ok:
+                                    logger.error("%s\n%s" % (
+                                        "%s: unable to decrypt." % (path),
+                                        decrypted.stderr))
+                                code = compile(decrypted.data, path, 'exec')
+                                exec(code, more_accounts)
+                    else:
+                        # Accounts file is not encrypted
+                        with open(path) as f:
+                            code = compile(f.read(), path, 'exec')
                             exec(code, more_accounts)
-                    except IOError as err:
-                        logger.error('%s: %s.' % (err.filename, err.strerror))
-                else:
-                    # Accounts file is not encrypted
-                    with open(path) as f:
-                        code = compile(f.read(), path, 'exec')
-                        exec(code, more_accounts)
+                except IOError as err:
+                    logger.display('%s: %s.  Ignored' % (
+                        err.filename, err.strerror
+                    ))
+                    continue
                 existing_accounts = set(accounts_data['accounts'].keys())
                 new_accounts = set(more_accounts['accounts'].keys())
                 keys_in_common = sorted(
@@ -352,11 +355,10 @@ class _Accounts:
             # Try to determine it from title of active window.
             # First get the title from the active window.
             try:
-                status, title = pipe(
-                    '%s getactivewindow getwindowname' % XDOTOOL)
+                xdotool = Execute([XDOTOOL, 'getactivewindow', 'getwindowname'])
             except ExecuteError as err:
                 logger.error(str(err))
-            title = title.strip()
+            title = xdotool.stdout.strip()
             logger.log('Account Discovery ...')
             logger.log('Focused window title: %s' % title)
 
@@ -398,7 +400,9 @@ class _Accounts:
                             # The above has a special sort that assures 
                             # protocol is processed last.
                             value = fields[key]
-                            if key == 'title':
+                            if not value:
+                                continue
+                            elif key == 'title':
                                 for each in windows:
                                     if fnmatch.fnmatch(value, each):
                                         match_found = True
@@ -515,7 +519,11 @@ class _Accounts:
                 if account:
                     logger.log("User selected '%s' account." % account)
                     return account
-            logger.error("Cannot determine desired account ID.")
+            logger.error("Cannot determine desired account ID.%s" % (
+                ("\nExamine '%s' for the details." % logger.logfile)
+                if logger.logfile
+                else ""
+            ))
 
         # Validate account_id
         if not account_id and not self.stateless:
@@ -582,7 +590,7 @@ class _Accounts:
                     self._inAliases(pattern, self.accounts[ID])):
                 yield ID, self.accounts[ID].get('aliases', [])
 
-    # Search accounts {{{2
+    # Search accounts
     def search_accounts(self, target):
         """Iterate through accounts that match target.
 

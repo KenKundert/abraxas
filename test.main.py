@@ -2,7 +2,7 @@
 
 # Test the Password Generator
 
-# Imports {{{1
+# Imports (fold)
 from __future__ import print_function, division
 from runtests import cmdLineOpts, writeSummary
 from textcolors import Colors
@@ -13,7 +13,7 @@ from textwrap import dedent
 import sys
 import os
 
-# Initialization {{{1
+# Initialization (fold)
 fast, printSummary, printTests, printResults, colorize, parent = cmdLineOpts()
 testsRun = 0
 failures = 0
@@ -28,7 +28,6 @@ status = colors.colorizer('cyan')
 warning = colors.colorizer('yellow')
 
 
-# Case class {{{1
 class Case():
     CONTEXT = {}
     OUTPUT = []
@@ -100,6 +99,7 @@ class Case():
 class Exit(Case):
     def __init__(self):
         pass
+
     def run(self):
         sys.exit('TERMINATING TESTS UPON DEVELOPER REQUEST')
 
@@ -171,13 +171,7 @@ testCases = [
     Case(
         name='stabbing',
         stimulus="pw = PasswordGenerator('./generated_settings', logger=logger, gpg_home='test_key')",
-        error=dedent("""\
-            generated_settings/master.gpg: unable to decrypt.
-            gpg: no valid OpenPGP data found.
-            [GNUPG:] NODATA 1
-            [GNUPG:] NODATA 2
-            gpg: decrypt_message failed: Unknown system error
-        """)
+        error=dedent("generated_settings/master.gpg: unable to decrypt.")
     ),
     Case(
         name='secretary',

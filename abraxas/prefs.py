@@ -47,7 +47,7 @@ LABEL_STYLE = 'normal'
     # choose from normal, bright, reverse, dim, underline, blink, reverse,
     # invisible (these need to be implemented by underlying terminal, and some
     # are not (such a blink and dim)
-INITIAL_AUTOTYPE_DELAY = 0.5
+INITIAL_AUTOTYPE_DELAY = 0.0
 DEBUG = False
     # Turns on the logging of extra information, but may expose sensitive
     # account information in the log file.
@@ -62,12 +62,14 @@ PREFER_HTTPS = True
 XDOTOOL = '/usr/bin/xdotool'
 XSEL = '/usr/bin/xsel'
 GPG_BINARY = 'gpg2'
+NOTIFIER_NORMAL = ['notify-send', '--urgency=low']
+NOTIFIER_ERROR = ['notify-send', '--urgency=normal']
 
 # Signatures (folds)
 # These signatures must be the sha1 signatures for the corresponding files
 # Regenerate them with 'sha1sum <filename>'
 # These are used in creating the initial master password file.
-SECRETS_SHA1 = "bb7811863130f42cee268e85430f28ac888148c5"
+SECRETS_SHA1 = "5d1c97a0fb699241fca5d50a7ad0508047990510"
 CHARSETS_SHA1 = "dab48b2103ebde97f78cfebd15cc1e66d6af6ed0"
 DICTIONARY_SHA1 = "d9aa1c08e08d6cacdf82819eeb5832429eadb95a"
 
@@ -76,10 +78,13 @@ DICTIONARY_SHA1 = "d9aa1c08e08d6cacdf82819eeb5832429eadb95a"
 # Associate a command with a browser key.
 # The command must contain a single %s, which is replaced with URL.
 BROWSERS = {
+    'x': 'xdg-open %s > /dev/null', # system default browser
     'f': 'firefox -new-tab %s > /dev/null',
-    'v': 'vimprobable2 %s',
+    'd': 'dwb %s',
+    'c': 'google-chrome %s',
+    't': 'torbrowser %s > /dev/null',
 }
-DEFAULT_BROWSER = 'f'
+DEFAULT_BROWSER = 'x'
 
 
 # Account Recognition (folds)
@@ -101,7 +106,14 @@ REGEX_COMPONENTS = {
     'email': labelRegex('email', EMAIL_REGEX)}
 # Hostname in Titlebar browser title regex
 HNITB_BROWSER_TITLE_PATTERN = re.compile(
-    r'{title} - {host} \({protocol}\)(?: - {browser})?'.format(
+    r'(?:{title} - )?{host} \({protocol}\)(?: - {browser})?'.format(
+        **REGEX_COMPONENTS
+    )
+)
+# This is for version 3 and beyond; requires that preferences in HNINTB be set 
+# to 'show the short URL' with a separator of '-'.
+HNITBv3_BROWSER_TITLE_PATTERN = re.compile(
+    r'(?:{title} - ){protocol}?://{host}(?: - {browser})?'.format(
         **REGEX_COMPONENTS
     )
 )
@@ -112,7 +124,8 @@ SIMPLE_BROWSER_TITLE_PATTERN = re.compile(
 URL_PATTERN = re.compile(
     r'(?:{protocol}://)?{host}(?:/.*)?'.format(**REGEX_COMPONENTS))
 TITLE_PATTERNS = [
-    ('hostname-in-titlebar-browser', HNITB_BROWSER_TITLE_PATTERN),
+    ('hostname-in-titlebar-browser-v3', HNITBv3_BROWSER_TITLE_PATTERN),
+    #('hostname-in-titlebar-browser', HNITB_BROWSER_TITLE_PATTERN),
     # You can comment out the entry above if you are not using 'Hostname in
     # Titlebar' extension to Firefox and Thunderbird
     ('simple browser title', SIMPLE_BROWSER_TITLE_PATTERN)]
