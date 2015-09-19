@@ -28,8 +28,9 @@
 # Then you can use easy_install to install python-gnupg, argparse, docutils, and 
 # PyYAML as above.
 
-# Set python to the version of python you wish to use (ex. python2 or python3).
-python=/bin/python2
+# Set python variable to python executable you wish to use.
+# May be python2 or python3.
+python=python
 
 # Run pylint to find egregious errors.
 # This is optional, you can delete this line if you don't have pylint.

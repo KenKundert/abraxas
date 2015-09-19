@@ -105,6 +105,8 @@ REGEX_COMPONENTS = {
     'username': labelRegex('username', r'\w+'),
     'email': labelRegex('email', EMAIL_REGEX)}
 # Hostname in Titlebar browser title regex
+# Hostname in Titlebar is now named Keepass Helper
+# https://addons.mozilla.org/en-US/firefox/addon/keepass-helper/?src=search
 HNITB_BROWSER_TITLE_PATTERN = re.compile(
     r'(?:{title} - )?{host} \({protocol}\)(?: - {browser})?'.format(
         **REGEX_COMPONENTS
