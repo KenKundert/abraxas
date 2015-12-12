@@ -61,6 +61,9 @@ On Centos you will also need::
 
 On Redhat-based systems you can get these dependencies by running ./yum.sh.
 
+If you would like to run the tests, you will also need the messenger package 
+from my github account (https://github.com/KenKundert/messenger.git).
+
 Installing Prerequisites in Arch Linux with Pacman
 --------------------------------------------------
 Abraxas requires the following Arch Linux packages to fully function (run these 

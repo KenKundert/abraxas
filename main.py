@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Abraxas Password Generator
-# Copyright (C) 2013-14 Kenneth S. Kundert and Kale Kundert
+# Copyright (C) 2013-16 Kenneth S. Kundert and Kale Kundert
 #
 # Generates passwords and pass phrases based on stored account information.
 

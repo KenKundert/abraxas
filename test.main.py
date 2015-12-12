@@ -4,8 +4,9 @@
 
 # Imports (fold)
 from __future__ import print_function, division
-from runtests import cmdLineOpts, writeSummary
-from textcolors import Colors
+from runtests import (
+    cmdLineOpts, writeSummary, succeed, fail, info, status, warning
+)
 from abraxas import PasswordGenerator, PasswordError, Logging
 from abraxas.prefs import GPG_BINARY
 from fileutils import remove
@@ -19,14 +20,6 @@ testsRun = 0
 failures = 0
 remove('./generated_settings')
 os.chmod("test_key", 0o700)
-
-colors = Colors(colorize)
-succeed = colors.colorizer('green')
-fail = colors.colorizer('red')
-info = colors.colorizer('magenta')
-status = colors.colorizer('cyan')
-warning = colors.colorizer('yellow')
-
 
 class Case():
     CONTEXT = {}
