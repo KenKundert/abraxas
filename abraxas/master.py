@@ -93,8 +93,8 @@ class _MasterPassword:
             'additional_master_password_files', [])
         if type(additional_password_files) == str:
             additional_password_files = [additional_password_files]
-        more_data = {}
         for each in additional_password_files:
+            more_data = {}
             path = make_path(get_head(self.path), each)
             if get_extension(path) in ['gpg', 'asc']:
                 # File is GPG encrypted, decrypt it
@@ -105,6 +105,7 @@ class _MasterPassword:
                             self.logger.error("%s" %
                                 "%s: unable to decrypt." % (path),
                             )
+                            continue
                         code = compile(decrypted.data, path, 'exec')
                         exec(code, more_data)
                 except IOError as err:
@@ -117,27 +118,28 @@ class _MasterPassword:
                     "%s: must have .gpg or .asc extension" % (path))
 
             # Check for duplicate master passwords
-            existing_passwords = set(data.get('passwords', {}).keys())
-            new_passwords = set(more_data.get('passwords', {}).keys())
-            keys_in_common = sorted(
-                existing_passwords.intersection(new_passwords))
-            if keys_in_common:
+            existing_names = set(data.get('passwords', {}).keys())
+            new_passwords = more_data.get('passwords', {})
+            new_names = set(new_passwords.keys())
+            names_in_common = sorted(
+                existing_names.intersection(new_names))
+            if names_in_common:
                 self.logger.display(
                     "%s: overrides existing password:\n    %s" % (
-                        path, ',\n    '.join(sorted(keys_in_common))))
-            data['passwords'].update(more_data.get('passwords', {}))
+                        path, ',\n    '.join(sorted(names_in_common))))
+            data['passwords'].update(new_passwords)
 
             # Check for duplicate passwords overrides
-            existing_overrides = set(data['password_overrides'].keys())
-            new_overrides = set(more_data['password_overrides'].keys())
-            keys_in_common = sorted(
-                existing_overrides.intersection(new_overrides))
-            if keys_in_common:
+            existing_names = set(data['password_overrides'].keys())
+            new_overrides = more_data.get('password_overrides', {})
+            new_names = set(new_overrides.keys())
+            names_in_common = sorted(
+                existing_names.intersection(new_names))
+            if names_in_common:
                 self.logger.display(
                     "%s: overrides existing password overrides:\n    %s" % (
-                        path, ',\n    '.join(sorted(keys_in_common))))
-            data['password_overrides'].update(
-                more_data.get('password_overrides', {}))
+                        path, ',\n    '.join(sorted(names_in_common))))
+            data['password_overrides'].update(new_overrides)
 
         return data
 

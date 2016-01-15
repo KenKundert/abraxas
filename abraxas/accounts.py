@@ -194,11 +194,18 @@ class _Accounts:
                 with open(self.path) as f:
                     code = compile(f.read(), self.path, 'exec')
                     exec(code, accounts_data)
+            if 'accounts' not in accounts_data:
+                logger.error(
+                    "%s: defective accounts file, 'accounts' not found." %
+                        self.path
+                )
+
+            # Load additional accounts files
             additional_accounts = accounts_data.get('additional_accounts', [])
             if type(additional_accounts) == str:
                 additional_accounts = [additional_accounts]
-            more_accounts = {}
             for each in additional_accounts:
+                more_accounts = {}
                 path = make_path(get_head(self.path), each)
                 try:
                     if get_extension(path) in ['gpg', 'asc']:
@@ -209,6 +216,7 @@ class _Accounts:
                                     logger.error("%s\n%s" % (
                                         "%s: unable to decrypt." % (path),
                                         decrypted.stderr))
+                                    continue
                                 code = compile(decrypted.data, path, 'exec')
                                 exec(code, more_accounts)
                     else:
@@ -221,31 +229,26 @@ class _Accounts:
                         err.filename, err.strerror
                     ))
                     continue
-                existing_accounts = set(accounts_data['accounts'].keys())
-                new_accounts = set(more_accounts['accounts'].keys())
-                keys_in_common = sorted(
-                    existing_accounts.intersection(new_accounts))
-                if len(keys_in_common) > 2:
+                existing_names = set(accounts_data['accounts'].keys())
+                new_accounts = more_accounts.get('accounts', {})
+                new_names = set(new_accounts.keys())
+                names_in_common = sorted(
+                    existing_names.intersection(new_names))
+                if len(names_in_common) > 2:
                     logger.display(
                         "%s: overrides existing accounts:\n    %s" % (
-                            path, ',\n    '.join(sorted(keys_in_common))))
-                elif keys_in_common:
+                            path, ',\n    '.join(sorted(names_in_common))))
+                elif names_in_common:
                     logger.display("%s: overrides existing account: %s" % (
-                        path, keys_in_common[0]))
-                accounts_data['accounts'].update(more_accounts['accounts'])
+                        path, names_in_common[0]))
+                accounts_data['accounts'].update(new_accounts)
         except IOError as err:
             logger.error('%s: %s.' % (err.filename, err.strerror))
         except SyntaxError as err:
             traceback.print_exc(0)
             sys.exit()
         self.data = accounts_data
-        try:
-            return accounts_data['accounts']
-        except KeyError:
-            logger.error(
-                "%s: defective accounts file, 'accounts' not found." %
-                    self.path
-            )
+        return accounts_data['accounts']
 
     def get_log_file(self):
         return self.data.get(
