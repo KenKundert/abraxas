@@ -231,6 +231,7 @@ class TTY_Writer(Writer):
                 text = highlight(label, secret)
                 try:
                     cursor.write(text)
+                    cursor.move_back(len(text))
                     sleep(self.wait)
                     cursor.clear()
                 except KeyboardInterrupt:
