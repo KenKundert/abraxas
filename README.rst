@@ -61,8 +61,8 @@ On Centos you will also need::
 
 On Redhat-based systems you can get these dependencies by running ./yum.sh.
 
-If you would like to run the tests, you will also need the messenger package 
-from my github account (https://github.com/KenKundert/messenger.git).
+If you would like to run the tests, you will also need the inform package from 
+my github account (https://github.com/KenKundert/inform.git).
 
 Installing Prerequisites in Arch Linux with Pacman
 --------------------------------------------------
