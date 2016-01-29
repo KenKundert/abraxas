@@ -21,7 +21,7 @@ def main():
         author_email='abraxas@nurdletech.com',
         version=VERSION,
         url='http://nurdletech.com/linux-utilities/abraxas',
-        download_url='https://github.com/kenkundert/abraxas/tarball/master')',
+        download_url='https://github.com/kenkundert/abraxas/tarball/master',
         scripts=['main.py'],
         packages=['abraxas'],
         py_modules=['fileutils'],
