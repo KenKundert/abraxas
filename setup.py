@@ -25,6 +25,13 @@ def main():
         scripts=['main.py'],
         packages=['abraxas'],
         py_modules=['fileutils'],
+        zip_safe = False,
+        install_requires=[
+            'python-gnupg',
+                # Be careful.  There's a package called 'gnupg' that's an 
+                # incompatible fork of 'python-gnupg'.  If both are installed, 
+                # the user will probably have compatibility issues.
+        ],
         data_files=[
             ('', ['words']),
             ('man/man1', ['abraxas.1']),
