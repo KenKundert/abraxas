@@ -12,6 +12,7 @@ from abraxas import (
 from abraxas.prefs import (
     SEARCH_FIELDS, DEFAULT_SETTINGS_DIR, DEFAULT_ARCHIVE_FILENAME,
     BROWSERS, DEFAULT_BROWSER)
+from abraxas.version import VERSION, DATE
 from fileutils import (
     getTail as get_tail,
     makePath as make_path,
@@ -129,6 +130,9 @@ class CommandLine:
                 DEFAULT_SETTINGS_DIR,
                 "(but only if they do not already exist)."])))
         parser.add_argument(
+            '-v', '--version', action='store_true',
+            help="Show Abraxas version number and exit.")
+        parser.add_argument(
             '-h', '--help',  action='store_true',
             help="Show this help message and exit.")
 
@@ -137,6 +141,9 @@ class CommandLine:
         # If requested, print help message and exit
         if args.help:
             parser.print_help()
+            sys.exit()
+        if args.version:
+            print('Abraxas version %s (%s).' % (VERSION, DATE))
             sys.exit()
 
         # Save all the command line arguments as attributes of self
