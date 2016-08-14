@@ -167,7 +167,8 @@ class Logging:
 
         if get_extension(filename) in ['gpg', 'asc']:
             encrypted = self.gpg.encrypt(
-                contents, self.gpg_id, always_trust=True, armor=True
+                contents.encode('utf8', 'ignore'),
+                self.gpg_id, always_trust=True, armor=True
             )
             if not encrypted.ok:
                 sys.stderr.write(

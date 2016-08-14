@@ -35,7 +35,6 @@ import sys
 import fnmatch
 import traceback
 
-
 class _Accounts:
     """
     Abraxas Accounts
@@ -199,6 +198,8 @@ class _Accounts:
                     "%s: defective accounts file, 'accounts' not found." %
                         self.path
                 )
+            for account in accounts_data['accounts'].values():
+                account['_source_file_'] = self.path
 
             # Load additional accounts files
             additional_accounts = accounts_data.get('additional_accounts', [])
@@ -241,6 +242,8 @@ class _Accounts:
                 elif names_in_common:
                     logger.display("%s: overrides existing account: %s" % (
                         path, names_in_common[0]))
+                for account in new_accounts.values():
+                    account['_source_file_'] = path
                 accounts_data['accounts'].update(new_accounts)
         except IOError as err:
             logger.error('%s: %s.' % (err.filename, err.strerror))
@@ -378,11 +381,11 @@ class _Accounts:
             #   - protocol if given
             matches = set([])
             for pattern_name, pattern in TITLE_PATTERNS:
-                logger.debug('Using title pattern: %s' % pattern_name)
+                logger.log('Using title pattern: %s' % pattern_name)
                 match = pattern.match(title)
                 if match:
                     fields = match.groupdict()
-                    logger.debug(
+                    logger.log(
                         'Title components:\n    %s' % '\n    '.join([
                             '%s: %s' % (key, val)
                             for key, val in fields.items()

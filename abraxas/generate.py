@@ -27,7 +27,9 @@ from fileutils import (
     getExt as get_extension,
     isFile as is_file,
     expandPath as expand_path,
+    relPath as rel_path,
     mkdir, exists,
+    Execute, ExecuteError,
 )
 from abraxas.logger import Logging
 from abraxas.dictionary import Dictionary
@@ -45,6 +47,7 @@ from abraxas.prefs import (
     SECRETS_SHA1, CHARSETS_SHA1,
     DEFAULT_LOG_FILENAME, DEFAULT_ARCHIVE_FILENAME
 )
+from textwrap import dedent
 import argparse
 import gnupg
 import hashlib
@@ -434,6 +437,168 @@ class PasswordGenerator:
             os.chmod(filename, 0o600)
         except IOError as err:
             self.logger.error('%s: %s.' % (err.filename, err.strerror))
+
+    def avendesora_archive(self):
+        """
+        Avendesora Archive
+
+        Save all account information to Avendesora files.
+        """
+        from binascii import b2a_base64, Error as BinasciiError
+        self.logger.log("Archive secrets.")
+        source_files = set()
+        dest_files = {}
+        gpg_ids = {}
+        avendesora_dir = make_path(self.settings_dir, 'avendesora')
+        mkdir(avendesora_dir)
+        header = dedent('''\
+            # Translated Abraxas Accounts file (%s)
+
+            from avendesora import Account, Hidden, Question, RecognizeURL, RecognizeTitle
+
+        ''')
+        def make_camel_case(text):
+            text = text.translate(str.maketrans('@.-', '   '))
+            text = ''.join([e.title() for e in text.split()])
+            if text[0] in '0123456789':
+                text = '_' + text
+            return text
+
+        def make_identifier(text):
+            text = text.translate(str.maketrans('@.- ', '____'))
+            if text[0] in '0123456789':
+                text = '_' + text
+            return text
+
+        # Loop through accounts saving passwords and questions
+        all_secrets = {}
+        for account_id in self.all_accounts():
+            account = self.get_account(account_id, quiet=True)
+            data = account.__dict__['data']
+            ID = account.__dict__['ID']
+            class_name = make_camel_case(ID)
+            output = [
+                'class %s(Account): # %s' % (class_name, '{''{''{1')
+            ]
+            # TODO -- must make ID a valid class name: convert xxx-xxx to camelcase
+            self.logger.debug("    Saving %s account." % ID)
+
+            try:
+                source_filepath = data['_source_file_']
+                dest_filepath = make_path(
+                    avendesora_dir, rel_path(source_filepath, self.settings_dir)
+                )
+                if source_filepath not in source_files:
+                    source_files.add(source_filepath)
+
+                    # get recipient ids from existing file
+                    if get_extension(source_filepath) in ['gpg', 'asc']:
+                        try:
+                            gpg = Execute(
+                                ['gpg', '--list-packets', source_filepath],
+                                stdout=True, wait=True
+                            )
+                            gpg_ids[dest_filepath] = []
+                            for line in gpg.stdout.split('\n'):
+                                if line.startswith(':pubkey enc packet:'):
+                                    words = line.split()
+                                    assert words[7] == 'keyid'
+                                    gpg_ids[dest_filepath].append(words[8])
+                        except ExecuteError as err:
+                            print(str(err))
+                    else:
+                        gpg_ids[dest_filepath] = None
+                    dest_files[dest_filepath] = [header % source_filepath]
+            except KeyError:
+                raise AssertionError('%s: SOURCE FILE MISSING.' % ID)
+            except IOError as err:
+                self.logger.error('%s: %s.' % (err.filename, err.strerror))
+
+            output.append("    NAME = %r" % ID)
+            password = self.generate_password(account)
+            output.append("    passcode = Hidden(%r)" % b2a_base64(
+                password.encode('ascii')).strip().decode('ascii')
+            )
+            questions = []
+            for question in account.get_security_questions():
+                # convert the result to a list rather than leaving it a tuple
+                # because tuples are formatted oddly in yaml
+                questions += [list(self.generate_answer(question, account))]
+                self.logger.debug(
+                    "    Saving question (%s) and its answer." % question)
+            if questions:
+                output.append("    questions = [")
+                for question, answer in questions:
+                    output.append("        Question(%r, answer=Hidden(%r))," % (
+                        question,
+                        b2a_base64(answer.encode('ascii')).strip().decode('ascii')
+                    ))
+                output.append("    ]")
+            if 'autotype' in data:
+                autotype = data['autotype'].replace('password', 'passcode')
+            else:
+                autotype = '{username}{tab}{password}{return}'
+            discovery = []
+            if 'url' in data:
+                discovery.append('RecognizeURL(%r, script=%r)' % (data['url'], autotype))
+            if 'window' in data:
+                discovery.append('RecognizeTitle(%r, script=%r)' % (data['window'], autotype))
+            if discovery:
+                output.append("    discovery = [")
+                for each in discovery:
+                    output.append("        %s," % each)
+                output.append("    ]")
+            for k, v in data.items():
+                if k in [
+                    'password',
+                    'security questions',
+                    '_source_file_',
+                    'autotype', # ???
+                    'window',   # ???
+                    'password-type',
+                    'master',
+                    'num-words',
+                    'num-chars',
+                    'alphabet',
+                    'template',
+                    'url',
+                    'version',
+                ]:
+                    continue
+                key = make_identifier(k)
+                output.append("    %s = %r" % (key, v))
+
+            output.append('')
+            output.append('')
+            dest_files[dest_filepath] += output
+
+
+        # ISSUE: this uses default gpg id to encrypt files. Need to take gpg ids
+        # from actual files
+        for filepath, contents in dest_files.items():
+            contents = '\n'.join(contents)
+            print('%s: writing.' % filepath)
+            mkdir(get_head(filepath))
+            # encrypt all files with default gpg ID
+            #if gpg_ids[filepath]:
+            #    gpg_id = gpg_ids[filepath]
+            if True:
+                if get_extension(filepath) not in ['gpg', 'asc']:
+                    filepath += '.gpg'
+                gpg_id = self.accounts.get_gpg_id()
+                encrypted = self.gpg.encrypt(
+                    contents, gpg_id, always_trust=True, armor=True
+                )
+                if not encrypted.ok:
+                    self.logger.error(
+                        "%s: unable to encrypt.\n%s" % (
+                            filename, encrypted.stderr))
+                contents = str(encrypted)
+            try:
+                with open(filepath, 'w') as f:
+                    f.write(contents)
+            except IOError as err:
+                self.logger.error('%s: %s.' % (err.filename, err.strerror))
 
 
 class PasswordError(Exception):

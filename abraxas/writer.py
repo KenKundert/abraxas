@@ -262,6 +262,8 @@ class TTY_Writer(Writer):
                     set(self.generator.account.get_data().keys()) -
                     set(ALL_FIELDS))
                 for field in fields:
+                    if field[0] == '_':
+                        continue
                     display_field(
                         field, self.generator.account.get_field(field))
             elif action[0] == 'password':

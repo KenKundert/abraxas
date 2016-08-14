@@ -3,6 +3,8 @@
 # Requires the python bindings for the GTK3 library.
 
 from __future__ import print_function
+import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
 
