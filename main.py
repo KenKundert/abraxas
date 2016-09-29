@@ -117,7 +117,7 @@ class CommandLine:
             help=("Archive all the secrets to %s." % make_path(
                 DEFAULT_SETTINGS_DIR, DEFAULT_ARCHIVE_FILENAME)))
         parser.add_argument(
-            '-e', '--avendesora', action='store_true',
+            '-e', '--export', action='store_true',
             help=("Export to Avendesora."))
         parser.add_argument(
             '--changed', action='store_true',
@@ -205,7 +205,7 @@ try:
         if cmd_line.archive:
             generator.archive_secrets()
             logger.terminate()
-        if cmd_line.avendesora:
+        if cmd_line.export:
             generator.avendesora_archive()
             logger.terminate()
 

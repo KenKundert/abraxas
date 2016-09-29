@@ -453,10 +453,25 @@ class PasswordGenerator:
         mkdir(avendesora_dir)
         header = dedent('''\
             # Translated Abraxas Accounts file (%s)
+            # vim: filetype=python sw=4 sts=4 et ai ff=unix fileencoding='utf8' :
+            #
+            # It is recommended that you not modify this file directly. Instead,
+            # if you wish to modify an account, copy it to an account file not
+            # associated with Abraxas and modify it there. Then, to avoid
+            # conflicts, add the account name to ~/.config/abraxas/do-not-export
+            # and re-export the accounts using 'abraxas --export'.
 
             from avendesora import Account, Hidden, Question, RecognizeURL, RecognizeTitle
 
         ''')
+
+        # read do-not-export file
+        try:
+            with open(make_path(self.settings_dir, 'do-not-export')) as f:
+                do_not_export = set(f.read().split())
+        except IOError as err:
+            do_not_export = set([])
+
         def make_camel_case(text):
             text = text.translate(str.maketrans('@.-', '   '))
             text = ''.join([e.title() for e in text.split()])
@@ -476,6 +491,11 @@ class PasswordGenerator:
             account = self.get_account(account_id, quiet=True)
             data = account.__dict__['data']
             ID = account.__dict__['ID']
+            #aliases = data.get('aliases', [])
+            #if set([ID] + aliases) & do_not_export:
+            if ID in do_not_export:
+                print('skipping', ID)
+                continue
             class_name = make_camel_case(ID)
             output = [
                 'class %s(Account): # %s' % (class_name, '{''{''{1')
@@ -508,7 +528,7 @@ class PasswordGenerator:
                             print(str(err))
                     else:
                         gpg_ids[dest_filepath] = None
-                    dest_files[dest_filepath] = [header % source_filepath]
+                    dest_files[dest_filepath] = {None: header % source_filepath}
             except KeyError:
                 raise AssertionError('%s: SOURCE FILE MISSING.' % ID)
             except IOError as err:
@@ -535,26 +555,34 @@ class PasswordGenerator:
                     ))
                 output.append("    ]")
             if 'autotype' in data:
-                autotype = data['autotype'].replace('password', 'passcode')
+                autotype = data['autotype'].replace('{password}', '{passcode}')
             else:
-                autotype = '{username}{tab}{password}{return}'
+                if 'username' in data:
+                    autotype = '{username}{tab}{passcode}{return}'
+                else:
+                    autotype = '{email}{tab}{passcode}{return}'
             discovery = []
             if 'url' in data:
-                discovery.append('RecognizeURL(%r, script=%r)' % (data['url'], autotype))
+                urls = [data['url']] if type(data['url']) == str else data['url']
+                discovery.append('RecognizeURL(%s, script=%r)' % (
+                    ', '.join([repr(e) for e in urls]), autotype
+                ))
             if 'window' in data:
-                discovery.append('RecognizeTitle(%r, script=%r)' % (data['window'], autotype))
+                windows = [data['window']] if type(data['window']) == str else data['window']
+                discovery.append('RecognizeTitle(%s, script=%r)' % (
+                    ', '.join([repr(e) for e in windows]), autotype
+                ))
             if discovery:
                 output.append("    discovery = [")
                 for each in discovery:
                     output.append("        %s," % each)
                 output.append("    ]")
+
             for k, v in data.items():
                 if k in [
                     'password',
                     'security questions',
                     '_source_file_',
-                    'autotype', # ???
-                    'window',   # ???
                     'password-type',
                     'master',
                     'num-words',
@@ -563,40 +591,58 @@ class PasswordGenerator:
                     'template',
                     'url',
                     'version',
+                    'autotype',
+                    'window',
                 ]:
                     continue
                 key = make_identifier(k)
-                output.append("    %s = %r" % (key, v))
+                if type(v) == str and '\n' in v:
+                    output.append('    %s = """' % key)
+                    for line in dedent(v.strip('\n')).split('\n'):
+                        if line:
+                            output.append('        %s' % line.rstrip())
+                        else:
+                            output.append('')
+                    output.append('    """')
+                else:
+                    output.append("    %s = %r" % (key, v))
 
             output.append('')
             output.append('')
-            dest_files[dest_filepath] += output
+            dest_files[dest_filepath][ID] = '\n'.join(output)
 
 
-        # ISSUE: this uses default gpg id to encrypt files. Need to take gpg ids
-        # from actual files
-        for filepath, contents in dest_files.items():
-            contents = '\n'.join(contents)
-            print('%s: writing.' % filepath)
-            mkdir(get_head(filepath))
-            # encrypt all files with default gpg ID
-            #if gpg_ids[filepath]:
-            #    gpg_id = gpg_ids[filepath]
-            if True:
-                if get_extension(filepath) not in ['gpg', 'asc']:
-                    filepath += '.gpg'
-                gpg_id = self.accounts.get_gpg_id()
-                encrypted = self.gpg.encrypt(
-                    contents, gpg_id, always_trust=True, armor=True
-                )
-                if not encrypted.ok:
-                    self.logger.error(
-                        "%s: unable to encrypt.\n%s" % (
-                            filename, encrypted.stderr))
-                contents = str(encrypted)
+        # This version uses default gpg id to encrypt files.
+        # Could also take gpg ids from actual files.
+        # The gpg ids are gathered from files above, but code to use them is
+        # currently commented out.
+        for filepath, accounts in dest_files.items():
             try:
+                header = accounts.pop(None)
+                contents = '\n'.join(
+                    [header] + [accounts[k] for k in sorted(accounts)]
+                )
+                mkdir(get_head(filepath))
+                os.chmod(get_head(filepath), 0o700)
+                print('%s: writing.' % filepath)
+                # encrypt all files with default gpg ID
+                #if gpg_ids[filepath]:
+                #    gpg_id = gpg_ids[filepath]
+                if True:
+                    if get_extension(filepath) not in ['gpg', 'asc']:
+                        filepath += '.gpg'
+                    gpg_id = self.accounts.get_gpg_id()
+                    encrypted = self.gpg.encrypt(
+                        contents, gpg_id, always_trust=True, armor=True
+                    )
+                    if not encrypted.ok:
+                        self.logger.error(
+                            "%s: unable to encrypt.\n%s" % (
+                                filename, encrypted.stderr))
+                    contents = str(encrypted)
                 with open(filepath, 'w') as f:
                     f.write(contents)
+                    os.chmod(filepath, 0o600)
             except IOError as err:
                 self.logger.error('%s: %s.' % (err.filename, err.strerror))
 
