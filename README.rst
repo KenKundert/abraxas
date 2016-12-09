@@ -2,9 +2,10 @@ Abraxas Collaborative Password Utility
 ======================================
 
 Be aware that Abraxas is being deprecated in favor of `Advendesora 
-<https://github.com/KenKundert/avendesora`_. The only new functionality that has 
-been added to Abraxas recently is the ability to export your accounts to 
-Avendesora (abraxas --export).
+<https://github.com/KenKundert/avendesora>`_. The only new functionality that 
+has been added to Abraxas recently is the ability to export your accounts to 
+Avendesora (abraxas --export). See the bottom of this file for instructions on 
+how to use this new feature.
 
 
 Introduction
