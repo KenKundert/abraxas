@@ -1,6 +1,12 @@
 Abraxas Collaborative Password Utility
 ======================================
 
+Be aware that Abraxas is being deprecated in favor of `Advendesora 
+<https://github.com/KenKundert/avendesora`_. The only new functionality that has 
+been added to Abraxas recently is the ability to export your accounts to 
+Avendesora (abraxas --export).
+
+
 Introduction
 ------------
 Abraxas is powerful password utility that can store or generate your passwords 
@@ -267,6 +273,48 @@ appropriate window titles to the account entry so that the appropriate account
 can be determined automatically from the window title. For example, with the 
 gmail account entered above, you can go to ``gmail.com``, select the username 
 field and then type ``Alt p`` to login.
+
+Exporting to Avendesora
+-----------------------
+
+Abraxas is no longer being developed and is being replaced by `Avendesora 
+<http://nurdletech.com/linux-utilities/avendesora/index.html>`_.  To facilitate 
+the transition to Avendesora the --export option has been added to Abraxas. To 
+use it, run::
+
+    abraxas --export
+
+This will result in ~/.config/abraxas/avendesora being created in your Abraxas 
+configuration directory. It contains all of your accounts converted to a form 
+that can be read by Avendesora. During the export process the passwords are 
+generated and saved in the Avendesora files. The intent is to give you access 
+these accounts from Avendesora, but exported versions are somewhat limited. The 
+expectation is that when you use these accounts and notice these limitation you 
+would manually move the accounts to Avendesora. After this has occurred, you 
+should add the names of the migrated accounts to ~/.config/abraxas/do-not-export 
+and re-export your accounts. In this way, those accounts will not show up twice 
+in Avendesora.
+
+Exporting your accounts does not actually link them to Avendesora. The best way 
+to do that is to go into your Avendesora configuration directory and create 
+symbolic links from this directory to each of the exported Abraxas accounts 
+files. Then add these files to your .accounts_files file.  For example, if you 
+export a single accounts file from Abraxas called *accounts.gpg*, then do the 
+following::
+
+    cd ~/.config/avendesora
+    ln -s ../abraxas/avendesora/accounts.gpg abraxas_accounts.gpg
+
+Then edit .accounts_files and add 'abraxas_accounts.gpg' to the *accounts_files* 
+list.
+
+Other than re-exporting your Abraxas accounts after migrating some of your 
+accounts to Avendesora (and so adding them to do-not-export) this process should 
+not need to be repeated. The symbolic links will point to the newly updated 
+files and so Avendesora will see the latest exports.  Only creating new account 
+files in Abraxas, which of course is discouraged, would require you to add 
+additional symbolic links.
+
 
    | Enjoy,
    |    -Ken
