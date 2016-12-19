@@ -3,4 +3,4 @@
 
 from runtests import runTests
 
-runTests(['main'], pythonCmd='python2')
+runTests(['main'], pythonVers='2')

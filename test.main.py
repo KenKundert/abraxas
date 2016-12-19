@@ -5,7 +5,8 @@
 # Imports (fold)
 from __future__ import print_function, division
 from runtests import (
-    cmdLineOpts, writeSummary, succeed, fail, info, status, warning
+    cmdLineOpts, writeSummary, succeed, fail, info, status, warning,
+    pythonCmd, coverageCmd
 )
 from abraxas import PasswordGenerator, PasswordError, Logging
 from abraxas.prefs import GPG_BINARY
@@ -15,7 +16,12 @@ import sys
 import os
 
 # Initialization (fold)
-fast, printSummary, printTests, printResults, colorize, parent = cmdLineOpts()
+fast, printSummary, printTests, printResults, colorize, parent, coverage = cmdLineOpts()
+if coverage is False:
+    python = pythonCmd()
+else:
+    python = coverageCmd(source=coverage)
+
 testsRun = 0
 failures = 0
 remove('./generated_settings')
