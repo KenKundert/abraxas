@@ -52,6 +52,10 @@ import argparse
 import gnupg
 import hashlib
 import os
+try:
+    maketrans = str.maketrans     # python3
+except AttributeError:
+    from string import maketrans  # python2
 
 
 class PasswordGenerator:
@@ -473,14 +477,14 @@ class PasswordGenerator:
             do_not_export = set([])
 
         def make_camel_case(text):
-            text = text.translate(str.maketrans('@.-', '   '))
+            text = text.translate(maketrans('@.-', '   '))
             text = ''.join([e.title() for e in text.split()])
             if text[0] in '0123456789':
                 text = '_' + text
             return text
 
         def make_identifier(text):
-            text = text.translate(str.maketrans('@.- ', '____'))
+            text = text.translate(maketrans('@.- ', '____'))
             if text[0] in '0123456789':
                 text = '_' + text
             return text
