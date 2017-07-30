@@ -457,7 +457,7 @@ class PasswordGenerator:
         mkdir(avendesora_dir)
         header = dedent('''\
             # Translated Abraxas Accounts file (%s)
-            # vim: filetype=python sw=4 sts=4 et ai ff=unix fileencoding='utf8' :
+            # vim: filetype=python sw=4 sts=4 et ai ff=unix fileencoding=utf-8 foldmethod=marker :
             #
             # It is recommended that you not modify this file directly. Instead,
             # if you wish to modify an account, copy it to an account file not

@@ -135,7 +135,7 @@ def fileIsWritable(filepath):
     else:
         path = os.path.split(filepath)
         dirpath = os.path.join(*path[:-1])
-        return os.path.isdir(dirpath) and os.access(filepath, os.W_OK)
+        return os.path.isdir(dirpath) and os.access(dirpath, os.W_OK)
 
 # Directory Utilities {{{2
 def dirIsReadable(dirpath):
