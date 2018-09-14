@@ -130,7 +130,7 @@ def fileIsWritable(filepath):
     If filepath exists, determine whether it is writable by user.
     If not, determine if directory is writable by user.
     """
-    if os.path.isfile(filepath) and os.access(filepath, os.W_OK):
+    if os.path.exists(filepath) and os.access(filepath, os.W_OK):
         return True
     else:
         path = os.path.split(filepath)
